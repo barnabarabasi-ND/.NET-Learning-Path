@@ -52,7 +52,7 @@ internal sealed class VehicleManagementApp
             Console.Write(prompt);
             var input = ReadUserInput();
 
-            if (int.TryParse(input, out int value) && value >= 0)
+            if (int.TryParse(input, out var value) && value >= 0)
             {
                 return value;
             }
@@ -84,9 +84,9 @@ internal sealed class VehicleManagementApp
 
     private static (string brand, string model, int year) ReadBaseVehicleProperties()
     {
-        string brand = ReadRequiredString("Brand: ");
-        string model = ReadRequiredString("Model: ");
-        int year = ReadNonNegativeInt("Year: ");
+        var brand = ReadRequiredString("Brand: ");
+        var model = ReadRequiredString("Model: ");
+        var year = ReadNonNegativeInt("Year: ");
 
         return (brand, model, year);
     }
@@ -167,7 +167,7 @@ internal sealed class VehicleManagementApp
         Console.WriteLine();
 
         var (brand, model, year) = ReadBaseVehicleProperties();
-        int numberOfDoors = ReadNonNegativeInt("Number of doors: ");
+        var numberOfDoors = ReadNonNegativeInt("Number of doors: ");
 
         Console.WriteLine();
 
@@ -188,7 +188,7 @@ internal sealed class VehicleManagementApp
         Console.WriteLine();
 
         var (brand, model, year) = ReadBaseVehicleProperties();
-        bool hasSidecar = ReadBool("Does it have a sidecar? (y/n): ");
+        var hasSidecar = ReadBool("Does it have a sidecar? (y/n): ");
 
         Console.WriteLine();
 
@@ -209,7 +209,7 @@ internal sealed class VehicleManagementApp
         Console.WriteLine();
 
         var (brand, model, year) = ReadBaseVehicleProperties();
-        int cargoCapacityKg = ReadNonNegativeInt("Cargo capacity in kilograms: ");
+        var cargoCapacityKg = ReadNonNegativeInt("Cargo capacity in kilograms: ");
 
         Console.WriteLine();
 
@@ -235,7 +235,7 @@ internal sealed class VehicleManagementApp
             return;
         }
 
-        for (int index = 0; index < _vehicles.Count; ++index)
+        for (var index = 0; index < _vehicles.Count; ++index)
         {
             var vehicle = _vehicles[index];
 

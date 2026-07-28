@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Collection/Collections.csproj" />
+  <Project Path="ConcurrentCollectionsDemo/ConcurrentCollectionsDemo.csproj" Id="e95feb46-035b-4c29-aba6-1c4354fdec3a" />
+  <Project Path="ConcurrentJobScheduler/ConcurrentJobScheduler.csproj" />
+  <Project Path="Dictionary/Dictionary.csproj" />
+  <Project Path="HashSet/HashSet.csproj" Id="1d674990-11e4-490e-af69-45a652a007ac" />
+  <Project Path="LinkedList/LinkedList.csproj" />
+</Solution>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Dynamically_Loading_Assemblies/Dynamically_Loading_Assemblies.csproj" />
+  <Project Path="Reflection/Reflection.csproj" />
+</Solution>

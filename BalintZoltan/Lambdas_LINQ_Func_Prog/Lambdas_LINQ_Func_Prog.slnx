@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="First_Class_Citizens/First_Class_Citizens.csproj" Id="96bb7234-4c87-480e-9938-20d38a3443bd" />
+  <Project Path="Func_Prog/Func_Prog.csproj" />
+  <Project Path="Lambda_Expressions/Lambda_Expressions.csproj" Id="abe15c09-3da8-40ea-8bc1-66971b33a88c" />
+  <Project Path="LINQ/LINQ.csproj" Id="a6c6c1ef-2350-4de8-b8fd-dae2c5075169" />
+</Solution>

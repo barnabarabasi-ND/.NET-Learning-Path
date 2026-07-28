@@ -10,7 +10,7 @@ internal class Bird : Animal, IFeedable, IFlyable
 
     public Bird(int id, string name, int age, double wingSpanCm) : base(id, name, age)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(wingSpanCm);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(wingSpanCm);
 
         WingSpanCm = wingSpanCm;
     }

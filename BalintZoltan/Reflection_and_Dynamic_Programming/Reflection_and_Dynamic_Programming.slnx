@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Attributes/Attributes.csproj" Id="ed00077d-aaee-41f3-b177-d5e6e3ca903f" />
+  <Project Path="Dynamically_Loading_Assemblies/Dynamically_Loading_Assemblies.csproj" />
+  <Project Path="Reflection/Reflection.csproj" />
+</Solution>

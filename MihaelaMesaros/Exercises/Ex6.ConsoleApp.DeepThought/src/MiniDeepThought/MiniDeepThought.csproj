@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Configurations\AlgorithmsKeys.cs" />
+    <Compile Remove="Configurations\JobStatus.cs" />
+    <Compile Remove="Configurations\MenuOptions.cs" />
+    <Compile Remove="Domain\JobResult.cs" />
+  </ItemGroup>
+
+</Project>

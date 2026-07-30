@@ -375,3 +375,78 @@ while (collConQ.TryTake(out var item))
 {
     Console.WriteLine($"Removed from ConcurrentQueue: {item}");
 }
+
+
+Console.WriteLine("-----------------------------");
+Console.WriteLine("Example read/write log file with BlockingCollection");
+
+BlockingCollection<string> bcLogs = new();
+
+//producer - generates log messages from multiple threads
+Task producerBC = Task.Run(() =>
+{
+    Parallel.For(0, 1000, i =>
+    {
+        bcLogs.Add($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} Thread {i}: started (BC)");
+    });
+
+    bcLogs.CompleteAdding(); // signal that no more items will be added to the collection
+});
+
+//consumer - writes log messages to a file
+Task consumerBC = Task.Run(() =>
+{
+    using var writer = new StreamWriter("TestBlockingCollection-Logs.txt", append: true);
+
+    //consumer sleeps when the collection is empty, and wakes up when new items are added
+    foreach (var message1 in bcLogs.GetConsumingEnumerable())
+    {
+        //Console.WriteLine($"writing: {message1}");
+        writer.WriteLine(message1);
+    }
+    //writer.Flush();
+});
+
+await Task.WhenAll(producerBC, consumerBC);
+
+Console.WriteLine($"Finished writing BlockingCollection logs");
+
+
+//comparing with ConcurrentBag, which does not have blocking capabilities
+//verifies periodically if the collection has items (polling)
+ConcurrentBag<string> cbLogs = new();
+
+//producer - generates log messages from multiple threads
+Task producerCB = Task.Run(() =>
+{
+    Parallel.For(0, 1000, i =>
+    {
+        cbLogs.Add($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} Thread {i}: started (CB)");
+    });
+});
+
+//consumer - writes log messages to a file
+Task consumerCB = Task.Run(async () =>
+{
+    using var writer = new StreamWriter("TestBlockingCollection-Logs.txt", append: true);
+
+    //waits for new items to be added, but does not block when the collection is empty, consuming cpu
+    while (!producerCB.IsCompleted || !cbLogs.IsEmpty)
+    {
+        if (cbLogs.TryTake(out var message2))
+        {
+            //Console.WriteLine($"writing: {message2}");
+            writer.WriteLine(message2);
+        }
+        else
+        {
+            //if the collection is empty wait for a short time before checking again to avoid busy waiting
+            await Task.Delay(1);
+        }
+    }
+    //writer.Flush();
+});
+
+await Task.WhenAll(producerCB, consumerCB);
+
+Console.WriteLine($"Finished writing ConcurrentBag logs");

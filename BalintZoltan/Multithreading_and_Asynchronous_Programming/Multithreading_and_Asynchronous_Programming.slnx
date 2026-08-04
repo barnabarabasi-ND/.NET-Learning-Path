@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Synchronization/Synchronization.csproj" Id="63995d01-246c-4ca6-959b-1c8dd57f9228" />
+  <Project Path="Task/Task.csproj" Id="f9ecf86a-7d0f-4f96-b1ce-b942b839bf15" />
+  <Project Path="Thread/Thread.csproj" />
+</Solution>

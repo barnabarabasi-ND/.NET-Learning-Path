@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Errors/Exceptions.csproj" />
+  <Project Path="Exception_2/Exception_2/Exception_2.csproj" />
+</Solution>

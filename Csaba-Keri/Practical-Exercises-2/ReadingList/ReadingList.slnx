@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ReadingList.Application/ReadingList.Application.csproj" />
+    <Project Path="src/ReadingList.ConsoleApp/ReadingList.ConsoleApp.csproj" />
+    <Project Path="src/ReadingList.Domain/ReadingList.Domain.csproj" />
+    <Project Path="src/ReadingList.Infrastructure/ReadingList.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ReadingList.Tests.NUnit/ReadingList.Tests.NUnit.csproj" Id="600c77d6-ea73-40a3-bf6e-f7e9d445cf55" />
+    <Project Path="tests/ReadingList.Tests.XUnit/ReadingList.Tests.XUnit.csproj" Id="857594ee-f3e6-4a97-87bc-7433719afcb5" />
+  </Folder>
+</Solution>

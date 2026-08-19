@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using VariousDemos.Services;
 
 namespace VariousDemos.Demos
@@ -16,8 +17,10 @@ namespace VariousDemos.Demos
         //we want only one instance - one shared semaphore for all requests
         private static readonly SemaphoreSlim logSemaphore = new SemaphoreSlim(1);
 
-        internal static async Task Run()
+        internal static async Task Run(ILogger<DemoFileStreamAsync> logger)
         {
+            logger.LogInformation("Starting DemoFileStreamAsync");
+
             string filePathAnimals = Path.Combine(appFolder, "animals.json");
             string filePathLog = Path.Combine(appFolder, fileNameLog);
             string filePathLogCompressed = Path.Combine(appFolder, fileNameLogCompressed);
@@ -112,10 +115,12 @@ namespace VariousDemos.Demos
                 var tasksSemaphore = listAnimals.Select(async animal =>
                 {
                     Console.WriteLine($"{animal.Name} -> WAITING for semaphore | Available: {semaphore.CurrentCount} | Thread: {Environment.CurrentManagedThreadId}");
+                    logger.LogInformation("{AnimalName} -> WAITING for semaphore | Available: {Available} | Thread: {ThreadId}", animal.Name, semaphore.CurrentCount, Environment.CurrentManagedThreadId);
 
                     await semaphore.WaitAsync(); //--->max 2 operations continue after this line, others will wait for semaphore to be released; doen't block the thread
 
                     Console.WriteLine($"{animal.Name} -> ENTERED semaphore | Available: {semaphore.CurrentCount} | Thread: {Environment.CurrentManagedThreadId}");
+                    logger.LogInformation("{AnimalName} -> ENTERED semaphore | Available: {Available} | Thread: {ThreadId}", animal.Name, semaphore.CurrentCount, Environment.CurrentManagedThreadId);
 
 
                     try
@@ -190,18 +195,22 @@ namespace VariousDemos.Demos
             catch (FileNotFoundException ex)
             {
                 Console.WriteLine($"File not found: {ex.Message}");
+                logger.LogError(ex, "File not found: {Message}", ex.Message);
             }
             catch (JsonException ex)
             {
                 Console.WriteLine($"Invalid JSON: {ex.Message}");
+                logger.LogError(ex, "Invalid JSON: {Message}", ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
+                logger.LogError(ex, "General error: {Message}", ex.Message);
             }
             finally
             {
                 Console.WriteLine("\nApplication finished.");
+                logger.LogInformation("Application finished.");
             }
         }
 

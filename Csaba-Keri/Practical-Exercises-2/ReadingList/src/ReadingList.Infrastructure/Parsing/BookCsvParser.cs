@@ -1,14 +1,39 @@
 ﻿using ReadingList.Application.Common;
-using ReadingList.Application.Interfaces.Parsing;
+using ReadingList.Application.Interfaces;
 using ReadingList.Domain.Entities;
 using ReadingList.Infrastructure.Parsing.Extensions;
 using System.Globalization;
 
 namespace ReadingList.Infrastructure.Parsing;
 
-public class BookCsvParser : IBookParser
+public class BookCsvParser : IBookCsvParser
 {
-    private const int ExpectedFieldCount = 8;
+    private static readonly string[] ExpectedHeader = [
+        "Id",
+        "Title",
+        "Author",
+        "Year",
+        "Pages",
+        "Genre",
+        "Finished",
+        "Rating"
+    ];
+
+    public bool HasValidHeader(string headerLine)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(headerLine);
+
+        var result = CsvLineParser.Parse(headerLine);
+
+        if (result.IsFailure)
+        {
+            return false;
+        }
+
+        var fields = result.Value;
+
+        return fields.SequenceEqual(ExpectedHeader, StringComparer.OrdinalIgnoreCase);
+    }
 
     public Result<Book> Parse(string line)
     {
@@ -28,49 +53,49 @@ public class BookCsvParser : IBookParser
 
         var fields = fieldsResult.Value;
 
-        if (fields.Count != ExpectedFieldCount)
+        if (fields.Count != ExpectedHeader.Length)
         {
             return Result<Book>.Failure(
-                $"Expected {ExpectedFieldCount} fields but found {fields.Count}."
+                $"Expected {ExpectedHeader.Length} fields but found {fields.Count}."
             );
         }
 
-        if (!TryParsePositiveInt(fields[0], "Id", out var id, out var errorMessage))
+        if (!TryParsePositiveInt(fields[0], ExpectedHeader[0], out var id, out var errorMessage))
         {
             return Result<Book>.Failure(errorMessage!);
         }
 
         if (string.IsNullOrWhiteSpace(fields[1])) {
-            return Result<Book>.Failure("Title cannot be empty.");
+            return Result<Book>.Failure($"{ExpectedHeader[1]} cannot be empty.");
         }
 
         if (string.IsNullOrWhiteSpace(fields[2])) {
-            return Result<Book>.Failure("Author cannot be empty.");
+            return Result<Book>.Failure($"{ExpectedHeader[2]} cannot be empty.");
         }
 
-        if (!TryParsePositiveInt(fields[3], "Year", out var year, out errorMessage))
+        if (!TryParsePositiveInt(fields[3], ExpectedHeader[3], out var year, out errorMessage))
         {
             return Result<Book>.Failure(errorMessage!);
         }
 
-        if (!TryParsePositiveInt(fields[4], "Pages", out var pages, out errorMessage))
+        if (!TryParsePositiveInt(fields[4], ExpectedHeader[4], out var pages, out errorMessage))
         {
             return Result<Book>.Failure(errorMessage!);
         }
 
         if (string.IsNullOrWhiteSpace(fields[5]))
         {
-            return Result<Book>.Failure("Genre cannot be empty.");
+            return Result<Book>.Failure($"{ExpectedHeader[5]} cannot be empty.");
         }
 
         if (!fields[6].TryParseFinished(out var finished))
         {
-            return Result<Book>.Failure($"Invalid Finished value '{fields[6]}'.");
+            return Result<Book>.Failure($"Invalid {ExpectedHeader[6]} value '{fields[6]}'.");
         }
 
         if (!decimal.TryParse(fields[7], NumberStyles.Number, CultureInfo.InvariantCulture, out var rating))
         {
-            return Result<Book>.Failure($"Invalid Rating value '{fields[7]}'.");
+            return Result<Book>.Failure($"Invalid {ExpectedHeader[7]} value '{fields[7]}'.");
         }
 
         if (rating is < Book.MinimumRating or > Book.MaximumRating)

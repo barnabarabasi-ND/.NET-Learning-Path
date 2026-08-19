@@ -1,4 +1,4 @@
-﻿using ReadingList.Application.Interfaces.Repositories;
+﻿using ReadingList.Application.Interfaces;
 
 namespace ReadingList.Infrastructure.Repositories;
 

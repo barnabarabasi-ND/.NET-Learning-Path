@@ -13,18 +13,18 @@ public static class CsvLineParser
         var currentField = new StringBuilder();
         var insideQuotes = false;
 
-        for (var i = 0; i < line.Length; i++)
+        for (var currentCharIdx = 0; currentCharIdx < line.Length; currentCharIdx++)
         {
-            var currentCharacter = line[i];
+            var currentChar = line[currentCharIdx];
 
-            if (currentCharacter == '"')
+            if (currentChar == '"')
             {
                 if (insideQuotes &&
-                    i + 1 < line.Length &&
-                    line[i + 1] == '"')
+                    currentCharIdx + 1 < line.Length &&
+                    line[currentCharIdx + 1] == '"')
                 {
-                    currentField.Append(currentCharacter);
-                    i++;
+                    currentField.Append(currentChar);
+                    currentCharIdx++;
                     continue;
                 }
 
@@ -32,14 +32,14 @@ public static class CsvLineParser
                 continue;
             }
 
-            if (currentCharacter == ',' && !insideQuotes)
+            if (currentChar == ',' && !insideQuotes)
             {
                 fields.Add(currentField.ToString().Trim());
                 currentField.Clear();
                 continue;
             }
 
-            currentField.Append(currentCharacter);
+            currentField.Append(currentChar);
         }
 
         if (insideQuotes)

@@ -1,4 +1,4 @@
-﻿namespace ReadingList.Application.Interfaces.Repositories;
+﻿namespace ReadingList.Application.Interfaces;
 
 public interface IRepository<T, TKey>
     where T : class

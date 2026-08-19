@@ -6,6 +6,7 @@
     <Project Path="src/ReadingList.Infrastructure/ReadingList.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ReadingList.Tests.Common/ReadingList.Tests.Common.csproj" Id="eeecc37e-20db-4fcc-b904-43014828f6d5" />
     <Project Path="tests/ReadingList.Tests.NUnit/ReadingList.Tests.NUnit.csproj" Id="600c77d6-ea73-40a3-bf6e-f7e9d445cf55" />
     <Project Path="tests/ReadingList.Tests.XUnit/ReadingList.Tests.XUnit.csproj" Id="857594ee-f3e6-4a97-87bc-7433719afcb5" />
   </Folder>

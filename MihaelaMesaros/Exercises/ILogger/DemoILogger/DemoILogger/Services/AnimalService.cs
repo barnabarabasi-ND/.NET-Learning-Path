@@ -34,7 +34,7 @@ namespace DemoILogger.Services
 
             if (animal.Age < 0)
             {
-                //_logger.LogWarning("Animal {Name} has an invalid age: {Age}", animal.Name, animal.Age);
+                _logger.LogWarning("Animal {Name} has an invalid age: {Age}", animal.Name, animal.Age);
             }
 
             //structured logging, not string.format, no string interpolation

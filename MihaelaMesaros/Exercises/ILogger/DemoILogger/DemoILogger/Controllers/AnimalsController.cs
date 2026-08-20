@@ -35,34 +35,5 @@ namespace DemoILogger.Controllers
             });
         }
 
-        //[HttpGet("getdog")]
-        //public IActionResult GetDog()
-        //{
-        //    Animal animal = new Dog
-        //    {
-        //        Name = "Rex",
-        //        Age = 5,
-        //        IsTrained = true
-        //    };
-
-        //    string result = _animalService.MakeAnimalSpeak(animal);
-
-        //    return Ok(result);
-        //}
-
-        //[HttpGet("getcat")]
-        //public IActionResult GetCat()
-        //{
-        //    Animal animal = new Cat
-        //    {
-        //        Name = "Kitty",
-        //        Age = 3,
-        //        IsIndoor = true
-        //    };
-
-        //    string result = _animalService.MakeAnimalSpeak(animal);
-
-        //    return Ok(result);
-        //}
     }
 }

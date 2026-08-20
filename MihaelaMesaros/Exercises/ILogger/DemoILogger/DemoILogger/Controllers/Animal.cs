@@ -1,5 +1,4 @@
-﻿using DemoILogger.Models;
-using DemoILogger.Services;
+﻿using DemoILogger.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoILogger.Controllers
@@ -27,7 +26,6 @@ namespace DemoILogger.Controllers
 
             var speak = _animalService.MakeAnimalSpeak(animal);
 
-            //anonymous object, serialized as json
             return Ok(new
             {
                 animal.Id,

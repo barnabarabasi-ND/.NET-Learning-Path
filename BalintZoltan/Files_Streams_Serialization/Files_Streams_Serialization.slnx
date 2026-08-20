@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Files/Files.csproj" />
+  <Project Path="Serialization/Serialization.csproj" />
+  <Project Path="Stream/Stream.csproj" />
+</Solution>

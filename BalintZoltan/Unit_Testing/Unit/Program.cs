@@ -1,6 +1,4 @@
-﻿
-Console.WriteLine("Hello, World!");
-
+﻿Console.WriteLine("Hello, World!");
 
 public class Calculator
 {
@@ -16,19 +14,28 @@ public class BankAccount
 
     public BankAccount(decimal balance)
     {
-        Balance = balance;
+        if (balance < 0)
+        {
+            balance = 0;
+        }
+        else
+        {
+            Balance = balance;
+        }
     }
 
     public void Deposit(decimal amount)
     {
-        Balance += amount;
+        if (amount >= 0)
+        {
+            Balance += amount;
+        }
     }
     public void Withdraw(decimal amount)
     {
-        if (Balance >= amount)
-        {  
+        if ((Balance >= amount) && (amount > 0))
+        {
             Balance -= amount;
         }
     }
 }
-

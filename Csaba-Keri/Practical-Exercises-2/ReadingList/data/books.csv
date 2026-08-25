@@ -1,0 +1,5 @@
+Id,Title,Author,Year,Pages,Genre,Finished,Rating
+1,"Clean Code","Robert C. Martin",2008,464,"Software",yes,4.5
+2,"The Hobbit","J.R.R. Tolkien",1937,310,"Fantasy",no,4.8
+1,"Duplicate Book","Another Author",2020,100,"Test",yes,3
+3,"Broken Book","Author",not-a-year,200,"Test",yes,4

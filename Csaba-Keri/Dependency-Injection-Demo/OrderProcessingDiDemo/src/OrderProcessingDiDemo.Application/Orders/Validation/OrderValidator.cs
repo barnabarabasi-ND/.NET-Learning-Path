@@ -4,35 +4,38 @@ namespace OrderProcessingDiDemo.Application.Orders.Validation;
 
 public class OrderValidator : IOrderValidator
 {
-    private readonly List<string> _errors = [];
-
     public OrderValidationResult Validate(CreateOrderCommand command)
     {
-        ValidateCustomerEmail(command.CustomerEmail);
-        ValidateLines(command.Lines);
+        var errors = new List<string>();
 
-        return new(_errors);
+        ValidateCustomerEmail(command.CustomerEmail, errors);
+        ValidateLines(command.Lines, errors);
+
+        return new(errors);
     }
 
-    private void ValidateCustomerEmail(string customerEmail)
+    private static void ValidateCustomerEmail(string customerEmail, List<string> errors)
     {
         if (string.IsNullOrWhiteSpace(customerEmail))
         {
-            _errors.Add("CustomerEmail is required.");
+            errors.Add("CustomerEmail is required.");
             return;
         }
 
         if (!MailAddress.TryCreate(customerEmail, out _))
         {
-            _errors.Add("CustomerEmail must be a valid email address.");
+            errors.Add("CustomerEmail must be a valid email address.");
         }
     }
 
-    private void ValidateLines(IReadOnlyCollection<CreateOrderLineCommand> lines)
+    private static void ValidateLines(
+        IReadOnlyCollection<CreateOrderLineCommand> lines,
+        List<string> errors
+    )
     {
         if (lines.Count == 0)
         {
-            _errors.Add("At least one order line is required.");
+            errors.Add("At least one order line is required.");
             return;
         }
 
@@ -40,12 +43,12 @@ public class OrderValidator : IOrderValidator
         {
             if (line.ProductId <= 0)
             {
-                _errors.Add("ProductId must be greater than zero.");
+                errors.Add("ProductId must be greater than zero.");
             }
 
             if (line.Quantity <= 0)
             {
-                _errors.Add($"Quantity must be greater than zero for product '{line.ProductId}'.");
+                errors.Add($"Quantity must be greater than zero for product '{line.ProductId}'.");
             }
         }
     }

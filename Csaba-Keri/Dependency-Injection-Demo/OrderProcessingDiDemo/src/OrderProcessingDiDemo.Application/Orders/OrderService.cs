@@ -20,6 +20,8 @@ public class OrderService(
         CancellationToken cancellationToken
     )
     {
+        ArgumentNullException.ThrowIfNull(command);
+
         ValidateAndThrowIfFailed(command);
 
         var lines = command.Lines
@@ -41,6 +43,8 @@ public class OrderService(
 
     public async Task<OrderResult?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+
         var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
 
         return order is null

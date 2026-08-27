@@ -2,6 +2,7 @@
 using OrderProcessingDiDemo.Application.Orders;
 using OrderProcessingDiDemo.Application.Orders.Validation;
 using OrderProcessingDiDemo.WebApi.Contracts;
+using System.ComponentModel.DataAnnotations;
 
 namespace OrderProcessingDiDemo.WebApi.Controllers;
 
@@ -44,7 +45,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<OrderResponse>> GetOrderById(
-        int id,
+        [Range(1, int.MaxValue)] int id,
         CancellationToken cancellationToken
     )
     {

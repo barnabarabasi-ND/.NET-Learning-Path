@@ -1,12 +1,18 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MiniStoreDemo.Data;
-using MiniStoreDemo.ExceptionHandling;
-using MiniStoreDemo.Repositories;
-using MiniStoreDemo.Services;
+using Microsoft.IdentityModel.Tokens;
+using MiniStoreDemo.Api.ExceptionHandling;
+using MiniStoreDemo.Application.Abstractions.Authentication;
+using MiniStoreDemo.Application.Abstractions.Persistence;
+using MiniStoreDemo.Application.Services;
+using MiniStoreDemo.Domain.Entities;
+using MiniStoreDemo.Infrastructure.Authentication;
+using MiniStoreDemo.Infrastructure.Data;
+using MiniStoreDemo.Infrastructure.Persistence;
+using MiniStoreDemo.Infrastructure.Repositories;
 using Serilog;
 using Serilog.Events;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 
@@ -19,56 +25,59 @@ var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperatio
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured.");
 
 
-// Add services to the container.
+// Configure database access with EF Core
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(dbConnectionString));
 
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
 
+// Register application and data access dependencies
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductQueryRepository, ProductQueryRepository>();
 builder.Services.AddScoped<IProductCommandRepository, ProductCommandRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
-
+// Configure JWT Bearer authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
-
-            ValidateAudience = true,
-            ValidAudience = jwtAudience,
-
-            ValidateLifetime = true,
-
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
-    });
-
-builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ManageProducts", policy => policy.RequireRole("Admin"));
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+
+        ValidateLifetime = true,
+
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
 });
 
+// Configure authorization policies
+builder.Services.AddAuthorizationBuilder().AddPolicy("ManageProducts", policy => policy.RequireRole("Admin"));
 
-//register services which are necessary to generate API documentation
-//builder.Services.AddOpenApi();
 
-
-//configure log file in BaseDirectory
+// Configure log file paths
 string logFolder = builder.Configuration["LoggingSettings:LogFolder"] ?? throw new InvalidOperationException("LoggingSettings > LogFolder is not configured.");
 string logFileNameInfo = builder.Configuration["LoggingSettings:LogFileNameInfo"] ?? throw new InvalidOperationException("LoggingSettings > LogFileNameInfo is not configured.");
 string logFileNameError = builder.Configuration["LoggingSettings:LogFileNameError"] ?? throw new InvalidOperationException("LoggingSettings > LogFileNameError is not configured.");
-//string logFileNameAudit = builder.Configuration["LoggingSettings:LogFileNameAudit"] ?? throw new InvalidOperationException("LoggingSettings > LogFileNameAudit is not configured.");
 
 string logPathInfo = Path.Combine(AppContext.BaseDirectory, logFolder, logFileNameInfo);
 string logPathError = Path.Combine(AppContext.BaseDirectory, logFolder, logFileNameError);
+
+// TODO: Add dedicated audit logging
+//string logFileNameAudit = builder.Configuration["LoggingSettings:LogFileNameAudit"] ?? throw new InvalidOperationException("LoggingSettings > LogFileNameAudit is not configured.");
 //string logPathAudit = Path.Combine(AppContext.BaseDirectory, logFolder, logFileNameAudit);
+
+
 
 builder.Host.UseSerilog((context, configuration) =>
 {
@@ -90,29 +99,38 @@ builder.Host.UseSerilog((context, configuration) =>
                 retainedFileCountLimit: 90));
 });
 
+// Configure centralized exception handling
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+// Configure Swagger documentation
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
 
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var httpsUrl = app.Urls.FirstOrDefault(url => url.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
+
+    Console.WriteLine($"Base URL: {httpsUrl}");
+});
+
+// Handle unhandled exceptions centrally
 app.UseExceptionHandler();
 
-//log HTTP requests and responses
+// Log HTTP request completion information
 app.UseSerilogRequestLogging();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    //exposes the generated OpenAPI document through an endpoint
-    app.MapOpenApi();
-    //app.UseSwagger();
-    //app.UseSwaggerUI();
-}
+// Expose Swagger UI
+//if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+// Authenticate the user before evaluating authorization policies
 app.UseAuthentication();
 app.UseAuthorization();
 

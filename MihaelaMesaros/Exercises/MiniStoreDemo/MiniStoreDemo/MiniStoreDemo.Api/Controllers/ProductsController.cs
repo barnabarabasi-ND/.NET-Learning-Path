@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniStoreDemo.Common;
-using MiniStoreDemo.DTOs;
-using MiniStoreDemo.Services;
+using MiniStoreDemo.Api.Common;
+using MiniStoreDemo.Application.DTOs;
+using MiniStoreDemo.Application.Services;
 
-namespace MiniStoreDemo.Controllers;
+namespace MiniStoreDemo.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IProductService productService, ILogger<ProductsController> logger) : ControllerBase
+public class ProductsController(IProductService productService) : ControllerBase
 {
 
     // GET /api/products

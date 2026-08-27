@@ -2,7 +2,7 @@
 
 namespace OrderProcessingDiDemo.Infrastructure.Time;
 
-public class SystemClock : IClock
+public class Clock : IClock
 {
     public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
 }

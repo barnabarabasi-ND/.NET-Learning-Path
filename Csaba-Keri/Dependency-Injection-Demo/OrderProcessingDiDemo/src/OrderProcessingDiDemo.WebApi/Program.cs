@@ -20,7 +20,7 @@ internal static class Program
 
         builder.Services.AddInfrastructure(builder.Configuration);
 
-        builder.Services.AddSingleton<IClock, SystemClock>();
+        builder.Services.AddSingleton<IClock, Clock>();
 
         builder.Services.AddTransient<IOrderValidator, OrderValidator>();
 
@@ -33,10 +33,9 @@ internal static class Program
 
         using (var scope = app.Services.CreateScope())
         {
-            var database = scope.ServiceProvider
-                .GetRequiredService<OrderDbContext>();
-
-            database.Database.EnsureCreated();
+            scope.ServiceProvider
+                .GetRequiredService<OrderDbContext>()
+                .Database.EnsureCreated();
         }
 
         app.MapControllers();

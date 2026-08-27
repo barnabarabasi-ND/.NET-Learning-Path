@@ -11,7 +11,6 @@ namespace MiniStoreDemo.Api.Controllers;
 public class ProductsController(IProductService productService) : ControllerBase
 {
 
-    // GET /api/products
     [Authorize]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -31,7 +30,6 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(products);
     }
 
-    // GET /api/products/5
     [Authorize]
     [HttpGet("{id:int}", Name = "GetProductById")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -44,8 +42,6 @@ public class ProductsController(IProductService productService) : ControllerBase
 
         if (product is null)
         {
-            //logger.LogInformation("Product #{ProductId} was not found.", id);
-
             return NotFound();
         }
 

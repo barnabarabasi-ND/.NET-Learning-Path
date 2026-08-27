@@ -10,7 +10,11 @@ namespace MiniStoreDemo.Api.Controllers;
 [Route("api/[controller]")]
 public class ProductsController(IProductService productService) : ControllerBase
 {
-
+    /// <summary>
+    /// Retrieves a list of products based on the provided query parameters.
+    /// </summary>
+    /// <param name="queryParameters">Filter and pagination parameters for querying products.</param>
+    /// <returns>A list of products matching the query parameters.</returns>
     [Authorize]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -30,6 +34,11 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(products);
     }
 
+    /// <summary>
+    /// Retrieves a specific product by its Id.
+    /// </summary>
+    /// <param name="id">The Id of product to retrieve.</param>
+    /// <returns>The product matching the specified Id.</returns>
     [Authorize]
     [HttpGet("{id:int}", Name = "GetProductById")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -48,6 +57,11 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(product);
     }
 
+    /// <summary>
+    /// Adds a new product.
+    /// </summary>
+    /// <param name="productDto">The product data to create.</param>
+    /// <returns>The created product.</returns>
     [HttpPost]
     [Authorize(Policy = "ManageProducts")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -70,6 +84,12 @@ public class ProductsController(IProductService productService) : ControllerBase
         return CreatedAtRoute("GetProductById", new { id = createdProduct.ProductId }, createdProduct);
     }
 
+    /// <summary>
+    /// Updates an existing product by its Id.
+    /// </summary>
+    /// <param name="id">The Id of product to update.</param>
+    /// <param name="productDto">The updated product data.</param>
+    /// <returns>The updated product.</returns>
     [HttpPut("{id:int}")]
     [Authorize(Policy = "ManageProducts")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -91,6 +111,12 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(result.Value);
     }
 
+    /// <summary>
+    /// Partially updates an existing product by its Id.
+    /// </summary>
+    /// <param name="id">The Id of the product to update.</param>
+    /// <param name="productDto">The updated product data.</param>
+    /// <returns>The updated product.</returns>
     [HttpPatch("{id:int}")]
     [Authorize(Policy = "ManageProducts")]
     [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
@@ -108,6 +134,11 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(result.Value);
     }
 
+    /// <summary>
+    /// Deletes an existing product by its Id.
+    /// </summary>
+    /// <param name="id">The Id of the product to delete.</param>
+    /// <returns>No content if the deletion is successful.</returns>
     [HttpDelete("{id:int}")]
     [Authorize(Policy = "ManageProducts")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

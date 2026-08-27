@@ -8,21 +8,14 @@ namespace MiniStoreDemo.Application.Services;
 
 public sealed class AuthService(IUserRepository userRepository, ITokenService tokenService, IPasswordHasher<User> passwordHasher) : IAuthService
 {
-    public async Task<LoginResponseDto?> LoginAsync(
-        LoginDto loginDto,
-        CancellationToken cancellationToken)
+    public async Task<LoginResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByUsernameAsync(
-            loginDto.Username,
-            cancellationToken);
+        var user = await userRepository.GetByUsernameAsync(loginDto.Username.Trim(), cancellationToken);
 
         if (user is null || !user.IsActive)
             return null;
 
-        var verificationResult = passwordHasher.VerifyHashedPassword(
-            user,
-            user.PasswordHash,
-            loginDto.Password);
+        var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
 
         if (verificationResult == PasswordVerificationResult.Failed)
             return null;

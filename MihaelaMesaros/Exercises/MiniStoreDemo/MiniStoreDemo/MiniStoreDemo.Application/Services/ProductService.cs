@@ -1,6 +1,7 @@
 ﻿using MiniStoreDemo.Application.Abstractions.Persistence;
 using MiniStoreDemo.Application.Common;
 using MiniStoreDemo.Application.DTOs;
+using MiniStoreDemo.Application.Exceptions;
 using MiniStoreDemo.Domain.Entities;
 
 namespace MiniStoreDemo.Application.Services;
@@ -43,7 +44,7 @@ public class ProductService : IProductService
 
         if (!categoryExists)
         {
-            return Result<ProductDto>.Failure(new Error("Category.NotFound", $"Category with ID {createProductDto.CategoryId} does not exist.", ErrorType.Validation));
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Category.NotFound, $"Category with ID {createProductDto.CategoryId} does not exist.", ErrorType.Validation));
         }
 
         //check if exists another product with same name and category
@@ -51,7 +52,7 @@ public class ProductService : IProductService
 
         if (productExists)
         {
-            return Result<ProductDto>.Failure(new Error("Product.AlreadyExists", $"Product '{createProductDto.ProductName}' already exists in this category.", ErrorType.Conflict));
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.AlreadyExists, $"Product '{createProductDto.ProductName}' already exists in this category.", ErrorType.Conflict));
         }
 
         var product = new Product
@@ -63,7 +64,15 @@ public class ProductService : IProductService
             IsActive = createProductDto.IsActive
         };
 
-        var createdProductId = await _commandRepository.AddProductAsync(product, cancellationToken);
+        int createdProductId;
+        try
+        {
+            createdProductId = await _commandRepository.AddProductAsync(product, cancellationToken);
+        }
+        catch (DuplicateEntityException)
+        {
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.AlreadyExists, $"Product '{createProductDto.ProductName}' already exists in this category.", ErrorType.Conflict));
+        }
 
         if (createdProductId <= 0)
         {
@@ -90,14 +99,14 @@ public class ProductService : IProductService
 
         if (!categoryExists)
         {
-            return Result<ProductDto>.Failure(new Error("Category.NotFound", $"Category with ID {updateProductDto.CategoryId} does not exist.", ErrorType.Validation));
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Category.NotFound, $"Category with ID {updateProductDto.CategoryId} does not exist.", ErrorType.Validation));
         }
 
         var productExists = await _queryRepository.CheckProductExistsAsync(updateProductDto.ProductName, updateProductDto.CategoryId, id, cancellationToken);
 
         if (productExists)
         {
-            return Result<ProductDto>.Failure(new Error("Product.AlreadyExists", $"Product '{updateProductDto.ProductName}' already exists in this category.", ErrorType.Conflict));
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.AlreadyExists, $"Product '{updateProductDto.ProductName}' already exists in this category.", ErrorType.Conflict));
         }
 
         existingProduct.ProductName = updateProductDto.ProductName;
@@ -107,7 +116,15 @@ public class ProductService : IProductService
         existingProduct.IsActive = updateProductDto.IsActive;
         existingProduct.ModifiedAt = DateTime.UtcNow;
 
-        var updated = await _commandRepository.UpdateProductAsync(existingProduct, cancellationToken);
+        bool updated;
+        try
+        {
+            updated = await _commandRepository.UpdateProductAsync(existingProduct, cancellationToken);
+        }
+        catch (DuplicateEntityException)
+        {
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.AlreadyExists, $"Product '{updateProductDto.ProductName}' already exists in this category.", ErrorType.Conflict));
+        }
 
         if (!updated)
         {
@@ -127,52 +144,29 @@ public class ProductService : IProductService
 
         if (existingProduct is null)
         {
-            return Result<ProductDto>.Failure(new Error("Product.NotFound", $"Product with ID {id} does not exist.", ErrorType.NotFound));
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.NotFound, $"Product with ID {id} does not exist.", ErrorType.NotFound));
         }
 
         var productName = patchProductDto.ProductName ?? existingProduct.ProductName;
-
         var categoryId = patchProductDto.CategoryId ?? existingProduct.CategoryId;
 
-        if (patchProductDto.CategoryId.HasValue)
+        var validationResult = await ValidatePatchAsync(patchProductDto, productName, categoryId, id, cancellationToken);
+        if (validationResult is not null)
         {
-            var categoryExists = await _categoryRepository.CheckCategoryExistsAsync(patchProductDto.CategoryId.Value, cancellationToken);
-
-            if (!categoryExists)
-            {
-                return Result<ProductDto>.Failure(new Error("Category.NotFound", $"Category with ID {patchProductDto.CategoryId} does not exist.", ErrorType.Validation));
-            }
+            return validationResult;
         }
 
-        if (patchProductDto.ProductName is not null || patchProductDto.CategoryId.HasValue)
+        ApplyPatchToProduct(existingProduct, patchProductDto);
+
+        bool updated;
+        try
         {
-            var productExists = await _queryRepository.CheckProductExistsAsync(productName, categoryId, id, cancellationToken);
-
-            if (productExists)
-            {
-                return Result<ProductDto>.Failure(new Error("Product.AlreadyExists", $"Product '{productName}' already exists in this category.", ErrorType.Conflict));
-            }
+            updated = await _commandRepository.PatchProductAsync(existingProduct, patchProductDto, cancellationToken);
         }
-
-
-        if (patchProductDto.ProductName is not null)
-            existingProduct.ProductName = patchProductDto.ProductName;
-
-        if (patchProductDto.ProductDescription is not null)
-            existingProduct.ProductDescription = patchProductDto.ProductDescription;
-
-        if (patchProductDto.ProductPrice.HasValue)
-            existingProduct.ProductPrice = patchProductDto.ProductPrice.Value;
-
-        if (patchProductDto.CategoryId.HasValue)
-            existingProduct.CategoryId = patchProductDto.CategoryId.Value;
-
-        if (patchProductDto.IsActive.HasValue)
-            existingProduct.IsActive = patchProductDto.IsActive.Value;
-        
-        existingProduct.ModifiedAt = DateTime.UtcNow;
-
-        var updated = await _commandRepository.PatchProductAsync(existingProduct, patchProductDto, cancellationToken);
+        catch (DuplicateEntityException)
+        {
+            return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.AlreadyExists, $"Product '{productName}' already exists in this category.", ErrorType.Conflict));
+        }
 
         if (!updated)
         {
@@ -186,15 +180,58 @@ public class ProductService : IProductService
             : Result<ProductDto>.Success(MapProductToDto(updatedProduct));
     }
 
-    public async Task<Result> DeleteProductAsync(
-    int id,
-    CancellationToken cancellationToken)
+    private async Task<Result<ProductDto>?> ValidatePatchAsync(PatchProductDto patchProductDto, string productName, int categoryId, int excludeProductId, CancellationToken cancellationToken)
+    {
+        if (patchProductDto.CategoryId.HasValue)
+        {
+            var categoryExists = await _categoryRepository.CheckCategoryExistsAsync(patchProductDto.CategoryId.Value, cancellationToken);
+
+            if (!categoryExists)
+            {
+                return Result<ProductDto>.Failure(new Error(ErrorCodes.Category.NotFound, $"Category with ID {patchProductDto.CategoryId} does not exist.", ErrorType.Validation));
+            }
+        }
+
+        if (patchProductDto.ProductName is not null || patchProductDto.CategoryId.HasValue)
+        {
+            var productExists = await _queryRepository.CheckProductExistsAsync(productName, categoryId, excludeProductId, cancellationToken);
+
+            if (productExists)
+            {
+                return Result<ProductDto>.Failure(new Error(ErrorCodes.Product.AlreadyExists, $"Product '{productName}' already exists in this category.", ErrorType.Conflict));
+            }
+        }
+
+        return null;
+    }
+
+    private static void ApplyPatchToProduct(Product product, PatchProductDto patchProductDto)
+    {
+        if (patchProductDto.ProductName is not null)
+            product.ProductName = patchProductDto.ProductName;
+
+        if (patchProductDto.ProductDescription is not null)
+            product.ProductDescription = patchProductDto.ProductDescription;
+
+        if (patchProductDto.ProductPrice.HasValue)
+            product.ProductPrice = patchProductDto.ProductPrice.Value;
+
+        if (patchProductDto.CategoryId.HasValue)
+            product.CategoryId = patchProductDto.CategoryId.Value;
+
+        if (patchProductDto.IsActive.HasValue)
+            product.IsActive = patchProductDto.IsActive.Value;
+
+        product.ModifiedAt = DateTime.UtcNow;
+    }
+
+    public async Task<Result> DeleteProductAsync(int id, CancellationToken cancellationToken)
     {
         var deleted = await _commandRepository.DeleteProductAsync(id, cancellationToken);
 
         if (!deleted)
         {
-            return Result.Failure(new Error("Product.NotFound", $"Product with ID {id} does not exist.", ErrorType.NotFound));
+            return Result.Failure(new Error(ErrorCodes.Product.NotFound, $"Product with ID {id} does not exist.", ErrorType.NotFound));
         }
 
         return Result.Success();

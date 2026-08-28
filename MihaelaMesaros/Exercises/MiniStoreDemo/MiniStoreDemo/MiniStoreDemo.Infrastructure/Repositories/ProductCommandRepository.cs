@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MiniStoreDemo.Application.Abstractions.Persistence;
+using MiniStoreDemo.Application.Exceptions;
 using MiniStoreDemo.Domain.Entities;
 using MiniStoreDemo.Application.DTOs;
+using MiniStoreDemo.Infrastructure.Helpers;
 using MiniStoreDemo.Infrastructure.Persistence;
 
 namespace MiniStoreDemo.Infrastructure.Repositories;
 
-public sealed class ProductCommandRepository : MiniStoreDemo.Application.Abstractions.Persistence.IProductCommandRepository
+public sealed class ProductCommandRepository : IProductCommandRepository
 {
     private readonly AppDbContext _dbContext;
 
@@ -21,7 +23,14 @@ public sealed class ProductCommandRepository : MiniStoreDemo.Application.Abstrac
     {
         _dbContext.Products.Add(product);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateEntityException(nameof(Product));
+        }
 
         return product.ProductId;
     }
@@ -39,9 +48,15 @@ public sealed class ProductCommandRepository : MiniStoreDemo.Application.Abstrac
         entry.Property(p => p.IsActive).IsModified = true;
         entry.Property(p => p.ModifiedAt).IsModified = true;
 
-        var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return affectedRows > 0;
+        try
+        {
+            var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
+            return affectedRows > 0;
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateEntityException(nameof(Product));
+        }
     }
 
     public async Task<bool> PatchProductAsync(Product product, PatchProductDto patchProductDto, CancellationToken cancellationToken)
@@ -67,9 +82,15 @@ public sealed class ProductCommandRepository : MiniStoreDemo.Application.Abstrac
 
         entry.Property(p => p.ModifiedAt).IsModified = true;
 
-        var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return affectedRows > 0;
+        try
+        {
+            var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
+            return affectedRows > 0;
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateEntityException(nameof(Product));
+        }
     }
 
     public async Task<bool> DeleteProductAsync(int id, CancellationToken cancellationToken)

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace MiniStoreDemo.Infrastructure.Authentication;
 
-public sealed class JwtTokenService(IConfiguration configuration) : ITokenService
+public sealed class JwtTokenService(IConfiguration configuration, TimeProvider timeProvider) : ITokenService
 {
     public LoginResponseDto GenerateToken(User user)
     {
@@ -17,7 +17,7 @@ public sealed class JwtTokenService(IConfiguration configuration) : ITokenServic
         var audience = configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured.");
         var key = configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured.");
 
-        var expiresAt = DateTime.UtcNow.AddMinutes(30);
+        var expiresAt = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(30);
 
         var claims = new[]
         {

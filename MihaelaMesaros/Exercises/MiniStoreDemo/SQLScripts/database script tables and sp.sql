@@ -40,23 +40,6 @@ CREATE TABLE [dbo].[Products](
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [dbo].[Roles]    Script Date: 08/27/2026 08:22:03 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND type in (N'U'))
-BEGIN
-CREATE TABLE [dbo].[Roles](
-	[RoleId] [smallint] IDENTITY(1,1) NOT NULL,
-	[Role] [varchar](10) NULL,
- CONSTRAINT [PK_Roles] PRIMARY KEY CLUSTERED 
-(
-	[RoleId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-END
-GO
 /****** Object:  Table [dbo].[Users]    Script Date: 08/27/2026 08:22:03 ******/
 SET ANSI_NULLS ON
 GO
@@ -235,7 +218,7 @@ BEGIN
             OR ProductName LIKE '%' + @Keyword + '%'
             OR ProductDescription LIKE '%' + @Keyword + '%'
         )
-    ORDER BY ProductName
+    ORDER BY ProductName, ProductId
     OFFSET (@PageNumber - 1) * @PageSize ROWS
     FETCH NEXT @PageSize ROWS ONLY;
 END
@@ -285,7 +268,7 @@ GO
 -- Description:	Get user by username.
 -- =============================================
 /*
-exec User_GetByUsername 'admin'
+exec User_GetByUsername 'administrator'
 */
 ALTER   PROCEDURE [dbo].[User_GetByUsername]
     @Username NVARCHAR(100)
@@ -293,7 +276,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT *
+    SELECT UserId, Username, PasswordHash, [Role], IsActive, CreatedAt
     FROM Users
     WHERE Username = @Username;
 END

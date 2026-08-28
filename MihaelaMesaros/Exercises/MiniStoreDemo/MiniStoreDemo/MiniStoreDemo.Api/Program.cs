@@ -31,6 +31,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(dbCo
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+builder.Services.AddSingleton(TimeProvider.System); //used for tests on JwtTokenService
 
 // Register application and data access dependencies
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -72,11 +73,6 @@ string logFileNameError = builder.Configuration["LoggingSettings:LogFileNameErro
 
 string logPathInfo = Path.Combine(AppContext.BaseDirectory, logFolder, logFileNameInfo);
 string logPathError = Path.Combine(AppContext.BaseDirectory, logFolder, logFileNameError);
-
-// TODO: Add dedicated audit logging
-//string logFileNameAudit = builder.Configuration["LoggingSettings:LogFileNameAudit"] ?? throw new InvalidOperationException("LoggingSettings > LogFileNameAudit is not configured.");
-//string logPathAudit = Path.Combine(AppContext.BaseDirectory, logFolder, logFileNameAudit);
-
 
 
 builder.Host.UseSerilog((context, configuration) =>
@@ -129,10 +125,12 @@ app.UseExceptionHandler();
 // Log HTTP request completion information
 app.UseSerilogRequestLogging();
 
-// Expose Swagger UI
-//if (app.Environment.IsDevelopment())
-app.UseSwagger();
-app.UseSwaggerUI();
+// Expose Swagger documentation and UI only in Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 

@@ -4,8 +4,10 @@ namespace MiniStoreDemo.Application.DTOs;
 
 public class PatchProductDto
 {
+    [MaxLength(200)]
     public string? ProductName { get; set; }
 
+    [MaxLength(500)]
     public string? ProductDescription { get; set; }
 
     [Range(0.01, double.MaxValue)]

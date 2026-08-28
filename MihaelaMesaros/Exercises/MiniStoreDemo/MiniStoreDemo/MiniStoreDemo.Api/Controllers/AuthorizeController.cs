@@ -5,6 +5,10 @@ using MiniStoreDemo.Application.Services;
 
 namespace MiniStoreDemo.Api.Controllers;
 
+/// <summary>
+/// Controller responsible for handling user authorization and authentication.
+/// </summary>
+/// <param name="authService">The authentication service used for user login.</param>
 [ApiController]
 [Route("api/authorize")]
 public sealed class AuthorizeController(IAuthService authService) : ControllerBase
@@ -13,6 +17,7 @@ public sealed class AuthorizeController(IAuthService authService) : ControllerBa
     /// Login endpoint for user authentication.
     /// </summary>
     /// <param name="loginDto">The login credentials of the user.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The login response containing the authentication token.</returns>
     [AllowAnonymous]
     [HttpPost("login")]

@@ -6,17 +6,15 @@ public class CreateProductDto
 {
     [Required]
     [MaxLength(200)]
-    public string ProductName { get; set; } = null!;
+    public string ProductName { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(1000)]
-    public string? ProductDescription { get; set; }
+    [MaxLength(500)]
+    public string ProductDescription { get; set; } = string.Empty;
 
-    [Required]
     [Range(0.01, double.MaxValue)]
     public decimal ProductPrice { get; set; }
 
-    [Required]
     [Range(1, int.MaxValue)]
     public int CategoryId { get; set; }
 

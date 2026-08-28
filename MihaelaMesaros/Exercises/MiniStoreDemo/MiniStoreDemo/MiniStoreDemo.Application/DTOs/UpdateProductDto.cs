@@ -9,19 +9,17 @@ public class UpdateProductDto
 
     [Required]
     [MaxLength(200)]
-    public string ProductName { get; set; } = null!;
+    public string ProductName { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(1000)]
-    public string? ProductDescription { get; set; }
-    
-    [Required]
+    [MaxLength(500)]
+    public string ProductDescription { get; set; } = string.Empty;
+
     [Range(0.01, double.MaxValue)]
     public decimal ProductPrice { get; set; }
-    
-    [Required]
+
     [Range(1, int.MaxValue)]
     public int CategoryId { get; set; }
 
-    public bool IsActive { get; set; } = false;
+    public bool IsActive { get; set; }
 }

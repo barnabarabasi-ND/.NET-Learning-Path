@@ -6,6 +6,10 @@ using MiniStoreDemo.Application.Services;
 
 namespace MiniStoreDemo.Api.Controllers;
 
+/// <summary>
+/// Controller responsible for handling product-related operations.
+/// </summary>
+/// <param name="productService">The service used to manage products.</param>
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController(IProductService productService) : ControllerBase
@@ -14,6 +18,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// Retrieves a list of products based on the provided query parameters.
     /// </summary>
     /// <param name="queryParameters">Filter and pagination parameters for querying products.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A list of products matching the query parameters.</returns>
     [Authorize]
     [HttpGet]
@@ -38,6 +43,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// Retrieves a specific product by its Id.
     /// </summary>
     /// <param name="id">The Id of product to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The product matching the specified Id.</returns>
     [Authorize]
     [HttpGet("{id:int}", Name = "GetProductById")]
@@ -61,6 +67,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// Adds a new product.
     /// </summary>
     /// <param name="productDto">The product data to create.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The created product.</returns>
     [HttpPost]
     [Authorize(Policy = "ManageProducts")]
@@ -89,6 +96,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// </summary>
     /// <param name="id">The Id of product to update.</param>
     /// <param name="productDto">The updated product data.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The updated product.</returns>
     [HttpPut("{id:int}")]
     [Authorize(Policy = "ManageProducts")]
@@ -116,6 +124,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// </summary>
     /// <param name="id">The Id of the product to update.</param>
     /// <param name="productDto">The updated product data.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The updated product.</returns>
     [HttpPatch("{id:int}")]
     [Authorize(Policy = "ManageProducts")]
@@ -138,6 +147,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// Deletes an existing product by its Id.
     /// </summary>
     /// <param name="id">The Id of the product to delete.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>No content if the deletion is successful.</returns>
     [HttpDelete("{id:int}")]
     [Authorize(Policy = "ManageProducts")]

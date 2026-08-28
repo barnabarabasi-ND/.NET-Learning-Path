@@ -6,11 +6,14 @@ public static class OrderMappings
 {
     public static CreateOrderCommand ToCommand(this CreateOrderRequest request)
     {
-        var lines = request.Lines
-            .Select(ToResponse)
+        var lines = (request.Lines ?? [])
+            .Select(ToCommand)
             .ToArray();
 
-        return new(request.CustomerEmail, lines);
+        return new(
+            request.CustomerEmail ?? string.Empty,
+            lines
+        );
     }
 
     public static OrderResponse ToResponse(this OrderResult result)
@@ -28,7 +31,7 @@ public static class OrderMappings
         );
     }
 
-    private static CreateOrderLineCommand ToResponse(CreateOrderLineRequest request)
+    private static CreateOrderLineCommand ToCommand(CreateOrderLineRequest request)
     {
         return new(request.ProductId, request.Quantity);
     }

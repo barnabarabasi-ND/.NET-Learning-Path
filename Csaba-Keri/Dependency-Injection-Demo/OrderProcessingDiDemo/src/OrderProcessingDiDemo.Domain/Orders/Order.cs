@@ -10,7 +10,13 @@ public class Order
 
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public List<OrderLine> Lines { get; private set; } = [];
+    private List<OrderLine> _lines = [];
+
+    public IReadOnlyCollection<OrderLine> Lines
+    {
+        get => _lines.AsReadOnly();
+        private set => _lines = [.. value];
+    }
 
     private Order()
     {
@@ -19,7 +25,7 @@ public class Order
 
     private Order(
         string customerEmail,
-        List<OrderLine> lines,
+        IReadOnlyCollection<OrderLine> lines,
         DateTimeOffset createdAt
     )
     {
@@ -37,15 +43,12 @@ public class Order
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(customerEmail);
         ArgumentNullException.ThrowIfNull(lines);
-        ArgumentNullException.ThrowIfNull(createdAt);
 
-        var materializedLines = lines.ToList();
-
-        if (materializedLines.Count == 0)
+        if (lines.Count == 0)
         {
             throw new ArgumentException("An order must contain at least one line.");
         }
 
-        return new Order(customerEmail, materializedLines, createdAt);
+        return new(customerEmail, lines, createdAt);
     }
 }

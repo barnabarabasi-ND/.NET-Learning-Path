@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OrderProcessingDiDemo.Application/OrderProcessingDiDemo.Application.csproj" Id="dea2265c-e070-453c-aa27-a4c7060f21a4" />
+    <Project Path="src/OrderProcessingDiDemo.Domain/OrderProcessingDiDemo.Domain.csproj" Id="7ae34a24-b1c5-4bb1-8b6a-827ded78ba46" />
+    <Project Path="src/OrderProcessingDiDemo.Infrastructure/OrderProcessingDiDemo.Infrastructure.csproj" Id="9bb3f19e-5397-4cc7-92d7-0d491bd014d7" />
+    <Project Path="src/OrderProcessingDiDemo.WebApi/OrderProcessingDiDemo.WebApi.csproj" Id="a2011c76-bba5-438e-895d-6f08513d78e0" />
+  </Folder>
+</Solution>

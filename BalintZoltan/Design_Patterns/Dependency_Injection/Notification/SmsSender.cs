@@ -8,6 +8,7 @@ public class SmsSender : INotificationSender
     public void Send(Order order, string message)
     {
         ArgumentNullException.ThrowIfNull(order);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
         Console.WriteLine($"SMS sent to {order.CustomerPhone}: {message}");
     }
 }

@@ -11,6 +11,7 @@ public class FakeSender : INotificationSender
     public void Send(Order order, string message)
     {
         ArgumentNullException.ThrowIfNull(order);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
         LastRecipient = order.CustomerEmail;
         LastRecipient = LastRecipient + " " + order.CustomerPhone;
         Console.WriteLine("Last Recipient :" + LastRecipient);

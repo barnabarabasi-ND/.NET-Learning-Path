@@ -1,5 +1,5 @@
 ﻿using Modell.NotificationFactory;
-using Modell.OrderService;
+using Modell.Service;
 
 var factory = new NotificationFactory();
 var order = new OrderService(factory);

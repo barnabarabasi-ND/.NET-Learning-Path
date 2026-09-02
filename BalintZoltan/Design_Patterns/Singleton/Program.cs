@@ -1,5 +1,4 @@
 ﻿using Model.AppConfiguration;
-Console.WriteLine("Hello, World!");
 
 var config1 = AppConfiguration.Instance;
 var config2 = AppConfiguration.Instance;

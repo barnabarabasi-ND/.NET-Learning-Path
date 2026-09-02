@@ -6,7 +6,6 @@ public class NotificationFactory
 {
     public INotification Create(string notificationType)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(notificationType);
         return notificationType switch
         {
             "email" => new EmailNotification(),

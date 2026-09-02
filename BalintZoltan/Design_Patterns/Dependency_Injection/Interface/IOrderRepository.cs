@@ -1,6 +1,6 @@
 ﻿namespace Interface.Repository;
 
-using Modell.Order;
+using Model.Order;
 public interface IOrderRepository
 {
     void Save(Order order);

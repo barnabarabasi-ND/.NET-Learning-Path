@@ -1,6 +1,6 @@
-﻿namespace Modell.Service;
+﻿namespace Model.Service;
 
-using Modell.NotificationFactory;
+using Model.NotificationFactory;
 public class OrderService
 {
     private readonly NotificationFactory _factory;

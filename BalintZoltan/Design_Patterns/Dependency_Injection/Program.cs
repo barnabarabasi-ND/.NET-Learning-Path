@@ -3,7 +3,7 @@ using Dependency_Injection.Repositories;
 using Dependency_Injection.Service;
 using Interface.Repository;
 using Interface.Sender;
-using Modell.Order;
+using Model.Order;
 
 IOrderRepository repository = //new SqlOrderRepository();
                               new FakeOrderRepository();

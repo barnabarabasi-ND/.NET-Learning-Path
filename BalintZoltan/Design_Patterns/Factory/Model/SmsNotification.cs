@@ -1,4 +1,4 @@
-﻿namespace Modell.Notifications;
+﻿namespace Model.Notifications;
 
 using Interface.INotification;
 public class SmsNotification : INotification

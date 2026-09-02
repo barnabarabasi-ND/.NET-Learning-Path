@@ -1,7 +1,7 @@
 ﻿namespace Dependency_Injection.Repositories;
 
 using Interface.Repository;
-using Modell.Order;
+using Model.Order;
 public class SqlOrderRepository : IOrderRepository
 {
     public void Save(Order order)

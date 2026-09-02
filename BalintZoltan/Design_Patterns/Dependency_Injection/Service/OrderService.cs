@@ -2,7 +2,7 @@
 
 using Interface.Sender;
 using Interface.Repository;
-using Modell.Order;
+using Model.Order;
 public class OrderService
 {
     private readonly IOrderRepository _repository;

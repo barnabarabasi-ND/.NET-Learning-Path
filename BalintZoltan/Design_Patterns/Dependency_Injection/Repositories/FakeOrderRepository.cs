@@ -1,7 +1,7 @@
 ﻿namespace Dependency_Injection.Repositories;
 
 using Interface.Repository;
-using Modell.Order;
+using Model.Order;
 public class FakeOrderRepository : IOrderRepository
 {
     public Order? SavedOrder { get; private set; }

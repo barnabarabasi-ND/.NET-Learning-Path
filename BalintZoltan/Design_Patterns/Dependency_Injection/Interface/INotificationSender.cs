@@ -1,6 +1,6 @@
 ﻿namespace Interface.Sender;
 
-using Modell.Order;
+using Model.Order;
 public interface INotificationSender
 {
     void Send(Order order, string message);

@@ -1,7 +1,7 @@
-﻿namespace Modell.NotificationFactory;
+﻿namespace Model.NotificationFactory;
 
 using Interface.INotification;
-using Modell.Notifications;
+using Model.Notifications;
 public class NotificationFactory
 {
     public INotification Create(string notificationType)

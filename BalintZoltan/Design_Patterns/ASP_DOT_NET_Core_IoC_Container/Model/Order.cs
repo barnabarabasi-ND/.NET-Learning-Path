@@ -1,4 +1,4 @@
-﻿namespace Model.Order;
+﻿namespace ASP_DOT_NET_Core_IoC_Container.Models;
 public class Order
 {
     private int _id;

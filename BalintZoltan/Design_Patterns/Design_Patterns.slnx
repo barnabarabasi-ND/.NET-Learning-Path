@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="ASP_DOT_NET_Core_IoC_Container/ASP_DOT_NET_Core_IoC_Container.csproj" Id="bc3b0317-1455-4a5c-b3ed-db8a90dd3249" />
   <Project Path="Dependency_Injection/Dependency_Injection.csproj" Id="e710c98b-5b44-4f2e-8217-ce1e0b1d40c4" />
   <Project Path="Factory/Factory.csproj" Id="801d84da-baf7-46e7-ab0b-2b2dde2c39cf" />
   <Project Path="Object_Pool/Object_Pool.csproj" Id="bb3f9ba5-171c-4fdd-8fd2-3cd7b8a315f6" />

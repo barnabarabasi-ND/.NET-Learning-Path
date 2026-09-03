@@ -1,6 +1,6 @@
-﻿namespace Interface.Repository;
+﻿namespace ASP_DOT_NET_Core_IoC_Container.Interfaces;
 
-using Model.Order;
+using ASP_DOT_NET_Core_IoC_Container.Models;
 public interface IOrderRepository
 {
     void Save(Order order);

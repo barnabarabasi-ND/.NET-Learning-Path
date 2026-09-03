@@ -1,19 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Dependency_Injection.Notification;
-using Dependency_Injection.Repositories;
-using Dependency_Injection.Service;
-using Interface.Repository;
-using Interface.Sender;
-using Model.Order;
+using ASP_DOT_NET_Core_IoC_Container.Notification;
+using ASP_DOT_NET_Core_IoC_Container.Repositories;
+using ASP_DOT_NET_Core_IoC_Container.Services;
+using ASP_DOT_NET_Core_IoC_Container.Interfaces;
+using ASP_DOT_NET_Core_IoC_Container.Models;
 
 var services = new ServiceCollection();
 
-services.AddSingleton<IOrderRepository, SqlOrderRepository>();
-//services.AddSingleton<IOrderRepository, FakeOrderRepository>();
+services.AddTransient<IOrderRepository, SqlOrderRepository>();
+//services.AddTransient<IOrderRepository, FakeOrderRepository>();
 
-services.AddSingleton<INotificationSender, EmailSender>();
-//services.AddSingleton<INotificationSender, SmsSender>();
-//services.AddSingleton<INotificationSender, FakeSender>();
+services.AddTransient<INotificationSender, EmailSender>();
+//services.AddTransient<INotificationSender, SmsSender>();
+//services.AddTransient<INotificationSender, FakeSender>();
 
 services.AddTransient<OrderService>();
 

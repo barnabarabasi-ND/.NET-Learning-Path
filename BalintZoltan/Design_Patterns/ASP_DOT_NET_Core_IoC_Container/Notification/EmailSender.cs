@@ -1,6 +1,6 @@
-﻿namespace Dependency_Injection.Notification;
-using Interface.Sender;
-using Model.Order;
+﻿namespace ASP_DOT_NET_Core_IoC_Container.Notification;
+using ASP_DOT_NET_Core_IoC_Container.Interfaces;
+using ASP_DOT_NET_Core_IoC_Container.Models;
 public class EmailSender : INotificationSender
 {
     public void Send(Order order, string message)

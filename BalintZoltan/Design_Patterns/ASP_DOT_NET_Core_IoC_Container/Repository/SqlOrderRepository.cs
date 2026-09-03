@@ -1,6 +1,6 @@
-﻿namespace Dependency_Injection.Repositories;
-using Interface.Repository;
-using Model.Order;
+﻿namespace ASP_DOT_NET_Core_IoC_Container.Repositories;
+using ASP_DOT_NET_Core_IoC_Container.Interfaces;
+using ASP_DOT_NET_Core_IoC_Container.Models;
 public class SqlOrderRepository : IOrderRepository
 {
     public void Save(Order order)

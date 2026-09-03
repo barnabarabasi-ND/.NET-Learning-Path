@@ -1,7 +1,6 @@
-﻿namespace Dependency_Injection.Service;
-using Interface.Sender;
-using Interface.Repository;
-using Model.Order;
+﻿namespace ASP_DOT_NET_Core_IoC_Container.Services;
+using ASP_DOT_NET_Core_IoC_Container.Interfaces;
+using ASP_DOT_NET_Core_IoC_Container.Models;
 public class OrderService
 {
     private readonly IOrderRepository _repository;

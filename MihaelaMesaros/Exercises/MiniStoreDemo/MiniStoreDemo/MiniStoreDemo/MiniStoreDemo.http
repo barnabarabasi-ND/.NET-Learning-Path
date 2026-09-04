@@ -1,0 +1,31 @@
+@MiniStoreDemo_HostAddress = http://localhost:7206
+
+
+### Get all products
+
+GET {{MiniStoreDemo_HostAddress}}/api/products
+Accept: application/json
+
+### Get product by id
+
+GET {{MiniStoreDemo_HostAddress}}/api/products/1
+Accept: application/json
+
+### Get all categories
+
+GET {{MiniStoreDemo_HostAddress}}/api/categories
+Accept: application/json
+
+### Create product
+
+POST {{MiniStoreDemo_HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Logitech MX Master 3S",
+  "description": "Wireless mouse",
+  "price": 499.99,
+  "stock": 20,
+  "categoryId": 3,
+  "isActive": true
+}

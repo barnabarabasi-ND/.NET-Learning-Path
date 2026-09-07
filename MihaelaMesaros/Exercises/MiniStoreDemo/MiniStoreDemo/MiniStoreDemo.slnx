@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MiniStoreDemo.Api/MiniStoreDemo.Api.csproj" Id="1ddb284a-7f5b-4fca-88d2-d497ef212766" />
+  <Project Path="MiniStoreDemo.Application/MiniStoreDemo.Application.csproj" Id="100dccb5-f6c0-4f7a-b535-378c516df661" />
+  <Project Path="MiniStoreDemo.Domain/MiniStoreDemo.Domain.csproj" Id="b1347b76-fdfc-4ae1-8fbd-6dc5c8730bec" />
+  <Project Path="MiniStoreDemo.Infrastructure/MiniStoreDemo.Infrastructure.csproj" Id="056416d8-ad09-4f91-b93d-7b74dabd9662" />
+</Solution>

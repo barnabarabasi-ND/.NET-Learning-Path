@@ -61,3 +61,9 @@ MihaelaMesaros/Exercises/Ex6.ConsoleApp.DeepThought/src/MiniDeepThought/.vs/
 .vs/
 **bin/
 **obj/
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal
+*.db-journal

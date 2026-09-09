@@ -1,7 +1,7 @@
 ﻿namespace Application.Services;
 
 using Application.Abstractions;
-using Application.DTOs.Clients;
+using Application.DTO.Clients;
 using Domain.Entities;
 
 public class ClientService : IClientService

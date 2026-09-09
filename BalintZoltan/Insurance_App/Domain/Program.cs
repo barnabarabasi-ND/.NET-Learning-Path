@@ -5,6 +5,17 @@ Console.WriteLine(new string('=', 60));
 
 try
 {
+    var country = new Country("Romania");
+    var county = new County(country.Id, "Mures");
+    var city = new City(county.Id, "Targu Mures", "540000");
+
+    PrintCountry(country);
+    Console.WriteLine();
+    PrintCounty(county);
+    Console.WriteLine();
+    PrintCity(city);
+    Console.WriteLine();
+
     var client = new Client(
         ClientType.Individual,
         "Jon Doe",
@@ -15,15 +26,11 @@ try
 
     PrintClient(client);
 
-    var firstCityId = Guid.NewGuid();
-    var secondCityId = Guid.NewGuid();
-
-    // A client can own multiple buildings.
     var buildings = new List<Building>
     {
         new Building(
             client.Id,
-            firstCityId,
+            city.Id,
             "Calea Victoriei",
             "10",
             1985,
@@ -34,7 +41,7 @@ try
 
         new Building(
             client.Id,
-            secondCityId,
+            city.Id,
             "Strada Florilor",
             "25A",
             2005,
@@ -50,7 +57,7 @@ try
     foreach (var building in buildings)
     {
         PrintBuilding(building);
-
+        Console.WriteLine();
     }
 
     Console.WriteLine("\nUpdating client:");
@@ -58,7 +65,7 @@ try
     client.UpdateContactDetails(
         "jon.doe@updated-email.com",
         "+40722222222",
-        "Bucharest");
+        "Bucurest");
 
     client.ChangeName("Jonathan Doe");
     client.ChangeType(ClientType.Company);
@@ -71,7 +78,7 @@ try
     var buildingToUpdate = buildings[0];
 
     buildingToUpdate.UpdateAddress(
-        secondCityId,
+        city.Id,
         "Strada Libertatii",
         "42");
 
@@ -88,7 +95,7 @@ try
 
     PrintBuilding(buildingToUpdate);
 
-    
+
 }
 catch (ArgumentException exception)
 {
@@ -96,19 +103,51 @@ catch (ArgumentException exception)
         $"Unexpected validation error: {exception.Message}");
 }
 
+void PrintCountry(Country country)
+{
+    Console.WriteLine($"Country Id: {country.Id}");
+    Console.WriteLine($"Country name: {country.Name}");
+}
 
+void PrintCounty(County county)
+{
+    Console.WriteLine($"County Id: {county.Id}");
+    Console.WriteLine($"CountryId: {county.CountryId}");
+    Console.WriteLine($"County name: {county.Name}");
+}
+
+void PrintCity(City city)
+{
+    Console.WriteLine($"City Id: {city.Id}");
+    Console.WriteLine($"CountyId: {city.CountyId}");
+    Console.WriteLine($"City name: {city.Name}");
+    Console.WriteLine($"Postal code: {city.PostalCode}");
+}
 
 void PrintClient(Client client)
 {
-    Console.Write($"Name: {client.Name,-20}");
-    Console.Write($"Type: {client.Type,-20}");
-    Console.Write($"GUI: {client.IdentificationNumber,-20}");
-    Console.WriteLine($"Address: {client.Address,-20}");
+    Console.WriteLine($"Client Id: {client.Id}");
+    Console.WriteLine($"Name: {client.Name}");
+    Console.WriteLine($"Type: {client.Type}");
+    Console.WriteLine($"Identification number: {client.IdentificationNumber}");
+    Console.WriteLine($"Email: {client.Email ?? "-"}");
+    Console.WriteLine($"Phone: {client.Phone ?? "-"}");
+    Console.WriteLine($"Address: {client.Address ?? "-"}");
 }
+
 void PrintBuilding(Building building)
 {
-    Console.Write($"Owner: {building.ClientId,-20}");
-    Console.Write($"Type: {building.Type,-20}");
-    Console.Write($"GUI: {building.Id,-20}");
-    Console.WriteLine($"Address: {building.Street} {building.Number,-20}");
+    Console.WriteLine($"Building Id: {building.Id}");
+    Console.WriteLine($"Owner ClientId: {building.ClientId}");
+    Console.WriteLine($"CityId: {building.CityId}");
+    Console.WriteLine($"Type: {building.Type}");
+    Console.WriteLine($"Address: {building.Street} {building.Number}");
+    Console.WriteLine($"Construction year: {building.ConstructionYear}");
+    Console.WriteLine($"Number of floors: {building.NumberOfFloors}");
+    Console.WriteLine($"Surface area: {building.SurfaceArea} m²");
+    Console.WriteLine($"Insured value: {building.InsuredValue:N0}");
+    Console.WriteLine($"Flood risk zone: {building.IsFloodRiskZone}");
+    Console.WriteLine($"Earthquake risk zone: {building.IsEarthquakeRiskZone}");
 }
+
+

@@ -1,115 +1,150 @@
-﻿using Domain.Entities;
+﻿using Application.Abstractions;
+using Application.DTO.Buildings;
+using Application.DTO.Clients;
+using Application.DTO.Geography;
+using Application.Services;
+using Domain.Entities;
 using Domain.Enums;
-Console.WriteLine("Insurance App - Client / Building local test");
+
+Console.WriteLine("Insurance App - Application local test");
 Console.WriteLine(new string('=', 60));
+
+var clientRepository = new InMemoryClientRepository();
+var buildingRepository = new InMemoryBuildingRepository();
+var geographyRepository = new InMemoryGeographyRepository();
+
+var clientService = new ClientService(clientRepository);
+var buildingService = new BuildingService(buildingRepository);
+var geographyService = new GeographyService(geographyRepository);
 
 try
 {
-    var client = new Client(
-        ClientType.Individual,
-        "Jon Doe",
-        "1902123194051",
-        "JD@email.com",
-        "+407123431234",
-        "Targu Mures");
+    Console.WriteLine("\nGeography:");
+
+    var countries = await geographyService.GetCountriesAsync();
+    foreach (var country in countries)
+    {
+        Console.WriteLine($"Country: {country.Name} ({country.Id})");
+
+        var counties = await geographyService.GetCountiesByCountryIdAsync(
+            country.Id);
+
+        foreach (var county in counties)
+        {
+            Console.WriteLine($"  County: {county.Name} ({county.Id})");
+
+            var cities = await geographyService.GetCitiesByCountyIdAsync(
+                county.Id);
+
+            foreach (var city in cities)
+            {
+                Console.WriteLine(
+                    $"    City: {city.Name}, postal code: {city.PostalCode} ({city.Id})");
+            }
+        }
+    }
+
+    var firstCity = (await geographyService.GetCitiesByCountyIdAsync(
+        ((await geographyService.GetCountiesByCountryIdAsync(
+            countries.First().Id)).First().Id))).First();
+
+    Console.WriteLine("\nCreating client:");
+
+    var client = await clientService.CreateAsync(
+        new CreateClientRequest
+        {
+            ClientType = ClientType.Individual,
+            Name = "Jon Doe",
+            IdentificationNumber = "1902123194051",
+            Email = "JD@email.com",
+            Phone = "+407123431234",
+            Address = "Targu Mures"
+        });
 
     PrintClient(client);
 
-    var firstCityId = Guid.NewGuid();
-    var secondCityId = Guid.NewGuid();
+    Console.WriteLine("\nCreating building:");
 
-    // A client can own multiple buildings.
-    var buildings = new List<Building>
+    var building = await buildingService.CreateAsync(
+        new CreateBuildingRequest
+        {
+            ClientId = client.Id,
+            CityId = firstCity.Id,
+            Street = "Calea Victoriei",
+            Number = "10",
+            ConstructionYear = 1985,
+            Type = BuildingType.Hotel,
+            NumberOfFloors = 5,
+            SurfaceArea = 2500m,
+            InsuredValue = 3_000_000m,
+            IsFloodRiskZone = false,
+            IsEarthquakeRiskZone = false
+        });
+
+    PrintBuilding(building);
+
+    Console.WriteLine("\nSearching clients:");
+
+    var clients = await clientService.SearchAsync("Jon");
+
+    foreach (var item in clients)
     {
-        new Building(
-            client.Id,
-            firstCityId,
-            "Calea Victoriei",
-            "10",
-            1985,
-            BuildingType.Hotel,
-            5,
-            2500m,
-            3_000_000m),
-
-        new Building(
-            client.Id,
-            secondCityId,
-            "Strada Florilor",
-            "25A",
-            2005,
-            BuildingType.Residential,
-            2,
-            180m,
-            450_000m,
-            isFloodRiskZone: true)
-    };
-
-    Console.WriteLine("\nClient buildings:");
-
-    foreach (var building in buildings)
-    {
-        PrintBuilding(building);
-
+        PrintClient(item);
     }
 
     Console.WriteLine("\nUpdating client:");
 
-    client.UpdateContactDetails(
-        "jon.doe@updated-email.com",
-        "+40722222222",
-        "Bucurest");
+    var updatedClient = await clientService.UpdateAsync(
+        client.Id,
+        new UpdateClientRequest
+        {
+            ClientType = ClientType.Company,
+            Name = "Jonathan Doe SRL",
+            IdentificationNumber = "RO12345678",
+            Email = "office@jonathan-doe.ro",
+            Phone = "+40722222222",
+            Address = "Bucuresti"
+        });
 
-    client.ChangeName("Jonathan Doe");
-    client.ChangeType(ClientType.Company);
-    client.ChangeIdentificationNumber("RO12345678");
-
-    PrintClient(client);
+    PrintClient(updatedClient);
 
     Console.WriteLine("\nUpdating building:");
 
-    var buildingToUpdate = buildings[0];
+    var updatedBuilding = await buildingService.UpdateAsync(
+        building.Id,
+        new UpdateBuildingRequest
+        {
+            CityId = firstCity.Id,
+            Street = "Strada Libertatii",
+            Number = "42",
+            ConstructionYear = 1990,
+            Type = BuildingType.Administrative,
+            NumberOfFloors = 6,
+            SurfaceArea = 2700m,
+            InsuredValue = 3_500_000m,
+            IsFloodRiskZone = false,
+            IsEarthquakeRiskZone = true
+        });
 
-    buildingToUpdate.UpdateAddress(
-        secondCityId,
-        "Strada Libertatii",
-        "42");
-
-    buildingToUpdate.UpdateDetails(
-        1990,
-        BuildingType.Administrative,
-        6,
-        2700m,
-        3_500_000m);
-
-    buildingToUpdate.UpdateRiskIndicators(
-        isFloodRiskZone: false,
-        isEarthquakeRiskZone: true);
-
-    PrintBuilding(buildingToUpdate);
-
-
+    PrintBuilding(updatedBuilding);
 }
-catch (ArgumentException exception)
+catch (Exception exception)
 {
-    Console.WriteLine(
-        $"Unexpected validation error: {exception.Message}");
+    Console.WriteLine($"Unexpected error: {exception.Message}");
 }
 
-
-
-void PrintClient(Client client)
+void PrintClient(ClientDto client)
 {
     Console.WriteLine($"Client Id: {client.Id}");
     Console.WriteLine($"Name: {client.Name}");
-    Console.WriteLine($"Type: {client.Type}");
+    Console.WriteLine($"Type: {client.ClientType}");
     Console.WriteLine($"Identification number: {client.IdentificationNumber}");
     Console.WriteLine($"Email: {client.Email ?? "-"}");
     Console.WriteLine($"Phone: {client.Phone ?? "-"}");
     Console.WriteLine($"Address: {client.Address ?? "-"}");
 }
 
-void PrintBuilding(Building building)
+void PrintBuilding(BuildingDto building)
 {
     Console.WriteLine($"Building Id: {building.Id}");
     Console.WriteLine($"Owner ClientId: {building.ClientId}");
@@ -118,9 +153,135 @@ void PrintBuilding(Building building)
     Console.WriteLine($"Address: {building.Street} {building.Number}");
     Console.WriteLine($"Construction year: {building.ConstructionYear}");
     Console.WriteLine($"Number of floors: {building.NumberOfFloors}");
-    Console.WriteLine($"Surface area: {building.SurfaceArea} m²");
+    Console.WriteLine($"Surface area: {building.SurfaceArea} m2");
     Console.WriteLine($"Insured value: {building.InsuredValue:N0}");
     Console.WriteLine($"Flood risk zone: {building.IsFloodRiskZone}");
     Console.WriteLine($"Earthquake risk zone: {building.IsEarthquakeRiskZone}");
 }
 
+public class InMemoryClientRepository : IClientRepository
+{
+    private readonly List<Client> _clients = new();
+
+    public Task AddAsync(Client client)
+    {
+        _clients.Add(client);
+
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> ExistsByIdentificationNumberAsync(
+        string identificationNumber,
+        Guid? excludedClientId = null)
+    {
+        var exists = _clients.Any(client =>
+            client.IdentificationNumber == identificationNumber
+            && client.Id != excludedClientId);
+
+        return Task.FromResult(exists);
+    }
+
+    public Task<Client?> GetByIdAsync(Guid id)
+    {
+        var client = _clients.FirstOrDefault(client => client.Id == id);
+
+        return Task.FromResult(client);
+    }
+
+    public Task<IReadOnlyCollection<Client>> SearchAsync(string? searchTerm)
+    {
+        var query = _clients.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(client =>
+                client.Name.Contains(
+                    searchTerm,
+                    StringComparison.OrdinalIgnoreCase)
+                || client.IdentificationNumber.Contains(
+                    searchTerm,
+                    StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Task.FromResult<IReadOnlyCollection<Client>>(
+            query.ToList());
+    }
+
+    public Task UpdateAsync(Client client)
+    {
+        return Task.CompletedTask;
+    }
+}
+
+public class InMemoryBuildingRepository : IBuildingRepository
+{
+    private readonly List<Building> _buildings = new();
+
+    public Task AddAsync(Building building)
+    {
+        _buildings.Add(building);
+
+        return Task.CompletedTask;
+    }
+
+    public Task<Building?> GetByIdAsync(Guid id)
+    {
+        var building = _buildings.FirstOrDefault(building => building.Id == id);
+
+        return Task.FromResult(building);
+    }
+
+    public Task<IReadOnlyCollection<Building>> GetByClientIdAsync(Guid clientId)
+    {
+        var buildings = _buildings
+            .Where(building => building.ClientId == clientId)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyCollection<Building>>(buildings);
+    }
+
+    public Task UpdateAsync(Building building)
+    {
+        return Task.CompletedTask;
+    }
+}
+
+public class InMemoryGeographyRepository : IGeographyRepository
+{
+    private readonly Country _country;
+    private readonly County _county;
+    private readonly City _city;
+
+    public InMemoryGeographyRepository()
+    {
+        _country = new Country("Romania");
+        _county = new County(_country.Id, "Mures");
+        _city = new City(_county.Id, "Targu Mures", "540000");
+    }
+
+    public Task<IReadOnlyCollection<Country>> GetCountriesAsync()
+    {
+        return Task.FromResult<IReadOnlyCollection<Country>>(
+            new List<Country> { _country });
+    }
+
+    public Task<IReadOnlyCollection<County>> GetCountiesByCountryIdAsync(
+        Guid countryId)
+    {
+        var counties = _county.CountryId == countryId
+            ? new List<County> { _county }
+            : new List<County>();
+
+        return Task.FromResult<IReadOnlyCollection<County>>(counties);
+    }
+
+    public Task<IReadOnlyCollection<City>> GetCitiesByCountyIdAsync(
+        Guid countyId)
+    {
+        var cities = _city.CountyId == countyId
+            ? new List<City> { _city }
+            : new List<City>();
+
+        return Task.FromResult<IReadOnlyCollection<City>>(cities);
+    }
+}

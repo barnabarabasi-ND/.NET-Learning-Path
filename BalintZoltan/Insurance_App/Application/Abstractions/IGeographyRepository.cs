@@ -2,9 +2,15 @@
 
 using Application.DTO.Geography;
 
-//public interface IGeographyService
-//{
-//    Task<IReadOnlyCollection<CountryDto>> GetCountriesAsync();
-//    Task<IReadOnlyCollection<CountyDto>> GetCountiesByCountryIdAsync(Guid countryId);
-//    Task<IReadOnlyCollection<CityDto>> GetCitiesByCountyIdAsync(Guid countyId);
-//}
+using Domain.Entities;
+
+public interface IGeographyRepository
+{
+    Task<IReadOnlyCollection<Country>> GetCountriesAsync();
+
+    Task<IReadOnlyCollection<County>> GetCountiesByCountryIdAsync(
+        Guid countryId);
+
+    Task<IReadOnlyCollection<City>> GetCitiesByCountyIdAsync(
+        Guid countyId);
+}

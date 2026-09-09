@@ -1,4 +1,4 @@
-﻿namespace Application.DTOs.Clients;
+﻿namespace Application.DTO.Clients;
 
 using Domain.Enums;
 

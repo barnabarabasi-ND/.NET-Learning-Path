@@ -3,6 +3,8 @@
 using Application.Abstractions;
 using Application.DTO.Clients;
 using Domain.Entities;
+using Domain.Enums;
+using System.Text.RegularExpressions;
 
 public class ClientService : IClientService
 {
@@ -13,6 +15,8 @@ public class ClientService : IClientService
     }
     public async Task<ClientDto> CreateAsync(CreateClientRequest request)
     {
+        ValidateIdentificationNumber(request.ClientType, request.IdentificationNumber);
+
         var exists = await _clientRepository
             .ExistsByIdentificationNumberAsync(request.IdentificationNumber);
 
@@ -86,9 +90,14 @@ public class ClientService : IClientService
                 "A client with this identification number already exists.");
         }
 
+        if (client.IdentificationNumber != request.IdentificationNumber)
+        {
+            throw new InvalidOperationException(
+                "The client identification number cannot be changed.");
+        }
+
         client.ChangeType(request.ClientType);
         client.ChangeName(request.Name);
-        client.ChangeIdentificationNumber(request.IdentificationNumber);
         client.UpdateContactDetails(
             request.Email,
             request.Phone,
@@ -97,6 +106,29 @@ public class ClientService : IClientService
         await _clientRepository.UpdateAsync(client);
 
         return MapToDto(client);
+    }
+    private static void ValidateIdentificationNumber(
+            ClientType clientType,
+            string identificationNumber)
+    {
+        if (string.IsNullOrWhiteSpace(identificationNumber))
+        {
+            throw new ArgumentException("Identification number is required.");
+        }
+
+        if (clientType == ClientType.Individual &&
+            !Regex.IsMatch(identificationNumber, @"^\d{13}$"))
+        {
+            throw new ArgumentException("CNP must contain exactly 13 digits.");
+        }
+
+        if (clientType == ClientType.Company &&
+            !Regex.IsMatch(identificationNumber, @"^(RO)?\d{2,10}$",
+                RegexOptions.IgnoreCase))
+        {
+            throw new ArgumentException(
+                "CUI must contain 2-10 digits, optionally prefixed with RO.");
+        }
     }
 
     private static ClientDto MapToDto(Client client)

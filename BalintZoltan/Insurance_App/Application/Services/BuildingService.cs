@@ -7,14 +7,36 @@ using Domain.Entities;
 public class BuildingService : IBuildingService
 {
     private readonly IBuildingRepository _buildingRepository;
+    private readonly IClientRepository _clientRepository;
+    private readonly IGeographyRepository _geographyRepository;
 
-    public BuildingService(IBuildingRepository buildingRepository)
+    public BuildingService(
+        IBuildingRepository buildingRepository,
+        IClientRepository clientRepository,
+        IGeographyRepository geographyRepository)
     {
         _buildingRepository = buildingRepository;
+        _clientRepository = clientRepository;
+        _geographyRepository = geographyRepository;
     }
 
     public async Task<BuildingDto> CreateAsync(CreateBuildingRequest request)
     {
+        var client = await _clientRepository.GetByIdAsync(request.ClientId);
+
+        if (client is null)
+        {
+            throw new InvalidOperationException("Client was not found.");
+        }
+
+        var cityExists = await _geographyRepository.CityExistsAsync(
+            request.CityId);
+
+        if (!cityExists)
+        {
+            throw new InvalidOperationException("City was not found.");
+        }
+
         var building = new Building(
             request.ClientId,
             request.CityId,

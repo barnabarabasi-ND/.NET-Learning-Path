@@ -14,7 +14,7 @@ var buildingRepository = new InMemoryBuildingRepository();
 var geographyRepository = new InMemoryGeographyRepository();
 
 var clientService = new ClientService(clientRepository);
-var buildingService = new BuildingService(buildingRepository);
+var buildingService = new BuildingService(buildingRepository,clientRepository,geographyRepository);
 var geographyService = new GeographyService(geographyRepository);
 
 try
@@ -54,7 +54,9 @@ try
         new CreateClientRequest
         {
             ClientType = ClientType.Individual,
+            //ClientType = ClientType.Company,
             Name = "Jon Doe",
+            //IdentificationNumber = "190212319405",
             IdentificationNumber = "1902123194051",
             Email = "JD@email.com",
             Phone = "+407123431234",
@@ -69,7 +71,9 @@ try
         new CreateBuildingRequest
         {
             ClientId = client.Id,
+            //ClientId = Guid.NewGuid(),
             CityId = firstCity.Id,
+            //CityId = Guid.NewGuid(),
             Street = "Calea Victoriei",
             Number = "10",
             ConstructionYear = 1985,
@@ -100,7 +104,7 @@ try
         {
             ClientType = ClientType.Company,
             Name = "Jonathan Doe SRL",
-            IdentificationNumber = "RO12345678",
+            IdentificationNumber = client.IdentificationNumber,
             Email = "office@jonathan-doe.ro",
             Phone = "+40722222222",
             Address = "Bucuresti"
@@ -248,29 +252,38 @@ public class InMemoryBuildingRepository : IBuildingRepository
 
 public class InMemoryGeographyRepository : IGeographyRepository
 {
-    private readonly Country _country;
-    private readonly County _county;
-    private readonly City _city;
+    private readonly List<Country> _countries = new();
+    private readonly List<County> _counties = new();
+    private readonly List<City> _cities = new();
 
     public InMemoryGeographyRepository()
     {
-        _country = new Country("Romania");
-        _county = new County(_country.Id, "Mures");
-        _city = new City(_county.Id, "Targu Mures", "540000");
+        var country = new Country("Romania");
+        var county = new County(country.Id, "Mures");
+        var city = new City(county.Id, "Targu Mures", "540000");
+
+        _counties.Add(county);
+        _cities.Add(city);
+
+        county = new County(country.Id, "Harghita");
+        city = new City(county.Id, "Ododrheiu Secuiesc", "535600");
+
+        _countries.Add(country);
+        _counties.Add(county);
+        _cities.Add(city);
     }
 
     public Task<IReadOnlyCollection<Country>> GetCountriesAsync()
     {
-        return Task.FromResult<IReadOnlyCollection<Country>>(
-            new List<Country> { _country });
+        return Task.FromResult<IReadOnlyCollection<Country>>(_countries);
     }
 
     public Task<IReadOnlyCollection<County>> GetCountiesByCountryIdAsync(
         Guid countryId)
     {
-        var counties = _county.CountryId == countryId
-            ? new List<County> { _county }
-            : new List<County>();
+        var counties = _counties
+            .Where(county => county.CountryId == countryId)
+            .ToList();
 
         return Task.FromResult<IReadOnlyCollection<County>>(counties);
     }
@@ -278,10 +291,17 @@ public class InMemoryGeographyRepository : IGeographyRepository
     public Task<IReadOnlyCollection<City>> GetCitiesByCountyIdAsync(
         Guid countyId)
     {
-        var cities = _city.CountyId == countyId
-            ? new List<City> { _city }
-            : new List<City>();
+        var cities = _cities
+            .Where(city => city.CountyId == countyId)
+            .ToList();
 
         return Task.FromResult<IReadOnlyCollection<City>>(cities);
+    }
+
+    public Task<bool> CityExistsAsync(Guid cityId)
+    {
+        var exists = _cities.Any(city => city.Id == cityId);
+
+        return Task.FromResult(exists);
     }
 }

@@ -53,6 +53,16 @@ namespace Domain.Entities
                 throw new ArgumentException(
                     "Number of floors cannot be negative.");
 
+            if (constructionYear < 0)
+                throw new ArgumentException(
+                    "Number of construction year cannot be negative.");
+
+            if (constructionYear > DateTime.UtcNow.Year)
+            {
+                throw new ArgumentException(
+                    "Construction year cannot be in the future.");
+            }
+
             Id = Guid.NewGuid();
             ClientId = clientId;
             CityId = cityId;

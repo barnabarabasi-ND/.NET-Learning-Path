@@ -33,7 +33,7 @@ try
             city.Id,
             "Calea Victoriei",
             "10",
-            1985,
+            1985,                   // -1985
             BuildingType.Hotel,
             5,
             2500m,
@@ -44,7 +44,7 @@ try
             city.Id,
             "Strada Florilor",
             "25A",
-            2005,
+            2005,                   // 2105
             BuildingType.Residential,
             2,
             180m,

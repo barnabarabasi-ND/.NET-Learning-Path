@@ -1,4 +1,4 @@
-﻿namespace BuildingConfiguration;
+﻿namespace Infrastructure.Persistence.Configurations;
 
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;

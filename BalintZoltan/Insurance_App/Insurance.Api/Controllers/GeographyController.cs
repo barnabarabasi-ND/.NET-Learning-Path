@@ -1,8 +1,8 @@
-﻿namespace Insurance.Api.Controllers;
-
-using Application.Abstractions;
+﻿using Application.Abstractions;
 using Application.DTO.Geography;
 using Microsoft.AspNetCore.Mvc;
+
+namespace Insurance.Api.Controllers;
 
 [ApiController]
 [Route("api/geography")]

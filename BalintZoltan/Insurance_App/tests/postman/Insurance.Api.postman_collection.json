@@ -217,7 +217,8 @@
                   "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
                   "pm.test('Response is an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
                   "const countries = pm.response.json();",
-                  "if (!pm.collectionVariables.get('countryId') && countries.length > 0) pm.collectionVariables.set('countryId', countries[0].id);"
+                  "pm.test('Countries are not empty', function () { pm.expect(countries).to.have.length.greaterThan(0); });",
+                  "if (countries.length > 0) pm.collectionVariables.set('countryId', countries[0].id);"
                 ]
               }
             }
@@ -238,7 +239,8 @@
                   "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
                   "pm.test('Response is an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
                   "const counties = pm.response.json();",
-                  "if (!pm.collectionVariables.get('countyId') && counties.length > 0) pm.collectionVariables.set('countyId', counties[0].id);"
+                  "pm.test('Counties are not empty', function () { pm.expect(counties).to.have.length.greaterThan(0); });",
+                  "if (counties.length > 0) pm.collectionVariables.set('countyId', counties[0].id);"
                 ]
               }
             }

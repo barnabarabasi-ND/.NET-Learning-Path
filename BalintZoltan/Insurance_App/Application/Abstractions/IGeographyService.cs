@@ -1,6 +1,6 @@
-﻿namespace Application.Abstractions;
+﻿using Application.DTO.Geography;
 
-using Application.DTO.Geography;
+namespace Application.Abstractions;
 
 public interface IGeographyService
 {

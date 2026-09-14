@@ -1,6 +1,6 @@
-﻿namespace Application.Abstractions;
+﻿using Domain.Entities;
 
-using Domain.Entities;
+namespace Application.Abstractions;
 
 public interface IBuildingRepository
 {

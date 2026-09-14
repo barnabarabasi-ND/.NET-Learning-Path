@@ -1,6 +1,7 @@
-﻿namespace Application.Abstractions;
+﻿using Application.DTO.Buildings;
 
-using Application.DTO.Buildings;
+namespace Application.Abstractions;
+
 public interface IBuildingService
 {
     Task<BuildingDto> CreateAsync(CreateBuildingRequest request);

@@ -1,8 +1,8 @@
-﻿namespace Application.Services;
-
-using Application.Abstractions;
+﻿using Application.Abstractions;
 using Application.DTO.Geography;
 using Domain.Entities;
+
+namespace Application.Services;
 
 public class GeographyService : IGeographyService
 {

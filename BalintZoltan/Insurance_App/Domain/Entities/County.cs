@@ -1,4 +1,5 @@
 ﻿namespace Domain.Entities;
+
 public class County
 {
     public Guid Id { get; private set; }

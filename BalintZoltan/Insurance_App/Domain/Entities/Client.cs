@@ -11,6 +11,30 @@ namespace Domain.Entities
         public string? Email { get; private set; }
         public string? Phone { get; private set; }
         public string? Address { get; private set; }
+
+
+        private static void CheckClientType(ClientType type)
+        {
+            if (!Enum.IsDefined(type))
+            {
+                throw new ArgumentException("Client type is not valid.", nameof(type));
+            }
+        }
+
+        private static void CheckClientName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Client name is required.");
+        }
+
+        private static void CheckClientId(string identificationNumber)
+        {
+
+            if (string.IsNullOrWhiteSpace(identificationNumber))
+                throw new ArgumentException(
+                    "Identification number is required.");
+        }
+
         public Client(
             ClientType type,
             string name,
@@ -19,12 +43,10 @@ namespace Domain.Entities
             string? phone = null,
             string? address = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Client name is required.");
+            CheckClientType(type);
+            CheckClientName(name);
+            CheckClientId(identificationNumber);
 
-            if (string.IsNullOrWhiteSpace(identificationNumber))
-                throw new ArgumentException(
-                    "Identification number is required.");
 
             Id = Guid.NewGuid();
             Type = type;
@@ -46,21 +68,19 @@ namespace Domain.Entities
 
         public void ChangeName(string name)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Client name is required.");
+            CheckClientName(name);
 
             Name = name;
         }
         public void ChangeType(ClientType type)
         {
+            CheckClientType(type);
             Type = type;
         }
 
         public void ChangeIdentificationNumber(string identificationNumber)
         {
-            if (string.IsNullOrWhiteSpace(identificationNumber))
-                throw new ArgumentException(
-                    "Identification number is required.");
+            CheckClientId(identificationNumber); ;
 
             IdentificationNumber = identificationNumber;
         }

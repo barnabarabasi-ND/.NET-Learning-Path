@@ -1,11 +1,11 @@
-﻿namespace Infrastructure;
-
-using Application.Abstractions;
+﻿using Application.Abstractions;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+namespace Infrastructure;
 
 public static class DependencyInjection
 {

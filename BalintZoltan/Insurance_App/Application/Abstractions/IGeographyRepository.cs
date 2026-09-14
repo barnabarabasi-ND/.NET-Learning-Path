@@ -1,8 +1,6 @@
-﻿namespace Application.Abstractions;
+﻿using Domain.Entities;
 
-using Application.DTO.Geography;
-
-using Domain.Entities;
+namespace Application.Abstractions;
 
 public interface IGeographyRepository
 {

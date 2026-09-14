@@ -16,6 +16,58 @@ namespace Domain.Entities
         public decimal InsuredValue { get; private set; }
         public bool IsFloodRiskZone { get; private set; }
         public bool IsEarthquakeRiskZone { get; private set; }
+        private static void CheckClientId(Guid clientId)
+        {
+            if (clientId == Guid.Empty)
+                throw new ArgumentException("Client is required.");
+        }
+        private static void CheckCityId(Guid cityId)
+        {
+            if (cityId == Guid.Empty)
+                throw new ArgumentException("City is required.");
+        }
+        private static void CheckStreet(string street)
+        {
+            if (string.IsNullOrWhiteSpace(street))
+                throw new ArgumentException("Street is required.");
+        }
+        private static void CheckStreetNr(string nr)
+        {
+            if (string.IsNullOrWhiteSpace(nr))
+                throw new ArgumentException("Street is required.");
+        }
+        private static void CheckConstuctionYear(int constructionYear)
+        {
+            if (constructionYear < 0)
+                throw new ArgumentException(
+                    "Number of construction year cannot be negative.");
+
+            if (constructionYear > DateTime.UtcNow.Year)
+            {
+                throw new ArgumentException(
+                    "Construction year cannot be in the future.");
+            }
+        }
+        private static void CheckNrOfFloors(int numberOfFloors)
+        {
+            if (numberOfFloors < 0)
+                throw new ArgumentException(
+                    "Number of floors cannot be negative.");
+        }
+        private static void CheckSurfaceArea(decimal surfaceArea)
+        {
+            if (surfaceArea <= 0)
+                throw new ArgumentException(
+                    "Surface area must be greater than zero.");
+        }
+        private static void CheckInsuredValue(decimal insuredValue)
+        {
+            if (insuredValue <= 0)
+                throw new ArgumentException(
+                    "Insured value must be greater than zero.");
+        }
+
+
         public Building(
             Guid clientId,
             Guid cityId,
@@ -29,39 +81,14 @@ namespace Domain.Entities
             bool isFloodRiskZone = false,
             bool isEarthquakeRiskZone = false)
         {
-            if (clientId == Guid.Empty)
-                throw new ArgumentException("Client is required.");
-
-            if (cityId == Guid.Empty)
-                throw new ArgumentException("City is required.");
-
-            if (string.IsNullOrWhiteSpace(street))
-                throw new ArgumentException("Street is required.");
-
-            if (string.IsNullOrWhiteSpace(number))
-                throw new ArgumentException("Building number is required.");
-
-            if (surfaceArea <= 0)
-                throw new ArgumentException(
-                    "Surface area must be greater than zero.");
-
-            if (insuredValue <= 0)
-                throw new ArgumentException(
-                    "Insured value must be greater than zero.");
-
-            if (numberOfFloors < 0)
-                throw new ArgumentException(
-                    "Number of floors cannot be negative.");
-
-            if (constructionYear < 0)
-                throw new ArgumentException(
-                    "Number of construction year cannot be negative.");
-
-            if (constructionYear > DateTime.UtcNow.Year)
-            {
-                throw new ArgumentException(
-                    "Construction year cannot be in the future.");
-            }
+            CheckClientId(clientId);
+            CheckCityId(cityId);
+            CheckStreet(street);
+            CheckStreetNr(number);
+            CheckConstuctionYear(constructionYear);
+            CheckNrOfFloors(numberOfFloors);
+            CheckSurfaceArea(surfaceArea);
+            CheckInsuredValue(insuredValue);
 
             Id = Guid.NewGuid();
             ClientId = clientId;
@@ -82,14 +109,9 @@ namespace Domain.Entities
             string street,
             string number)
         {
-            if (cityId == Guid.Empty)
-                throw new ArgumentException("City is required.");
-
-            if (string.IsNullOrWhiteSpace(street))
-                throw new ArgumentException("Street is required.");
-
-            if (string.IsNullOrWhiteSpace(number))
-                throw new ArgumentException("Building number is required.");
+            CheckCityId(cityId);
+            CheckStreet(street); ;
+            CheckStreetNr(number);
 
             CityId = cityId;
             Street = street;
@@ -103,17 +125,10 @@ namespace Domain.Entities
             decimal surfaceArea,
             decimal insuredValue)
         {
-            if (surfaceArea <= 0)
-                throw new ArgumentException(
-                    "Surface area must be greater than zero.");
-
-            if (insuredValue <= 0)
-                throw new ArgumentException(
-                    "Insured value must be greater than zero.");
-
-            if (numberOfFloors < 0)
-                throw new ArgumentException(
-                    "Number of floors cannot be negative.");
+            CheckConstuctionYear(constructionYear);
+            CheckNrOfFloors(numberOfFloors);
+            CheckSurfaceArea(surfaceArea);
+            CheckInsuredValue(insuredValue);
 
             ConstructionYear = constructionYear;
             Type = type;

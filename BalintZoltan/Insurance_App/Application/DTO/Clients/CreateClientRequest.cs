@@ -1,6 +1,6 @@
-﻿namespace Application.DTO.Clients;
+﻿using Domain.Enums;
 
-using Domain.Enums;
+namespace Application.DTO.Clients;
 
 public class CreateClientRequest
 {

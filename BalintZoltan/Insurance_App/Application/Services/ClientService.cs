@@ -1,10 +1,10 @@
-﻿namespace Application.Services;
-
-using Application.Abstractions;
+﻿using Application.Abstractions;
 using Application.DTO.Clients;
 using Domain.Entities;
 using Domain.Enums;
 using System.Text.RegularExpressions;
+
+namespace Application.Services;
 
 public class ClientService : IClientService
 {
@@ -13,18 +13,23 @@ public class ClientService : IClientService
     {
         _clientRepository = clientRepository;
     }
-    public async Task<ClientDto> CreateAsync(CreateClientRequest request)
+    private async Task CheckClientIdentificationNumberExistAsync(string identificationNumber)
     {
-        ValidateIdentificationNumber(request.ClientType, request.IdentificationNumber);
-
         var exists = await _clientRepository
-            .ExistsByIdentificationNumberAsync(request.IdentificationNumber);
+            .ExistsByIdentificationNumberAsync(identificationNumber);
 
         if (exists)
         {
             throw new InvalidOperationException(
                 "A client with this identification number already exists.");
         }
+
+
+    }
+    public async Task<ClientDto> CreateAsync(CreateClientRequest request)
+    {
+        ValidateIdentificationNumber(request.ClientType, request.IdentificationNumber);
+        await CheckClientIdentificationNumberExistAsync(request.IdentificationNumber);
 
         var client = new Client(
             request.ClientType,
@@ -77,17 +82,6 @@ public class ClientService : IClientService
         if (client is null)
         {
             throw new InvalidOperationException("Client was not found.");
-        }
-
-        var exists = await _clientRepository
-            .ExistsByIdentificationNumberAsync(
-                request.IdentificationNumber,
-                id);
-
-        if (exists)
-        {
-            throw new InvalidOperationException(
-                "A client with this identification number already exists.");
         }
 
         if (client.IdentificationNumber != request.IdentificationNumber)

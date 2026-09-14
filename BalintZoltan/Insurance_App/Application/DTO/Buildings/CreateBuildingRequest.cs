@@ -1,6 +1,6 @@
-﻿namespace Application.DTO.Buildings;
+﻿using Domain.Enums;
 
-using Domain.Enums;
+namespace Application.DTO.Buildings;
 
 public class CreateBuildingRequest
 {

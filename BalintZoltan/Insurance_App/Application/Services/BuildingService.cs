@@ -1,14 +1,35 @@
-﻿namespace Application.Services;
-
-using Application.Abstractions;
+﻿using Application.Abstractions;
 using Application.DTO.Buildings;
 using Domain.Entities;
+
+namespace Application.Services;
 
 public class BuildingService : IBuildingService
 {
     private readonly IBuildingRepository _buildingRepository;
     private readonly IClientRepository _clientRepository;
     private readonly IGeographyRepository _geographyRepository;
+
+    private async Task CheckClientExistAsync(Guid clientId)
+    {
+        var client = await _clientRepository.GetByIdAsync(clientId);
+
+        if (client is null)
+        {
+            throw new InvalidOperationException("Client was not found.");
+        }
+    }
+
+    private async Task CheckCityExistAsync(Guid cityId)
+    {
+        var cityExists = await _geographyRepository.CityExistsAsync(cityId);
+
+        if (!cityExists)
+        {
+            throw new InvalidOperationException("City was not found.");
+        }
+    }
+
 
     public BuildingService(
         IBuildingRepository buildingRepository,
@@ -22,20 +43,8 @@ public class BuildingService : IBuildingService
 
     public async Task<BuildingDto> CreateAsync(CreateBuildingRequest request)
     {
-        var client = await _clientRepository.GetByIdAsync(request.ClientId);
-
-        if (client is null)
-        {
-            throw new InvalidOperationException("Client was not found.");
-        }
-
-        var cityExists = await _geographyRepository.CityExistsAsync(
-            request.CityId);
-
-        if (!cityExists)
-        {
-            throw new InvalidOperationException("City was not found.");
-        }
+        await CheckClientExistAsync(request.ClientId);
+        await CheckCityExistAsync(request.CityId);
 
         var building = new Building(
             request.ClientId,
@@ -87,6 +96,8 @@ public class BuildingService : IBuildingService
         {
             throw new InvalidOperationException("Building was not found.");
         }
+
+        await CheckCityExistAsync(request.CityId);
 
         building.UpdateAddress(
             request.CityId,

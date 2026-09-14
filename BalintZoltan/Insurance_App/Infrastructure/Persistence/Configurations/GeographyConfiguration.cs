@@ -1,8 +1,8 @@
-﻿namespace Infrastructure.Persistence.Configurations;
-
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Infrastructure.Persistence.Configurations;
 
 public sealed class CountryConfiguration
     : IEntityTypeConfiguration<Country>

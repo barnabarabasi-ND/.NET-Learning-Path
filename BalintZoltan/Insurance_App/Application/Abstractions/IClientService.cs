@@ -1,6 +1,6 @@
-﻿namespace Application.Abstractions;
+﻿using Application.DTO.Clients;
 
-using Application.DTO.Clients;
+namespace Application.Abstractions;
 
 public interface IClientService
 {

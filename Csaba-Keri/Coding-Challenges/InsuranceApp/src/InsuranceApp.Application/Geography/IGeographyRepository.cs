@@ -1,4 +1,5 @@
 ﻿using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Geography.Results;
 using InsuranceApp.Domain.Geography;
 
 namespace InsuranceApp.Application.Geography;
@@ -14,4 +15,7 @@ public interface IGeographyRepository
     Task<PagedResult<County>> GetCountiesAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken);
 
     Task<PagedResult<City>> GetCitiesAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken);
+
+    Task<CityGeographyResult?> GetCityGeographyAsync(Guid cityId, CancellationToken cancellationToken);
+
 }

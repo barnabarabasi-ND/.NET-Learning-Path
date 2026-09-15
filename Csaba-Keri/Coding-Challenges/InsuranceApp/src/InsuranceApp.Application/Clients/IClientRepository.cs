@@ -10,6 +10,8 @@ public interface IClientRepository
 
     Task<bool> ExistsByIdentificationNumberAsync(string identificationNumber, CancellationToken cancellationToken);
 
+    Task<bool> ExistsByIdAsync(Guid clientId, CancellationToken cancellationToken);
+
     Task AddAsync(Client client, CancellationToken cancellationToken);
 
     Task UpdateAsync(Client client, CancellationToken cancellationToken);

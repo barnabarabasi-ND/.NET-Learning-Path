@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Insurance.Api.Controllers;
 
 [ApiController]
-[Route("api/clients")]
+[Route("api/brokers/clients")]
 public class ClientsController : ControllerBase
 {
     private readonly IClientService _clientService;

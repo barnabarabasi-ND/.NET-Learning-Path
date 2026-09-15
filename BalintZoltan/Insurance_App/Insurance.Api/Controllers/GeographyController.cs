@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Insurance.Api.Controllers;
 
 [ApiController]
-[Route("api/geography")]
+[Route("api/brokers")]
 public class GeographyController : ControllerBase
 {
     private readonly IGeographyService _geographyService;

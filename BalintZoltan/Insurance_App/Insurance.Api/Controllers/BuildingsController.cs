@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Insurance.Api.Controllers;
 
 [ApiController]
-[Route("api/buildings")]
+[Route("api/brokers/buildings")]
 public class BuildingsController : ControllerBase
 {
     private readonly IBuildingService _buildingService;

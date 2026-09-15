@@ -2,6 +2,7 @@
 using Application.DTO.Clients;
 using Domain.Entities;
 using Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace Application.Services;
@@ -29,6 +30,7 @@ public class ClientService : IClientService
     public async Task<ClientDto> CreateAsync(CreateClientRequest request)
     {
         ValidateIdentificationNumber(request.ClientType, request.IdentificationNumber);
+        ValidateEmail(request.Email);
         await CheckClientIdentificationNumberExistAsync(request.IdentificationNumber);
 
         var client = new Client(
@@ -90,6 +92,11 @@ public class ClientService : IClientService
                 "The client identification number cannot be changed.");
         }
 
+        if (request.Email != null)
+        {
+            ValidateEmail(request.Email);
+        }
+
         client.ChangeType(request.ClientType);
         client.ChangeName(request.Name);
         client.UpdateContactDetails(
@@ -122,6 +129,30 @@ public class ClientService : IClientService
         {
             throw new ArgumentException(
                 "CUI must contain 2-10 digits, optionally prefixed with RO.");
+        }
+    }
+
+    private static void ValidateEmail(string Email)
+    {
+        if (string.IsNullOrWhiteSpace(Email))
+        {
+            return;
+        }
+
+        var email = Email.Trim();
+
+        if (email.Length > 254)
+        {
+            throw new ArgumentException(
+                "Email cannot be longer than 254 characters.");
+        }
+
+        var emailAttribute = new EmailAddressAttribute();
+
+        if (!emailAttribute.IsValid(email))
+        {
+            throw new ArgumentException(
+                "Invalid email address format.");
         }
     }
 

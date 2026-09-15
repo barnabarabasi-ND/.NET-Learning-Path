@@ -1,5 +1,6 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.DTO.Buildings;
+using Application.DTO.Common;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -9,6 +10,16 @@ public class BuildingService : IBuildingService
     private readonly IBuildingRepository _buildingRepository;
     private readonly IClientRepository _clientRepository;
     private readonly IGeographyRepository _geographyRepository;
+
+    public BuildingService(
+        IBuildingRepository buildingRepository,
+        IClientRepository clientRepository,
+        IGeographyRepository geographyRepository)
+    {
+        _buildingRepository = buildingRepository;
+        _clientRepository = clientRepository;
+        _geographyRepository = geographyRepository;
+    }
 
     private async Task CheckClientExistAsync(Guid clientId)
     {
@@ -28,17 +39,6 @@ public class BuildingService : IBuildingService
         {
             throw new InvalidOperationException("City was not found.");
         }
-    }
-
-
-    public BuildingService(
-        IBuildingRepository buildingRepository,
-        IClientRepository clientRepository,
-        IGeographyRepository geographyRepository)
-    {
-        _buildingRepository = buildingRepository;
-        _clientRepository = clientRepository;
-        _geographyRepository = geographyRepository;
     }
 
     public async Task<BuildingDto> CreateAsync(CreateBuildingRequest request)
@@ -68,22 +68,24 @@ public class BuildingService : IBuildingService
     {
         var building = await _buildingRepository.GetByIdAsync(id);
 
-        if (building is null)
-        {
-            return null;
-        }
-
-        return MapToDto(building);
+        return building is null ? null : MapToDto(building);
     }
 
-    public async Task<IReadOnlyCollection<BuildingDto>> GetByClientIdAsync(
-        Guid clientId)
+    public async Task<PagedResult<BuildingDto>> GetByClientIdAsync(
+        Guid clientId,
+        PaginationRequest pagination)
     {
-        var buildings = await _buildingRepository.GetByClientIdAsync(clientId);
+        var result = await _buildingRepository.GetByClientIdAsync(
+            clientId,
+            pagination);
 
-        return buildings
-            .Select(MapToDto)
-            .ToList();
+        return new PagedResult<BuildingDto>
+        {
+            Items = result.Items.Select(MapToDto).ToList(),
+            PageNumber = result.PageNumber,
+            PageSize = result.PageSize,
+            TotalCount = result.TotalCount
+        };
     }
 
     public async Task<BuildingDto> UpdateAsync(
@@ -99,18 +101,13 @@ public class BuildingService : IBuildingService
 
         await CheckCityExistAsync(request.CityId);
 
-        building.UpdateAddress(
-            request.CityId,
-            request.Street,
-            request.Number);
-
+        building.UpdateAddress(request.CityId, request.Street, request.Number);
         building.UpdateDetails(
             request.ConstructionYear,
             request.Type,
             request.NumberOfFloors,
             request.SurfaceArea,
             request.InsuredValue);
-
         building.UpdateRiskIndicators(
             request.IsFloodRiskZone,
             request.IsEarthquakeRiskZone);

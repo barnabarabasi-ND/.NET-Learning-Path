@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using Application.DTO.Common;
 
 namespace Application.Services;
 
@@ -65,14 +66,24 @@ public class ClientService : IClientService
 
         return MapToDto(client);
     }
-    public async Task<IReadOnlyCollection<ClientDto>> SearchAsync(
-        string? searchTerm)
+    public async Task<PagedResult<ClientDto>> SearchAsync(
+        string? searchTerm,
+        PaginationRequest pagination)
     {
-        var clients = await _clientRepository.SearchAsync(searchTerm);
+        var result = await _clientRepository.SearchAsync(
+            searchTerm,
+            pagination);
 
-        return clients
-            .Select(MapToDto)
-            .ToList();
+        return new PagedResult<ClientDto>
+        {
+            Items = result.Items
+                .Select(MapToDto)
+                .ToList(),
+
+            PageNumber = result.PageNumber,
+            PageSize = result.PageSize,
+            TotalCount = result.TotalCount
+        };
     }
 
     public async Task<ClientDto> UpdateAsync(

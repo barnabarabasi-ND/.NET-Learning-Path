@@ -1,5 +1,6 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.DTO.Buildings;
+using Application.DTO.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Insurance.Api.Controllers;
@@ -29,11 +30,14 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpGet("by-client/{clientId:guid}")]
-    public async Task<ActionResult<IReadOnlyCollection<BuildingDto>>>
-        GetByClientId(Guid clientId)
+    public async Task<ActionResult<PagedResult<BuildingDto>>>
+        GetByClientId(
+            Guid clientId,
+            [FromQuery] PaginationRequest pagination)
     {
-        var buildings = await _buildingService
-            .GetByClientIdAsync(clientId);
+        var buildings = await _buildingService.GetByClientIdAsync(
+            clientId,
+            pagination);
 
         return Ok(buildings);
     }
@@ -55,8 +59,7 @@ public class BuildingsController : ControllerBase
         Guid id,
         UpdateBuildingRequest request)
     {
-        var building = await _buildingService
-            .UpdateAsync(id, request);
+        var building = await _buildingService.UpdateAsync(id, request);
 
         return Ok(building);
     }

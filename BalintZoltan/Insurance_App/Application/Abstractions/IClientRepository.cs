@@ -1,4 +1,6 @@
-﻿using Domain.Entities;
+﻿using Application.DTO.Common;
+using Domain.Entities;
+
 
 namespace Application.Abstractions;
 
@@ -11,7 +13,9 @@ public interface IClientRepository
 
     Task<Client?> GetByIdAsync(Guid id);
 
-    Task<IReadOnlyCollection<Client>> SearchAsync(string? searchTerm);
+    Task<PagedResult<Client>> SearchAsync(
+        string? searchTerm,
+        PaginationRequest pagination);
 
     Task UpdateAsync(Client client);
 }

@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.DTO.Clients;
 using Microsoft.AspNetCore.Mvc;
+using Application.DTO.Common;
 
 namespace Insurance.Api.Controllers;
 
@@ -29,10 +30,13 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyCollection<ClientDto>>> Search(
-        [FromQuery] string? searchTerm)
+    public async Task<ActionResult<PagedResult<ClientDto>>> Search(
+      [FromQuery] string? searchTerm,
+      [FromQuery] PaginationRequest pagination)
     {
-        var clients = await _clientService.SearchAsync(searchTerm);
+        var clients = await _clientService.SearchAsync(
+            searchTerm,
+            pagination);
 
         return Ok(clients);
     }

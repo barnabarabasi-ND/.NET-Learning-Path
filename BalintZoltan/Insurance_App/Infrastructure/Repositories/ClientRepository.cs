@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Application.DTO.Common;
 
 namespace Infrastructure.Repositories;
 
@@ -36,8 +37,9 @@ public sealed class ClientRepository : IClientRepository
             .FirstOrDefaultAsync(client => client.Id == id);
     }
 
-    public async Task<IReadOnlyCollection<Client>> SearchAsync(
-        string? searchTerm)
+    public async Task<PagedResult<Client>> SearchAsync(
+        string? searchTerm,
+        PaginationRequest pagination)
     {
         var query = _dbContext.Clients
             .AsNoTracking()
@@ -52,9 +54,27 @@ public sealed class ClientRepository : IClientRepository
                 || client.IdentificationNumber == normalizedSearchTerm);
         }
 
-        return await query
+        var totalCount = await query.CountAsync();
+
+        var pageNumber = Math.Max(pagination.PageNumber, 1);
+        var pageSize = Math.Min(
+            Math.Max(pagination.PageSize, 1),
+            100);
+
+        var clients = await query
             .OrderBy(client => client.Name)
+            .ThenBy(client => client.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return new PagedResult<Client>
+        {
+            Items = clients,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task UpdateAsync(Client client)

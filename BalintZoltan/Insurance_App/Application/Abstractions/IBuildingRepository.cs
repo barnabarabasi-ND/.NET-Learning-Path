@@ -1,11 +1,16 @@
-﻿using Domain.Entities;
+using Application.DTO.Common;
+using Domain.Entities;
 
 namespace Application.Abstractions;
 
 public interface IBuildingRepository
 {
     Task<Building?> GetByIdAsync(Guid id);
-    Task<IReadOnlyCollection<Building>> GetByClientIdAsync(Guid clientId);
+
+    Task<PagedResult<Building>> GetByClientIdAsync(
+        Guid clientId,
+        PaginationRequest pagination);
+
     Task AddAsync(Building building);
     Task UpdateAsync(Building building);
 }

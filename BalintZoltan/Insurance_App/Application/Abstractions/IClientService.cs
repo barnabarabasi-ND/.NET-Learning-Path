@@ -1,4 +1,5 @@
 ﻿using Application.DTO.Clients;
+using Application.DTO.Common;
 
 namespace Application.Abstractions;
 
@@ -8,7 +9,9 @@ public interface IClientService
 
     Task<ClientDto?> GetByIdAsync(Guid id);
 
-    Task<IReadOnlyCollection<ClientDto>> SearchAsync(string? searchTerm);
+    Task<PagedResult<ClientDto>> SearchAsync(
+        string? searchTerm,
+        PaginationRequest pagination);
 
     Task<ClientDto> UpdateAsync(Guid id, UpdateClientRequest request);
 }

@@ -1,0 +1,83 @@
+﻿using FluentValidation;
+using FluentValidation.Results;
+using InsuranceApp.Application.Common.Exceptions;
+using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Geography.Mappings;
+using InsuranceApp.Application.Geography.Results;
+using InsuranceApp.Domain.Geography;
+
+namespace InsuranceApp.Application.Geography;
+
+public class GeographyService : IGeographyService
+{
+    private readonly IGeographyRepository _repository;
+    private readonly IValidator<PageQuery> _pageValidator;
+
+    public GeographyService(IGeographyRepository repository, IValidator<PageQuery> pageValidator)
+    {
+        ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(pageValidator);
+
+        _repository = repository;
+        _pageValidator = pageValidator;
+    }
+
+    public async Task<PagedResult<CountryResult>> GetCountriesAsync(PageQuery query, CancellationToken cancellationToken)
+    {
+        await ValidatePageAsync(query, cancellationToken);
+
+        var page = await _repository.GetCountriesAsync(query, cancellationToken);
+
+        return page.ToResult();
+    }
+
+    public async Task<PagedResult<CountyResult>> GetCountiesAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken)
+    {
+        await ValidatePageAsync(query, cancellationToken);
+
+        if (countryId == Guid.Empty)
+        {
+            throw new ValidationException([
+                new ValidationFailure("CountryId", "Country identifier must not be empty.")
+            ]);
+        }
+
+        if (!await _repository.CountryExistsAsync(countryId, cancellationToken))
+        {
+            throw new EntityNotFoundException(nameof(Country), countryId);
+        }
+
+        var page = await _repository.GetCountiesAsync(countryId, query, cancellationToken);
+
+        return page.ToResult();
+    }
+
+    public async Task<PagedResult<CityResult>> GetCitiesAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken)
+    {
+        await ValidatePageAsync(query, cancellationToken);
+
+        if (countyId == Guid.Empty)
+        {
+            throw new ValidationException([
+                new ValidationFailure("CountyId", "County identifier must not be empty.")
+            ]);
+        }
+
+        if (!await _repository.CountyExistsAsync(countyId, cancellationToken))
+        {
+            throw new EntityNotFoundException(nameof(County), countyId);
+        }
+
+        var page = await _repository.GetCitiesAsync(countyId, query, cancellationToken);
+
+        return page.ToResult();
+    }
+
+    private async Task ValidatePageAsync(PageQuery query, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _pageValidator.ValidateAndThrowAsync(query, cancellationToken);
+    }
+}

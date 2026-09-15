@@ -1,0 +1,187 @@
+﻿using FluentValidation;
+using FluentValidation.Results;
+using InsuranceApp.Application.Buildings.Commands;
+using InsuranceApp.Application.Buildings.Mappings;
+using InsuranceApp.Application.Buildings.Results;
+using InsuranceApp.Application.Clients;
+using InsuranceApp.Application.Common.Exceptions;
+using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Geography;
+using InsuranceApp.Application.Geography.Results;
+using InsuranceApp.Domain.Buildings;
+using InsuranceApp.Domain.Clients;
+using Microsoft.Extensions.Logging;
+
+namespace InsuranceApp.Application.Buildings;
+
+public class BuildingService : IBuildingService
+{
+    private readonly IBuildingRepository _buildingRepository;
+    private readonly IClientRepository _clientRepository;
+    private readonly IGeographyRepository _geographyRepository;
+    private readonly IValidator<CreateBuildingCommand> _createValidator;
+    private readonly IValidator<UpdateBuildingCommand> _updateValidator;
+    private readonly IValidator<PageQuery> _pageValidator;
+    private readonly TimeProvider _timeProvider;
+    private readonly ILogger<BuildingService> _logger;
+
+    public BuildingService(
+        IBuildingRepository buildingRepository,
+        IClientRepository clientRepository,
+        IGeographyRepository geographyRepository,
+        IValidator<CreateBuildingCommand> createValidator,
+        IValidator<UpdateBuildingCommand> updateValidator,
+        IValidator<PageQuery> pageValidator,
+        TimeProvider timeProvider,
+        ILogger<BuildingService> logger
+    )
+    {
+        ArgumentNullException.ThrowIfNull(buildingRepository);
+        ArgumentNullException.ThrowIfNull(clientRepository);
+        ArgumentNullException.ThrowIfNull(geographyRepository);
+        ArgumentNullException.ThrowIfNull(createValidator);
+        ArgumentNullException.ThrowIfNull(updateValidator);
+        ArgumentNullException.ThrowIfNull(pageValidator);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _buildingRepository = buildingRepository;
+        _clientRepository = clientRepository;
+        _geographyRepository = geographyRepository;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _pageValidator = pageValidator;
+        _timeProvider = timeProvider;
+        _logger = logger;
+    }
+
+    public async Task<BuildingDetailsResult> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (buildingId == Guid.Empty)
+        {
+            ThrowValidationException("BuildingId", "Building identifier must not be empty.");
+        }
+
+        var building = await _buildingRepository.GetByIdAsync(buildingId, cancellationToken)
+            ?? throw new EntityNotFoundException(nameof(Building), buildingId);
+
+        var geography = await _geographyRepository.GetCityGeographyAsync(building.Address.CityId, cancellationToken)
+            ?? throw new InvalidOperationException("The stored building has no valid geography.");
+
+        return new BuildingDetailsResult(building.ToResult(), geography);
+    }
+
+    public async Task<PagedResult<BuildingResult>> GetByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        cancellationToken.ThrowIfCancellationRequested();
+        await _pageValidator.ValidateAndThrowAsync(query, cancellationToken);
+
+        if (clientId == Guid.Empty)
+        {
+            ThrowValidationException("ClientId", "Client identifier must not be empty.");
+        }
+
+        await EnsureClientExistsAsync(clientId, cancellationToken);
+
+        var page = await _buildingRepository.GetByClientIdAsync(clientId, query, cancellationToken);
+
+        return page.ToResult();
+    }
+
+    public async Task<BuildingDetailsResult> CreateAsync(CreateBuildingCommand command, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+        await _createValidator.ValidateAndThrowAsync(command, cancellationToken);
+
+        ValidateConstructionYear(command.ConstructionYear);
+        await EnsureClientExistsAsync(command.ClientId, cancellationToken);
+
+        var address = command.Address!;
+        var geography = await GetRequiredCityGeographyAsync(address.CityId, cancellationToken);
+
+        var building = new Building(
+            id: Guid.NewGuid(),
+            clientId: command.ClientId,
+            type: command.Type,
+            address: new BuildingAddress(address.CityId, address.Street!, address.Number!),
+            constructionYear: command.ConstructionYear,
+            numberOfFloors: command.NumberOfFloors,
+            surfaceArea: command.SurfaceArea,
+            insuredValue: command.InsuredValue
+        );
+
+        await _buildingRepository.AddAsync(building, cancellationToken);
+        _logger.LogInformation("Building {BuildingId} created.", building.Id);
+
+        return new BuildingDetailsResult(building.ToResult(), geography);
+    }
+
+    public async Task<BuildingDetailsResult> UpdateAsync(UpdateBuildingCommand command, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+        await _updateValidator.ValidateAndThrowAsync(command, cancellationToken);
+
+        ValidateConstructionYear(command.ConstructionYear);
+
+        var building = await _buildingRepository.GetByIdAsync(command.BuildingId, cancellationToken)
+            ?? throw new EntityNotFoundException(nameof(Building), command.BuildingId);
+
+        var address = command.Address!;
+        var geography = await GetRequiredCityGeographyAsync(address.CityId, cancellationToken);
+
+        building.UpdateDetails(
+            type: command.Type,
+            address: new BuildingAddress(address.CityId, address.Street!, address.Number!),
+            constructionYear: command.ConstructionYear,
+            numberOfFloors: command.NumberOfFloors,
+            surfaceArea: command.SurfaceArea,
+            insuredValue: command.InsuredValue
+        );
+
+        await _buildingRepository.UpdateAsync(building, cancellationToken);
+        _logger.LogInformation("Building {BuildingId} updated.", building.Id);
+
+        return new BuildingDetailsResult(building.ToResult(), geography);
+    }
+
+    private void ValidateConstructionYear(int constructionYear)
+    {
+        int currentYear = _timeProvider.GetUtcNow().Year;
+
+        if (constructionYear > currentYear)
+        {
+            ThrowValidationException("ConstructionYear", $"Construction year must not exceed {currentYear}.");
+        }
+    }
+
+    private async Task EnsureClientExistsAsync(Guid clientId, CancellationToken cancellationToken)
+    {
+        if (!await _clientRepository.ExistsByIdAsync(clientId, cancellationToken))
+        {
+            throw new EntityNotFoundException(nameof(Client), clientId);
+        }
+    }
+
+    private async Task<CityGeographyResult> GetRequiredCityGeographyAsync(Guid cityId, CancellationToken cancellationToken)
+    {
+        return await _geographyRepository.GetCityGeographyAsync(cityId, cancellationToken)
+            ?? throw CreateValidationException("Address.CityId", "The selected city does not exist.");
+    }
+
+    private static ValidationException CreateValidationException(string propertyName, string message)
+    {
+        return new ValidationException([
+            new ValidationFailure(propertyName, message)
+        ]);
+    }
+
+    private static void ThrowValidationException(string propertyName, string message)
+    {
+        throw CreateValidationException(propertyName, message);
+    }
+}

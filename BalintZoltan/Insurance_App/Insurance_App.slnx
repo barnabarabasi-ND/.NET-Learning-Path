@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Application.UnitTests/Application.UnitTests.csproj" Id="cc7e2378-94af-4705-8f69-dc2a14f5f674" />
+  <Project Path="Application/Application.csproj" Id="ddb4929a-602d-4221-9fb5-2e86f81a34f4" />
+  <Project Path="Domain.UnitTests/Domain.UnitTests.csproj" Id="e73ff9a8-8fc9-4abc-9fe1-abcb1532466c" />
+  <Project Path="Domain/Domain.csproj" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="2d1f4a15-39fd-45a3-a886-8d77b7fcb027" />
+  <Project Path="Insurance.Api/Insurance.Api.csproj" Id="3ee874b4-1eb3-45f5-8118-71d640091b27" />
+</Solution>

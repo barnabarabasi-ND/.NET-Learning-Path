@@ -16,10 +16,10 @@ public class ClientsController : ControllerBase
         _clientService = clientService;
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ClientDto>> GetById(Guid id)
+    [HttpGet("{clientId:guid}")]
+    public async Task<ActionResult<ClientDto>> GetById(Guid clientId)
     {
-        var client = await _clientService.GetByIdAsync(id);
+        var client = await _clientService.GetByIdAsync(clientId);
 
         if (client is null)
         {
@@ -31,9 +31,12 @@ public class ClientsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<ClientDto>>> Search(
-      [FromQuery] string? searchTerm,
+      [FromQuery] string? name,
+      [FromQuery] string? identifier,
       [FromQuery] PaginationRequest pagination)
     {
+        var searchTerm = name ?? identifier;
+
         var clients = await _clientService.SearchAsync(
             searchTerm,
             pagination);
@@ -49,16 +52,16 @@ public class ClientsController : ControllerBase
 
         return CreatedAtAction(
             nameof(GetById),
-            new { id = client.Id },
+            new { clientId = client.Id },
             client);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut("{clientId:guid}")]
     public async Task<ActionResult<ClientDto>> Update(
-        Guid id,
+        Guid clientId,
         UpdateClientRequest request)
     {
-        var client = await _clientService.UpdateAsync(id, request);
+        var client = await _clientService.UpdateAsync(clientId, request);
 
         return Ok(client);
     }

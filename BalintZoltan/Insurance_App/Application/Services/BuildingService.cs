@@ -75,6 +75,8 @@ public class BuildingService : IBuildingService
         Guid clientId,
         PaginationRequest pagination)
     {
+        await CheckClientExistAsync(clientId);
+
         var result = await _buildingRepository.GetByClientIdAsync(
             clientId,
             pagination);

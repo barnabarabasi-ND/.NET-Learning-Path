@@ -30,15 +30,15 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<ClientDto>>> Search(
-      [FromQuery] string? name,
-      [FromQuery] string? identifier,
-      [FromQuery] PaginationRequest pagination)
-    {
-        var searchTerm = name ?? identifier;
 
+    public async Task<ActionResult<PagedResult<ClientDto>>> Search(
+    [FromQuery] string? name,
+    [FromQuery] string? identifier,
+    [FromQuery] PaginationRequest pagination)
+    {
         var clients = await _clientService.SearchAsync(
-            searchTerm,
+            name,
+            identifier,
             pagination);
 
         return Ok(clients);

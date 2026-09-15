@@ -67,11 +67,13 @@ public class ClientService : IClientService
         return MapToDto(client);
     }
     public async Task<PagedResult<ClientDto>> SearchAsync(
-        string? searchTerm,
+        string? name,
+        string? identifier,
         PaginationRequest pagination)
     {
         var result = await _clientRepository.SearchAsync(
-            searchTerm,
+            name,
+            identifier,
             pagination);
 
         return new PagedResult<ClientDto>

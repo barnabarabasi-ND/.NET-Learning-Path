@@ -1,4 +1,5 @@
-﻿using Application.DTO.Common;
+﻿using Application.DTO.Clients;
+using Application.DTO.Common;
 using Domain.Entities;
 
 
@@ -14,7 +15,8 @@ public interface IClientRepository
     Task<Client?> GetByIdAsync(Guid id);
 
     Task<PagedResult<Client>> SearchAsync(
-        string? searchTerm,
+        string? name,
+        string? identifier,
         PaginationRequest pagination);
 
     Task UpdateAsync(Client client);

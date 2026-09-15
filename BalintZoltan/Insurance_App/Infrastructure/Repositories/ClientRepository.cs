@@ -1,8 +1,8 @@
 ﻿using Application.Abstractions;
+using Application.DTO.Common;
 using Domain.Entities;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Application.DTO.Common;
 
 namespace Infrastructure.Repositories;
 
@@ -38,20 +38,26 @@ public sealed class ClientRepository : IClientRepository
     }
 
     public async Task<PagedResult<Client>> SearchAsync(
-        string? searchTerm,
+        string? name,
+        string? identifier,
         PaginationRequest pagination)
     {
         var query = _dbContext.Clients
             .AsNoTracking()
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (!string.IsNullOrWhiteSpace(name))
         {
-            var normalizedSearchTerm = searchTerm.Trim();
-
+            var normalizedName = name.Trim();
             query = query.Where(client =>
-                client.Name.Contains(normalizedSearchTerm)
-                || client.IdentificationNumber == normalizedSearchTerm);
+                client.Name.Contains(normalizedName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(identifier))
+        {
+            var normalizedIdentifier = identifier.Trim();
+            query = query.Where(client =>
+                client.IdentificationNumber == normalizedIdentifier);
         }
 
         var totalCount = await query.CountAsync();

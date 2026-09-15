@@ -10,7 +10,8 @@ public interface IClientService
     Task<ClientDto?> GetByIdAsync(Guid id);
 
     Task<PagedResult<ClientDto>> SearchAsync(
-        string? searchTerm,
+        string? name,
+        string? identifier,
         PaginationRequest pagination);
 
     Task<ClientDto> UpdateAsync(Guid id, UpdateClientRequest request);

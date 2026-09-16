@@ -16,5 +16,10 @@ namespace Domain.UnitTests.Entities
             Assert.NotNull(country.Counties);
             Assert.Empty(country.Counties);
         }
+        [Fact]
+        public void Create_Should_Throw_When_Name_Empty()
+        {
+            Assert.Throws<ArgumentException>(() => new Country(""));
+        }
     }
 }

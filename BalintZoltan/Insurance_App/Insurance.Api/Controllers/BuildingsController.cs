@@ -17,7 +17,7 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpGet("buildings/{buildingId:guid}")]
-    public async Task<ActionResult<BuildingDto>> GetById(Guid buildingId)
+    public async Task<ActionResult<BuildingDto>> GetByIdAsync(Guid buildingId)
     {
         var building = await _buildingService.GetByIdAsync(buildingId);
 
@@ -31,7 +31,7 @@ public class BuildingsController : ControllerBase
 
     [HttpGet("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<PagedResult<BuildingDto>>>
-        GetByClientId(
+        GetByClientIdAsync(
             Guid clientId,
             [FromQuery] PaginationRequest pagination)
     {
@@ -43,7 +43,7 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpPost("clients/{clientId:guid}/buildings")]
-    public async Task<ActionResult<BuildingDto>> Create(
+    public async Task<ActionResult<BuildingDto>> CreateAsync(
         Guid clientId,
         CreateBuildingRequest request)
     {
@@ -51,13 +51,13 @@ public class BuildingsController : ControllerBase
         var building = await _buildingService.CreateAsync(request);
 
         return CreatedAtAction(
-            nameof(GetById),
+            "GetById",
             new { buildingId = building.Id },
             building);
     }
 
     [HttpPut("buildings/{buildingId:guid}")]
-    public async Task<ActionResult<BuildingDto>> Update(
+    public async Task<ActionResult<BuildingDto>> UpdateAsync(
         Guid buildingId,
         UpdateBuildingRequest request)
     {

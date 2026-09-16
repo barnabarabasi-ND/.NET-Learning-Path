@@ -110,7 +110,7 @@ namespace Domain.Entities
             string number)
         {
             CheckCityId(cityId);
-            CheckStreet(street); ;
+            CheckStreet(street);
             CheckStreetNr(number);
 
             CityId = cityId;

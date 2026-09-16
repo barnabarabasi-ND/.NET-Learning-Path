@@ -80,7 +80,7 @@ namespace Domain.Entities
 
         public void ChangeIdentificationNumber(string identificationNumber)
         {
-            CheckClientId(identificationNumber); ;
+            CheckClientId(identificationNumber);
 
             IdentificationNumber = identificationNumber;
         }

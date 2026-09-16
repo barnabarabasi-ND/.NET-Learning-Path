@@ -17,11 +17,18 @@ public class City
             throw new ArgumentException("Postal code is required.");
     }
 
+    private static void CheckCityCountyId(Guid countyId)
+    {
+        if (countyId == Guid.Empty)
+            throw new ArgumentException("County Id is required.");
+    }
+
     public City(
         Guid countyId,
         string name,
         string postalCode)
     {
+        CheckCityCountyId(countyId);
         CheckCityName(name);
         CheckCityPostalCode(postalCode);
 

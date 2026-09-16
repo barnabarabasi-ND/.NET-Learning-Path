@@ -17,7 +17,7 @@ public class GeographyController : ControllerBase
 
     [HttpGet("countries")]
     public async Task<ActionResult<IReadOnlyCollection<CountryDto>>>
-        GetCountries()
+        GetCountriesAsync()
     {
         var countries = await _geographyService.GetCountriesAsync();
 
@@ -26,7 +26,7 @@ public class GeographyController : ControllerBase
 
     [HttpGet("countries/{countryId:guid}/counties")]
     public async Task<ActionResult<IReadOnlyCollection<CountyDto>>>
-        GetCountiesByCountryId(Guid countryId)
+        GetCountiesByCountryIdAsync(Guid countryId)
     {
         var counties = await _geographyService
             .GetCountiesByCountryIdAsync(countryId);
@@ -36,7 +36,7 @@ public class GeographyController : ControllerBase
 
     [HttpGet("counties/{countyId:guid}/cities")]
     public async Task<ActionResult<IReadOnlyCollection<CityDto>>>
-        GetCitiesByCountyId(Guid countyId)
+        GetCitiesByCountyIdAsync(Guid countyId)
     {
         var cities = await _geographyService
             .GetCitiesByCountyIdAsync(countyId);

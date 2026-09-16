@@ -1,5 +1,6 @@
 using Application.Abstractions;
 using Application.Services;
+using Application.UnitTests.Fakes;
 using Domain.Entities;
 using Xunit;
 
@@ -7,39 +8,6 @@ namespace Application.UnitTests.Services
 {
     public class GeographyServiceTest
     {
-        private class FakeGeographyRepository : IGeographyRepository
-        {
-            private readonly List<Country> _countries = new();
-            private readonly List<County> _counties = new();
-            private readonly List<City> _cities = new();
-
-            public void SeedCountry(Country country) => _countries.Add(country);
-            public void SeedCounty(County county) => _counties.Add(county);
-            public void SeedCity(City city) => _cities.Add(city);
-
-            public Task<IReadOnlyCollection<Country>> GetCountriesAsync()
-            {
-                return Task.FromResult((IReadOnlyCollection<Country>)_countries.ToList());
-            }
-
-            public Task<IReadOnlyCollection<County>> GetCountiesByCountryIdAsync(Guid countryId)
-            {
-                var list = _counties.Where(c => c.CountryId == countryId).ToList();
-                return Task.FromResult((IReadOnlyCollection<County>)list);
-            }
-
-            public Task<IReadOnlyCollection<City>> GetCitiesByCountyIdAsync(Guid countyId)
-            {
-                var list = _cities.Where(c => c.CountyId == countyId).ToList();
-                return Task.FromResult((IReadOnlyCollection<City>)list);
-            }
-
-            public Task<bool> CityExistsAsync(Guid cityId)
-            {
-                return Task.FromResult(_cities.Any(c => c.Id == cityId));
-            }
-        }
-
         [Fact]
         public async Task GetCountriesAsync_Should_Return_List()
         {

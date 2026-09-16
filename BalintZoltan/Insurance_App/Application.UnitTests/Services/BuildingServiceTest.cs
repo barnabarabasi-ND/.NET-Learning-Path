@@ -1,6 +1,8 @@
 using Application.Abstractions;
 using Application.DTO.Buildings;
+using Application.DTO.Common;
 using Application.Services;
+using Application.UnitTests.Fakes;
 using Domain.Entities;
 using Domain.Enums;
 using Xunit;
@@ -23,78 +25,32 @@ namespace Application.UnitTests.Services
                 return Task.FromResult(Storage.FirstOrDefault(b => b.Id == id));
             }
 
-            public Task<IReadOnlyCollection<Building>> GetByClientIdAsync(Guid clientId)
+            public Task<PagedResult<Building>> GetByClientIdAsync(
+                Guid clientId,
+                PaginationRequest pagination)
             {
-                return Task.FromResult((IReadOnlyCollection<Building>)Storage.Where(b => b.ClientId == clientId).ToList());
+                var all = Storage
+                    .Where(b => b.ClientId == clientId)
+                    .OrderBy(b => b.Street)
+                    .ThenBy(b => b.Number)
+                    .ThenBy(b => b.Id)
+                    .ToList();
+                var pageNumber = Math.Max(pagination.PageNumber, 1);
+                var pageSize = Math.Min(Math.Max(pagination.PageSize, 1), 100);
+
+                return Task.FromResult(new PagedResult<Building>
+                {
+                    Items = all.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList(),
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalCount = all.Count
+                });
             }
 
             public Task UpdateAsync(Building building)
             {
                 // in-memory already updated by reference
                 return Task.CompletedTask;
-            }
-        }
-
-        private class FakeClientRepository : IClientRepository
-        {
-            private readonly Dictionary<Guid, Client> _clients = new();
-
-            public void Seed(Client client) => _clients[client.Id] = client;
-
-            public Task AddAsync(Client client)
-            {
-                _clients[client.Id] = client;
-                return Task.CompletedTask;
-            }
-
-            public Task<bool> ExistsByIdentificationNumberAsync(string identificationNumber, Guid? excludedClientId = null)
-            {
-                var exists = _clients.Values.Any(c => c.IdentificationNumber == identificationNumber && c.Id != excludedClientId);
-                return Task.FromResult(exists);
-            }
-
-            public Task<Client?> GetByIdAsync(Guid id)
-            {
-                _clients.TryGetValue(id, out var client);
-                return Task.FromResult(client);
-            }
-
-            public Task<IReadOnlyCollection<Client>> SearchAsync(string? searchTerm)
-            {
-                return Task.FromResult((IReadOnlyCollection<Client>)_clients.Values.ToList());
-            }
-
-            public Task UpdateAsync(Client client)
-            {
-                _clients[client.Id] = client;
-                return Task.CompletedTask;
-            }
-        }
-
-        private class FakeGeographyRepository : IGeographyRepository
-        {
-            private readonly HashSet<Guid> _cities = new();
-
-            public void SeedCity(Guid id) => _cities.Add(id);
-
-            public Task<IReadOnlyCollection<Domain.Entities.Country>> GetCountriesAsync()
-            {
-                return Task.FromResult((IReadOnlyCollection<Domain.Entities.Country>)Array.Empty<Domain.Entities.Country>());
-            }
-
-            public Task<IReadOnlyCollection<Domain.Entities.County>> GetCountiesByCountryIdAsync(Guid countryId)
-            {
-                return Task.FromResult((IReadOnlyCollection<Domain.Entities.County>)Array.Empty<Domain.Entities.County>());
-            }
-
-            public Task<IReadOnlyCollection<Domain.Entities.City>> GetCitiesByCountyIdAsync(Guid countyId)
-            {
-                return Task.FromResult((IReadOnlyCollection<Domain.Entities.City>)Array.Empty<Domain.Entities.City>());
-            }
-
-            public Task<bool> CityExistsAsync(Guid cityId)
-            {
-                return Task.FromResult(_cities.Contains(cityId));
             }
         }
 
@@ -207,10 +163,13 @@ namespace Application.UnitTests.Services
             var clientRepo = new FakeClientRepository();
             var geoRepo = new FakeGeographyRepository();
 
-            var clientId = Guid.NewGuid();
+            var client = new Domain.Entities.Client(ClientType.Individual, "John", "1234567890123");
+            clientRepo.Seed(client);
+            var clientId = client.Id;
             var cityId = Guid.NewGuid();
             var building = new Building(clientId, cityId, "OldSt", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
             buildingRepo.Storage.Add(building);
+            geoRepo.SeedCity(cityId);
 
             var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
 
@@ -307,7 +266,9 @@ namespace Application.UnitTests.Services
             var clientRepo = new FakeClientRepository();
             var geoRepo = new FakeGeographyRepository();
 
-            var clientId = Guid.NewGuid();
+            var client = new Domain.Entities.Client(ClientType.Individual, "John", "1234567890123");
+            clientRepo.Seed(client);
+            var clientId = client.Id;
             var cityId = Guid.NewGuid();
             var b1 = new Building(clientId, cityId, "A", "1", 1990, BuildingType.Residential, 1, 50m, 1000m);
             var b2 = new Building(clientId, cityId, "B", "2", 1991, BuildingType.Residential, 2, 75m, 1500m);
@@ -316,11 +277,14 @@ namespace Application.UnitTests.Services
 
             var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
 
-            var list = await service.GetByClientIdAsync(clientId);
+            var list = await service.GetByClientIdAsync(
+                clientId,
+                new PaginationRequest { PageSize = 10 });
 
-            Assert.Equal(2, list.Count);
-            Assert.Contains(list, x => x.Id == b1.Id);
-            Assert.Contains(list, x => x.Id == b2.Id);
+            Assert.Equal(2, list.TotalCount);
+            Assert.Equal(2, list.Items.Count);
+            Assert.Contains(list.Items, x => x.Id == b1.Id);
+            Assert.Contains(list.Items, x => x.Id == b2.Id);
         }
 
         [Fact]
@@ -330,12 +294,17 @@ namespace Application.UnitTests.Services
             var clientRepo = new FakeClientRepository();
             var geoRepo = new FakeGeographyRepository();
 
+            var client = new Domain.Entities.Client(ClientType.Individual, "John", "1234567890123");
+            clientRepo.Seed(client);
             var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
 
-            var list = await service.GetByClientIdAsync(Guid.NewGuid());
+            var list = await service.GetByClientIdAsync(
+                client.Id,
+                new PaginationRequest());
 
             Assert.NotNull(list);
-            Assert.Empty(list);
+            Assert.Empty(list.Items);
+            Assert.Equal(0, list.TotalCount);
         }
     }
 }

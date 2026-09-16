@@ -1,54 +1,16 @@
 using Application.Abstractions;
 using Application.DTO.Clients;
+using Application.DTO.Common;
 using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
+using Application.UnitTests.Fakes;
 using Xunit;
 
 namespace Application.UnitTests.Services
 {
     public class ClientServiceTest
     {
-        private class FakeClientRepository : IClientRepository
-        {
-            public readonly Dictionary<Guid, Client> Storage = new();
-
-            public Task AddAsync(Client client)
-            {
-                Storage[client.Id] = client;
-                return Task.CompletedTask;
-            }
-
-            public Task<bool> ExistsByIdentificationNumberAsync(string identificationNumber, Guid? excludedClientId = null)
-            {
-                var exists = Storage.Values.Any(c => c.IdentificationNumber == identificationNumber && c.Id != excludedClientId);
-                return Task.FromResult(exists);
-            }
-
-            public Task<Client?> GetByIdAsync(Guid id)
-            {
-                Storage.TryGetValue(id, out var client);
-                return Task.FromResult(client);
-            }
-
-            public Task<IReadOnlyCollection<Client>> SearchAsync(string? searchTerm)
-            {
-                var list = Storage.Values.ToList();
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(c => c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || c.IdentificationNumber.Contains(searchTerm)).ToList();
-                }
-
-                return Task.FromResult((IReadOnlyCollection<Client>)list);
-            }
-
-            public Task UpdateAsync(Client client)
-            {
-                Storage[client.Id] = client;
-                return Task.CompletedTask;
-            }
-        }
-
         [Fact]
         public async Task CreateAsync_Should_Create_Individual_With_Valid_CNP()
         {
@@ -157,7 +119,7 @@ namespace Application.UnitTests.Services
         }
 
         [Fact]
-        public async Task SearchAsync_Should_Return_Matching_Clients()
+        public async Task SearchAsync_Should_Return_All_Clients_When_No_Filters_Are_Provided()
         {
             var repo = new FakeClientRepository();
             var c1 = new Client(ClientType.Individual, "Alice", "1111111111111");
@@ -167,12 +129,26 @@ namespace Application.UnitTests.Services
 
             var service = new ClientService(repo);
 
-            var all = await service.SearchAsync(null);
-            Assert.Equal(2, all.Count);
+            var all = await service.SearchAsync(null, null, new PaginationRequest { PageSize = 10 });
+            Assert.Equal(2, all.TotalCount);
+            Assert.Equal(2, all.Items.Count);
+        }
 
-            var filtered = await service.SearchAsync("Acme");
-            Assert.Single(filtered);
-            Assert.Equal(c2.Id, filtered.First().Id);
+        [Fact]
+        public async Task SearchAsync_Should_Return_Matching_Clients_By_Name()
+        {
+            var repo = new FakeClientRepository();
+            var c1 = new Client(ClientType.Individual, "Alice", "1111111111111");
+            var c2 = new Client(ClientType.Company, "Acme", "RO22222");
+            await repo.AddAsync(c1);
+            await repo.AddAsync(c2);
+
+            var service = new ClientService(repo);
+
+            var filtered = await service.SearchAsync("Acme", null, new PaginationRequest());
+            Assert.Equal(1, filtered.TotalCount);
+            var result = Assert.Single(filtered.Items);
+            Assert.Equal(c2.Id, result.Id);
         }
 
         [Fact]
@@ -258,7 +234,7 @@ namespace Application.UnitTests.Services
             };
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateAsync(client1.Id, update));
-            Assert.Equal("A client with this identification number already exists.", ex.Message);
+            Assert.Equal("The client identification number cannot be changed.", ex.Message);
         }
     }
 }

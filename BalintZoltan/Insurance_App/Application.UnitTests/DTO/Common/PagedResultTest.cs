@@ -5,20 +5,8 @@ namespace Application.UnitTests.DTO.Common;
 
 public class PagedResultTest
 {
-    [Fact]
-    public void TotalPages_Should_Be_Zero_When_Result_Is_Empty()
-    {
-        var result = new PagedResult<string>
-        {
-            PageNumber = 1,
-            PageSize = 10,
-            TotalCount = 0
-        };
-
-        Assert.Equal(0, result.TotalPages);
-    }
-
     [Theory]
+    [InlineData(0, 10, 0)]
     [InlineData(20, 10, 2)]
     [InlineData(21, 10, 3)]
     [InlineData(1, 10, 1)]

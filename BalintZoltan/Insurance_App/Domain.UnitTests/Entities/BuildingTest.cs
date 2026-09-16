@@ -39,38 +39,22 @@ namespace Domain.UnitTests.Entities
             Assert.False(building.IsEarthquakeRiskZone);
         }
 
-        [Fact]
-        public void Constructor_Should_Throw_When_ClientId_Empty()
+        [Theory]
+        [InlineData("ClientId")]
+        [InlineData("CityId")]
+        [InlineData("Street")]
+        [InlineData("SurfaceArea")]
+        public void Constructor_Should_Throw_When_Required_Data_Is_Invalid(string invalidField)
         {
-            var cityId = Guid.NewGuid();
             Assert.Throws<ArgumentException>(() =>
-                new Building(Guid.Empty, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m));
-        }
-
-        [Fact]
-        public void Constructor_Should_Throw_When_CityId_Empty()
-        {
-            var cityId = Guid.Empty;
-            Assert.Throws<ArgumentException>(() =>
-                new Building(Guid.NewGuid(), cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m));
-        }
-
-        [Fact]
-        public void Constructor_Should_Throw_When_Street_Empty()
-        {
-            var street = String.Empty;
-            Assert.Throws<ArgumentException>(() =>
-                new Building(Guid.NewGuid(), Guid.NewGuid(), street, "1", 1990, BuildingType.Administrative, 1, 50m, 1000m));
-        }
-
-
-        [Fact]
-        public void Constructor_Should_Throw_When_SurfaceArea_NonPositive()
-        {
-            var clientId = Guid.NewGuid();
-            var cityId = Guid.NewGuid();
-            Assert.Throws<ArgumentException>(() =>
-                new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 0m, 1000m));
+                invalidField switch
+                {
+                    "ClientId" => new Building(Guid.Empty, Guid.NewGuid(), "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m),
+                    "CityId" => new Building(Guid.NewGuid(), Guid.Empty, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m),
+                    "Street" => new Building(Guid.NewGuid(), Guid.NewGuid(), "", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m),
+                    "SurfaceArea" => new Building(Guid.NewGuid(), Guid.NewGuid(), "St", "1", 1990, BuildingType.Administrative, 1, 0m, 1000m),
+                    _ => throw new ArgumentOutOfRangeException(nameof(invalidField))
+                });
         }
 
         [Fact]
@@ -86,36 +70,33 @@ namespace Domain.UnitTests.Entities
             Assert.Equal("2", building.Number);
         }
 
-        [Fact]
-        public void UpdateAddress_Should_Throw_When_CityId_Empty()
+        [Theory]
+        [InlineData("CityId")]
+        [InlineData("Street")]
+        [InlineData("Number")]
+        public void UpdateAddress_Should_Throw_When_Data_Is_Invalid(string invalidField)
         {
             var clientId = Guid.NewGuid();
             var cityId = Guid.NewGuid();
             var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
 
-            Assert.Throws<ArgumentException>(() => building.UpdateAddress(Guid.Empty, "New St", "2"));
-        }
-
-        [Fact]
-        public void UpdateAddress_Should_Throw_When_Street_Empty()
-        {
-            var clientId = Guid.NewGuid();
-            var cityId = Guid.NewGuid();
-            var street = String.Empty;
-            var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
-
-            Assert.Throws<ArgumentException>(() => building.UpdateAddress(cityId, street, "2"));
-        }
-
-        [Fact]
-        public void UpdateAddress_Should_Throw_When_Nr_Empty()
-        {
-            var clientId = Guid.NewGuid();
-            var cityId = Guid.NewGuid();
-            var nr = String.Empty;
-            var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
-
-            Assert.Throws<ArgumentException>(() => building.UpdateAddress(cityId, "New St", nr));
+            Assert.Throws<ArgumentException>(() =>
+            {
+                switch (invalidField)
+                {
+                    case "CityId":
+                        building.UpdateAddress(Guid.Empty, "New St", "2");
+                        break;
+                    case "Street":
+                        building.UpdateAddress(cityId, "", "2");
+                        break;
+                    case "Number":
+                        building.UpdateAddress(cityId, "New St", "");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(invalidField));
+                }
+            });
         }
 
         [Fact]
@@ -134,62 +115,67 @@ namespace Domain.UnitTests.Entities
             Assert.Equal(250000m, building.InsuredValue);
         }
 
-        [Fact]
-        public void UpdateDetails_Should_Throw_When_InsuredValue_NonPositive()
+        [Theory]
+        [InlineData("InsuredValue")]
+        [InlineData("SurfaceArea")]
+        [InlineData("NumberOfFloors")]
+        public void UpdateDetails_Should_Throw_When_Value_Is_NonPositive(string invalidField)
         {
             var clientId = Guid.NewGuid();
             var cityId = Guid.NewGuid();
             var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
 
-            Assert.Throws<ArgumentException>(() => building.UpdateDetails(1991, BuildingType.Residential, 2, 100m, 0m));
+            Assert.Throws<ArgumentException>(() =>
+            {
+                switch (invalidField)
+                {
+                    case "InsuredValue":
+                        building.UpdateDetails(1991, BuildingType.Residential, 2, 100m, 0m);
+                        break;
+                    case "SurfaceArea":
+                        building.UpdateDetails(1991, BuildingType.Residential, 2, 0m, 1100m);
+                        break;
+                    case "NumberOfFloors":
+                        building.UpdateDetails(1991, BuildingType.Residential, -1, 50m, 1100m);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(invalidField));
+                }
+            });
         }
 
-        [Fact]
-        public void UpdateDetails_Should_Throw_When_SurfaceArea_NonPositive()
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public void UpdateRiskIndicators_Should_Update_Only_Risk_Flags(
+            bool isFloodRiskZone,
+            bool isEarthquakeRiskZone)
         {
             var clientId = Guid.NewGuid();
             var cityId = Guid.NewGuid();
-            var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
-
-            Assert.Throws<ArgumentException>(() => building.UpdateDetails(1991, BuildingType.Residential, 2, 0m, 1100m));
-        }
-
-        [Fact]
-        public void UpdateDetails_Should_Throw_When_NumberOfFloors_NonPositive()
-        {
-            var clientId = Guid.NewGuid();
-            var cityId = Guid.NewGuid();
-            var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
-
-            Assert.Throws<ArgumentException>(() => building.UpdateDetails(1991, BuildingType.Residential, -1, 50m, 1100m));
-        }
-
-        [Fact]
-        public void UpdateRiskIndicators_Should_Update_Flags()
-        {
-            var clientId = Guid.NewGuid();
-            var cityId = Guid.NewGuid();
-            var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m, isFloodRiskZone: false, isEarthquakeRiskZone: false);
-
-            building.UpdateRiskIndicators(true, true);
-
-            Assert.True(building.IsFloodRiskZone);
-            Assert.True(building.IsEarthquakeRiskZone);
-        }
-
-        [Fact]
-        public void UpdateRiskIndicators_Should_Not_Modify_Other_Properties()
-        {
-            var clientId = Guid.NewGuid();
-            var cityId = Guid.NewGuid();
-            var building = new Building(clientId, cityId, "St", "1", 1990, BuildingType.Administrative, 2, 75m, 1500m, isFloodRiskZone: false, isEarthquakeRiskZone: false);
+            var building = new Building(
+                clientId,
+                cityId,
+                "St",
+                "1",
+                1990,
+                BuildingType.Administrative,
+                2,
+                75m,
+                1500m,
+                isFloodRiskZone: false,
+                isEarthquakeRiskZone: false);
 
             var beforeFloors = building.NumberOfFloors;
             var beforeSurface = building.SurfaceArea;
             var beforeInsured = building.InsuredValue;
 
-            building.UpdateRiskIndicators(true, false);
+            building.UpdateRiskIndicators(isFloodRiskZone, isEarthquakeRiskZone);
 
+            Assert.Equal(isFloodRiskZone, building.IsFloodRiskZone);
+            Assert.Equal(isEarthquakeRiskZone, building.IsEarthquakeRiskZone);
             Assert.Equal(beforeFloors, building.NumberOfFloors);
             Assert.Equal(beforeSurface, building.SurfaceArea);
             Assert.Equal(beforeInsured, building.InsuredValue);

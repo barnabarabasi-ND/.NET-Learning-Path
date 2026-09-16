@@ -21,16 +21,18 @@ namespace Domain.UnitTests.Entities
             Assert.Equal("Some Address", client.Address);
         }
 
-        [Fact]
-        public void Constructor_Should_Throw_When_Name_Empty()
+        [Theory]
+        [InlineData("Name")]
+        [InlineData("IdentificationNumber")]
+        public void Constructor_Should_Throw_When_Required_Data_Is_Empty(string invalidField)
         {
-            Assert.Throws<ArgumentException>(() => new Client(ClientType.Individual, "", "ID123"));
-        }
-
-        [Fact]
-        public void Constructor_Should_Throw_When_IdentificationNumber_Empty()
-        {
-            Assert.Throws<ArgumentException>(() => new Client(ClientType.Individual, "John", "  "));
+            Assert.Throws<ArgumentException>(() =>
+                invalidField switch
+                {
+                    "Name" => new Client(ClientType.Individual, "", "ID123"),
+                    "IdentificationNumber" => new Client(ClientType.Individual, "John", "  "),
+                    _ => throw new ArgumentOutOfRangeException(nameof(invalidField))
+                });
         }
 
         [Fact]

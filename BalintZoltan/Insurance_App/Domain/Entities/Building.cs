@@ -36,7 +36,7 @@ namespace Domain.Entities
             if (string.IsNullOrWhiteSpace(nr))
                 throw new ArgumentException("Street is required.");
         }
-        private static void CheckConstuctionYear(int constructionYear)
+        private static void CheckConstructionYear(int constructionYear)
         {
             if (constructionYear < 0)
                 throw new ArgumentException(
@@ -85,7 +85,7 @@ namespace Domain.Entities
             CheckCityId(cityId);
             CheckStreet(street);
             CheckStreetNr(number);
-            CheckConstuctionYear(constructionYear);
+            CheckConstructionYear(constructionYear);
             CheckNrOfFloors(numberOfFloors);
             CheckSurfaceArea(surfaceArea);
             CheckInsuredValue(insuredValue);
@@ -125,7 +125,7 @@ namespace Domain.Entities
             decimal surfaceArea,
             decimal insuredValue)
         {
-            CheckConstuctionYear(constructionYear);
+            CheckConstructionYear(constructionYear);
             CheckNrOfFloors(numberOfFloors);
             CheckSurfaceArea(surfaceArea);
             CheckInsuredValue(insuredValue);

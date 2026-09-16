@@ -20,6 +20,8 @@ internal sealed class GeographyRepository(InsuranceDbContext dbContext) : IGeogr
             .AsNoTracking()
             .Where(x => x.CountryId == countryId)
             .OrderBy(x => x.Name)
+            .ThenBy(x => x.CountryId)
+            .ThenBy(x => x.CountyId)
             .ToListAsync(cancellationToken);
     }
 
@@ -29,22 +31,18 @@ internal sealed class GeographyRepository(InsuranceDbContext dbContext) : IGeogr
             .AsNoTracking()
             .Where(x => x.CountyId == countyId)
             .OrderBy(x => x.Name)
+            .ThenBy(x => x.CountyId)
+            .ThenBy(x => x.CityId)
             .ToListAsync(cancellationToken);
     }
 
     public Task<bool> CountryExistsAsync(int countryId, CancellationToken cancellationToken)
     {
-        return dbContext.Countries
-            .AnyAsync(
-                x => x.CountryId == countryId,
-                cancellationToken);
+        return dbContext.Countries.AnyAsync(x => x.CountryId == countryId, cancellationToken);
     }
 
     public Task<bool> CountyExistsAsync(int countyId, CancellationToken cancellationToken)
     {
-        return dbContext.Counties
-            .AnyAsync(
-                x => x.CountyId == countyId,
-                cancellationToken);
+        return dbContext.Counties.AnyAsync(x => x.CountyId == countyId, cancellationToken);
     }
 }

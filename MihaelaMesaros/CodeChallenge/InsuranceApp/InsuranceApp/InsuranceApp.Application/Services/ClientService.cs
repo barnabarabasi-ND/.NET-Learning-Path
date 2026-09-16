@@ -3,6 +3,7 @@ using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.DTOs.Client;
 using InsuranceApp.Domain.Entities;
+using InsuranceApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System.Net.Mail;
 
@@ -56,66 +57,54 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
     public async Task<Result<ClientDto>> CreateClientAsync(CreateClientDto createClientDto, CancellationToken cancellationToken)
     {
-        var clientType = createClientDto.ClientType;
         var clientName = createClientDto.Name?.Trim();
         var clientEmail = createClientDto.Email?.Trim();
         var clientPhone = createClientDto.Phone?.Trim();
         var clientAddress = createClientDto.Address?.Trim();
+        var clientType = createClientDto.ClientType;
         var clientIdentificationNumber = createClientDto.IdentificationNumber?.Trim();
 
-        if (string.IsNullOrWhiteSpace(clientName))
+        var validationClientName = ValidateClientName(clientName);
+
+        if (validationClientName is not null)
         {
-            return Result<ClientDto>.Failure(ClientErrors.NameRequired);
+            return Result<ClientDto>.Failure(validationClientName);
         }
 
-        if (clientName.Length is < 3 or > 200)
+        var validationClientContactInfo = ValidateClientContactInfo(clientEmail, clientPhone, clientAddress);
+
+        if (validationClientContactInfo is not null)
         {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidNameLength);
+            return Result<ClientDto>.Failure(validationClientContactInfo);
         }
 
-        if (!Enum.IsDefined(clientType))
+        var validationClientType = ValidateClientType(clientType);
+
+        if (validationClientType is not null)
         {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidClientType);
+            return Result<ClientDto>.Failure(validationClientType);
         }
 
-        if (!string.IsNullOrWhiteSpace(clientEmail) && (clientEmail.Length > 200 || !MailAddress.TryCreate(clientEmail, out _)))
+        var validationIdentificationNumber = ValidateIdentificationNumber(clientIdentificationNumber);
+
+        if (validationIdentificationNumber is not null)
         {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidEmail);
+            return Result<ClientDto>.Failure(validationIdentificationNumber);
         }
 
-        if (!string.IsNullOrWhiteSpace(clientPhone) && clientPhone.Length > 50)
-        {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidPhoneLength);
-        }
-
-        if (!string.IsNullOrWhiteSpace(clientAddress) && clientAddress.Length > 300)
-        {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidAddressLength);
-        }
-
-
-        if (string.IsNullOrWhiteSpace(clientIdentificationNumber))
-        {
-            return Result<ClientDto>.Failure(ClientErrors.IdentificationNumberRequired);
-        }
-
-        if (clientIdentificationNumber.Length is < 3 or > 50)
-        {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidIdentificationNumberLength);
-        }
-
-        var identificationNumberExists = await clientRepository.IdentificationNumberExistsAsync(clientIdentificationNumber, cancellationToken);
+        var identificationNumberExists = await clientRepository.IdentificationNumberExistsAsync(clientIdentificationNumber!, cancellationToken);
 
         if (identificationNumberExists)
         {
             return Result<ClientDto>.Failure(ClientErrors.DuplicateIdentificationNumber);
         }
 
+
         var client = new Client
         {
             ClientType = clientType,
-            Name = clientName,
-            IdentificationNumber = clientIdentificationNumber,
+            Name = clientName!,
+            IdentificationNumber = clientIdentificationNumber!,
             Email = clientEmail,
             Phone = clientPhone,
             Address = clientAddress,
@@ -126,7 +115,10 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
         await clientRepository.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Client {ClientId} created.", client.ClientId);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation("Client {ClientId} created.", client.ClientId);
+        }
 
         return Result<ClientDto>.Success(MapToDto(client));
     }
@@ -143,29 +135,18 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
         var clientPhone = updateClientDto.Phone?.Trim();
         var clientAddress = updateClientDto.Address?.Trim();
 
-        if (string.IsNullOrWhiteSpace(clientName))
+        var validationClientName = ValidateClientName(clientName);
+
+        if (validationClientName is not null)
         {
-            return Result<ClientDto>.Failure(ClientErrors.NameRequired);
+            return Result<ClientDto>.Failure(validationClientName);
         }
 
-        if (clientName.Length is < 3 or > 200)
-        {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidNameLength);
-        }
+        var validationClientContactInfo = ValidateClientContactInfo(clientEmail, clientPhone, clientAddress);
 
-        if (!string.IsNullOrWhiteSpace(clientEmail) && (clientEmail.Length > 200 || !MailAddress.TryCreate(clientEmail, out _)))
+        if (validationClientContactInfo is not null)
         {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidEmail);
-        }
-
-        if (!string.IsNullOrWhiteSpace(clientPhone) && clientPhone.Length > 50)
-        {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidPhoneLength);
-        }
-
-        if (!string.IsNullOrWhiteSpace(clientAddress) && clientAddress.Length > 300)
-        {
-            return Result<ClientDto>.Failure(ClientErrors.InvalidAddressLength);
+            return Result<ClientDto>.Failure(validationClientContactInfo);
         }
 
 
@@ -176,7 +157,7 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return Result<ClientDto>.Failure(ClientErrors.NotFound(clientId));
         }
 
-        client.Name = clientName;
+        client.Name = clientName!;
         client.Email = clientEmail;
         client.Phone = clientPhone;
         client.Address = clientAddress;
@@ -184,7 +165,10 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
         await clientRepository.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Client {ClientId} updated.", clientId);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation("Client {ClientId} updated.", clientId);
+        }
 
         return Result<ClientDto>.Success(MapToDto(client));
     }
@@ -200,6 +184,69 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             client.Email,
             client.Phone,
             client.Address);
+    }
+
+    private static Error? ValidateClientName(string? clientName)
+    {
+        clientName = clientName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(clientName))
+        {
+            return ClientErrors.NameRequired;
+        }
+
+        if (clientName.Length is < 3 or > 200)
+        {
+            return ClientErrors.InvalidNameLength;
+        }
+
+        return null;
+    }
+
+    private static Error? ValidateClientContactInfo(string? clientEmail, string? clientPhone, string? clientAddress)
+    {
+        clientEmail = clientEmail?.Trim();
+        clientPhone = clientPhone?.Trim();
+        clientAddress = clientAddress?.Trim();
+
+        if (!string.IsNullOrWhiteSpace(clientEmail) && (clientEmail.Length > 200 || !MailAddress.TryCreate(clientEmail, out _)))
+        {
+            return ClientErrors.InvalidEmail;
+        }
+
+        if (!string.IsNullOrWhiteSpace(clientPhone) && clientPhone.Length > 50)
+        {
+            return ClientErrors.InvalidPhoneLength;
+        }
+
+        if (!string.IsNullOrWhiteSpace(clientAddress) && clientAddress.Length > 300)
+        {
+            return ClientErrors.InvalidAddressLength;
+        }
+
+        return null;
+    }
+
+    private static Error? ValidateClientType(ClientType clientType)
+    {
+        return Enum.IsDefined(clientType) ? null : ClientErrors.InvalidClientType;
+    }
+
+    private static Error? ValidateIdentificationNumber(string? identificationNumber)
+    {
+        identificationNumber = identificationNumber?.Trim();
+
+        if (string.IsNullOrWhiteSpace(identificationNumber))
+        {
+            return ClientErrors.IdentificationNumberRequired;
+        }
+
+        if (identificationNumber.Length is < 3 or > 50)
+        {
+            return ClientErrors.InvalidIdentificationNumberLength;
+        }
+
+        return null;
     }
 
 }

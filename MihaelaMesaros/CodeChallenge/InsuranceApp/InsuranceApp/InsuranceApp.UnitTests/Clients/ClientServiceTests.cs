@@ -7,7 +7,7 @@ using InsuranceApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace InsuranceApp.UnitTests.Services;
+namespace InsuranceApp.UnitTests.Clients;
 
 public sealed class ClientServiceTests
 {

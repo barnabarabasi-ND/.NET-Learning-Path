@@ -24,6 +24,7 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
 
         var clients = await query
             .OrderBy(x => x.Name)
+            .ThenBy(x => x.ClientId)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

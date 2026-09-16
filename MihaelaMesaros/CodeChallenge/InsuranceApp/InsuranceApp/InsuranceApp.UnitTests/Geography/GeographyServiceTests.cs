@@ -4,7 +4,7 @@ using InsuranceApp.Application.Services;
 using InsuranceApp.Domain.Entities;
 using Moq;
 
-namespace InsuranceApp.UnitTests.Services;
+namespace InsuranceApp.UnitTests.Geography;
 
 public sealed class GeographyServiceTests
 {

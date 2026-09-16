@@ -26,7 +26,11 @@ internal static class PersistenceMappings
             id: entity.Id,
             clientId: entity.ClientId,
             type: entity.Type,
-            address: new(entity.CityId, entity.Street, entity.Number),
+            address: new(
+                cityId: entity.CityId,
+                street: entity.Street,
+                number: entity.Number
+            ),
             constructionYear: entity.ConstructionYear,
             numberOfFloors: entity.NumberOfFloors,
             surfaceArea: entity.SurfaceArea,
@@ -67,7 +71,7 @@ internal static class PersistenceMappings
             type: client.Type,
             identificationNumber: client.IdentificationNumber,
             name: client.Name,
-            email: client.Name,
+            email: client.Email,
             phone: client.Phone,
             primaryAddress: client.PrimaryAddress
         );

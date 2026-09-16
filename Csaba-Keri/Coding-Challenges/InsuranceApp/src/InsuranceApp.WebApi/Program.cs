@@ -1,5 +1,7 @@
 using InsuranceApp.Application;
 using InsuranceApp.Infrastructure;
+using InsuranceApp.WebApi.Errors;
+using System.Text.Json.Serialization;
 
 namespace InsuranceApp.WebApi;
 
@@ -16,19 +18,30 @@ internal static class Program
             throw new InvalidOperationException("Connection string 'InsuranceDatabase' is missing.");
         }
 
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(
+                    new JsonStringEnumConverter(allowIntegerValues: false)
+                );
+            });
+
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddProblemDetails();
+
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
         builder.Services.AddApplication();
 
         builder.Services.AddInfrastructure(connectionString);
 
-        builder.Services.AddControllers();
-
-        builder.Services.AddOpenApi();
-
         var app = builder.Build();
 
-        app.MapOpenApi();
+        app.UseExceptionHandler();
 
-        app.UseHttpsRedirection();
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.MapControllers();
 

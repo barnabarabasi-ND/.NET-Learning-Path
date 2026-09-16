@@ -1,8 +1,7 @@
-using Application.Abstractions;
 using Application.DTO.Buildings;
 using Application.DTO.Common;
 using Application.Services;
-using Application.UnitTests.Fakes;
+using Application.UnitTests.Helper;
 using Domain.Entities;
 using Domain.Enums;
 using Xunit;
@@ -11,63 +10,23 @@ namespace Application.UnitTests.Services
 {
     public class BuildingServiceTest
     {
-        private class FakeBuildingRepository : IBuildingRepository
+        private readonly BuildingService _service;
+        private readonly FakeRepositories _fakeRepositories;
+
+        public BuildingServiceTest()
         {
-            public readonly List<Building> Storage = new();
-            public Task AddAsync(Building building)
-            {
-                Storage.Add(building);
-                return Task.CompletedTask;
-            }
-
-            public Task<Building?> GetByIdAsync(Guid id)
-            {
-                return Task.FromResult(Storage.FirstOrDefault(b => b.Id == id));
-            }
-
-            public Task<PagedResult<Building>> GetByClientIdAsync(
-                Guid clientId,
-                PaginationRequest pagination)
-            {
-                var all = Storage
-                    .Where(b => b.ClientId == clientId)
-                    .OrderBy(b => b.Street)
-                    .ThenBy(b => b.Number)
-                    .ThenBy(b => b.Id)
-                    .ToList();
-                var pageNumber = Math.Max(pagination.PageNumber, 1);
-                var pageSize = Math.Min(Math.Max(pagination.PageSize, 1), 100);
-
-                return Task.FromResult(new PagedResult<Building>
-                {
-                    Items = all.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList(),
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalCount = all.Count
-                });
-            }
-
-            public Task UpdateAsync(Building building)
-            {
-                // in-memory already updated by reference
-                return Task.CompletedTask;
-            }
+            _fakeRepositories = new FakeRepositories();
+            _service = new BuildingService(_fakeRepositories.Building, _fakeRepositories.Client, _fakeRepositories.Geography);            
         }
 
         [Fact]
         public async Task CreateAsync_Should_Create_When_Client_And_City_Exist()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
             var existingClient = new Domain.Entities.Client(ClientType.Individual, "John", "ID1");
-            clientRepo.Seed(existingClient);
+            _fakeRepositories.Client.Seed(existingClient);
 
             var cityId = Guid.NewGuid();
-            geoRepo.SeedCity(cityId);
-
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
+            _fakeRepositories.Geography.SeedCity(cityId);
 
             var request = new CreateBuildingRequest
             {
@@ -84,7 +43,7 @@ namespace Application.UnitTests.Services
                 IsEarthquakeRiskZone = true
             };
 
-            var dto = await service.CreateAsync(request);
+            var dto = await _service.CreateAsync(request);
 
             Assert.NotNull(dto);
             Assert.Equal(request.ClientId, dto.ClientId);
@@ -94,18 +53,12 @@ namespace Application.UnitTests.Services
             Assert.Equal(request.SurfaceArea, dto.SurfaceArea);
             Assert.Equal(request.IsEarthquakeRiskZone, dto.IsEarthquakeRiskZone);
             // repository should have stored one building
-            Assert.Single(buildingRepo.Storage);
+            Assert.Single(_fakeRepositories.Building.Storage);
         }
 
         [Fact]
         public async Task CreateAsync_Should_Throw_When_Client_Not_Found()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
-
             var request = new CreateBuildingRequest
             {
                 ClientId = Guid.NewGuid(),
@@ -121,21 +74,15 @@ namespace Application.UnitTests.Services
                 IsEarthquakeRiskZone = true
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateAsync(request));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(request));
             Assert.Equal("Client was not found.", ex.Message);
         }
 
         [Fact]
         public async Task CreateAsync_Should_Throw_When_City_Not_Found()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
             var existingClient = new Domain.Entities.Client(ClientType.Individual, "John", "ID1");
-            clientRepo.Seed(existingClient);
-
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
+            _fakeRepositories.Client.Seed(existingClient);
 
             var request = new CreateBuildingRequest
             {
@@ -152,26 +99,20 @@ namespace Application.UnitTests.Services
                 IsEarthquakeRiskZone = true
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateAsync(request));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(request));
             Assert.Equal("City was not found.", ex.Message);
         }
 
         [Fact]
         public async Task UpdateAsync_Should_Update_When_Building_Exists()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
             var client = new Domain.Entities.Client(ClientType.Individual, "John", "1234567890123");
-            clientRepo.Seed(client);
+            _fakeRepositories.Client.Seed(client);
             var clientId = client.Id;
             var cityId = Guid.NewGuid();
             var building = new Building(clientId, cityId, "OldSt", "1", 1990, BuildingType.Administrative, 1, 50m, 1000m);
-            buildingRepo.Storage.Add(building);
-            geoRepo.SeedCity(cityId);
-
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
+            _fakeRepositories.Building.Storage.Add(building);
+            _fakeRepositories.Geography.SeedCity(cityId);
 
             var update = new UpdateBuildingRequest
             {
@@ -187,7 +128,7 @@ namespace Application.UnitTests.Services
                 IsEarthquakeRiskZone = false
             };
 
-            var dto = await service.UpdateAsync(building.Id, update);
+            var dto = await _service.UpdateAsync(building.Id, update);
 
             Assert.Equal(building.Id, dto.Id);
             Assert.Equal(update.Street, dto.Street);
@@ -200,12 +141,6 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task UpdateAsync_Should_Throw_When_Building_Not_Found()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
-
             var update = new UpdateBuildingRequest
             {
                 CityId = Guid.NewGuid(),
@@ -220,25 +155,19 @@ namespace Application.UnitTests.Services
                 IsEarthquakeRiskZone = false
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateAsync(Guid.NewGuid(), update));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateAsync(Guid.NewGuid(), update));
             Assert.Equal("Building was not found.", ex.Message);
         }
 
         [Fact]
         public async Task GetByIdAsync_Should_Return_Dto_When_Building_Exists()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
             var clientId = Guid.NewGuid();
             var cityId = Guid.NewGuid();
             var building = new Building(clientId, cityId, "St", "1", 1995, BuildingType.Residential, 2, 80m, 2000m);
-            buildingRepo.Storage.Add(building);
+            _fakeRepositories.Building.Storage.Add(building);
 
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
-
-            var dto = await service.GetByIdAsync(building.Id);
+            var dto = await _service.GetByIdAsync(building.Id);
 
             Assert.NotNull(dto);
             Assert.Equal(building.Id, dto!.Id);
@@ -248,13 +177,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetByIdAsync_Should_Return_Null_When_Not_Found()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
-
-            var dto = await service.GetByIdAsync(Guid.NewGuid());
+            var dto = await _service.GetByIdAsync(Guid.NewGuid());
 
             Assert.Null(dto);
         }
@@ -262,22 +185,16 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetByClientIdAsync_Should_Return_Buildings_For_Client()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
             var client = new Domain.Entities.Client(ClientType.Individual, "John", "1234567890123");
-            clientRepo.Seed(client);
+            _fakeRepositories.Client.Seed(client);
             var clientId = client.Id;
             var cityId = Guid.NewGuid();
             var b1 = new Building(clientId, cityId, "A", "1", 1990, BuildingType.Residential, 1, 50m, 1000m);
             var b2 = new Building(clientId, cityId, "B", "2", 1991, BuildingType.Residential, 2, 75m, 1500m);
-            buildingRepo.Storage.Add(b1);
-            buildingRepo.Storage.Add(b2);
+            _fakeRepositories.Building.Storage.Add(b1);
+            _fakeRepositories.Building.Storage.Add(b2);
 
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
-
-            var list = await service.GetByClientIdAsync(
+            var list = await _service.GetByClientIdAsync(
                 clientId,
                 new PaginationRequest { PageSize = 10 });
 
@@ -290,15 +207,10 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetByClientIdAsync_Should_Return_Empty_When_None()
         {
-            var buildingRepo = new FakeBuildingRepository();
-            var clientRepo = new FakeClientRepository();
-            var geoRepo = new FakeGeographyRepository();
-
             var client = new Domain.Entities.Client(ClientType.Individual, "John", "1234567890123");
-            clientRepo.Seed(client);
-            var service = new BuildingService(buildingRepo, clientRepo, geoRepo);
+            _fakeRepositories.Client.Seed(client);
 
-            var list = await service.GetByClientIdAsync(
+            var list = await _service.GetByClientIdAsync(
                 client.Id,
                 new PaginationRequest());
 

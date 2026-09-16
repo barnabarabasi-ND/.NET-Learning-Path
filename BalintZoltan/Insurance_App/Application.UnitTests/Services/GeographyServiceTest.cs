@@ -1,6 +1,6 @@
 using Application.Abstractions;
 using Application.Services;
-using Application.UnitTests.Fakes;
+using Application.UnitTests.Helper;
 using Domain.Entities;
 using Xunit;
 
@@ -8,18 +8,23 @@ namespace Application.UnitTests.Services
 {
     public class GeographyServiceTest
     {
+        private readonly FakeRepositories _fakeRepositories;
+        private readonly GeographyService _service;
+        public GeographyServiceTest()
+        {
+            _fakeRepositories = new FakeRepositories();
+            _service = new GeographyService(_fakeRepositories.Geography);
+        }
+
         [Fact]
         public async Task GetCountriesAsync_Should_Return_List()
         {
-            var repo = new FakeGeographyRepository();
             var c1 = new Country("CountryA");
             var c2 = new Country("CountryB");
-            repo.SeedCountry(c1);
-            repo.SeedCountry(c2);
+            _fakeRepositories.Geography.SeedCountry(c1);
+            _fakeRepositories.Geography.SeedCountry(c2);
 
-            var service = new GeographyService(repo);
-
-            var list = await service.GetCountriesAsync();
+            var list = await _service.GetCountriesAsync();
 
             Assert.Equal(2, list.Count);
             Assert.Contains(list, x => x.Id == c1.Id && x.Name == "CountryA");
@@ -29,10 +34,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetCountriesAsync_Should_Return_Empty_When_None()
         {
-            var repo = new FakeGeographyRepository();
-            var service = new GeographyService(repo);
-
-            var list = await service.GetCountriesAsync();
+            var list = await _service.GetCountriesAsync();
 
             Assert.NotNull(list);
             Assert.Empty(list);
@@ -41,18 +43,15 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetCountiesByCountryIdAsync_Should_Return_Counties_For_Country()
         {
-            var repo = new FakeGeographyRepository();
             var country = new Country("Cty");
             var county1 = new County(country.Id, "County1");
             var county2 = new County(country.Id, "County2");
             var other = new County(Guid.NewGuid(), "Other");
-            repo.SeedCounty(county1);
-            repo.SeedCounty(county2);
-            repo.SeedCounty(other);
+            _fakeRepositories.Geography.SeedCounty(county1);
+            _fakeRepositories.Geography.SeedCounty(county2);
+            _fakeRepositories.Geography.SeedCounty(other);
 
-            var service = new GeographyService(repo);
-
-            var list = await service.GetCountiesByCountryIdAsync(country.Id);
+            var list = await _service.GetCountiesByCountryIdAsync(country.Id);
 
             Assert.Equal(2, list.Count);
             Assert.All(list, c => Assert.Equal(country.Id, c.CountryId));
@@ -61,10 +60,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetCountiesByCountryIdAsync_Should_Return_Empty_When_None()
         {
-            var repo = new FakeGeographyRepository();
-            var service = new GeographyService(repo);
-
-            var list = await service.GetCountiesByCountryIdAsync(Guid.NewGuid());
+            var list = await _service.GetCountiesByCountryIdAsync(Guid.NewGuid());
 
             Assert.NotNull(list);
             Assert.Empty(list);
@@ -73,18 +69,15 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetCitiesByCountyIdAsync_Should_Return_Cities_For_County()
         {
-            var repo = new FakeGeographyRepository();
             var county = new County(Guid.NewGuid(), "Cnty");
             var city1 = new City(county.Id, "City1", "1111");
             var city2 = new City(county.Id, "City2", "2222");
             var other = new City(Guid.NewGuid(), "Other", "3333");
-            repo.SeedCity(city1);
-            repo.SeedCity(city2);
-            repo.SeedCity(other);
+            _fakeRepositories.Geography.SeedCity(city1);
+            _fakeRepositories.Geography.SeedCity(city2);
+            _fakeRepositories.Geography.SeedCity(other);
 
-            var service = new GeographyService(repo);
-
-            var list = await service.GetCitiesByCountyIdAsync(county.Id);
+            var list = await _service.GetCitiesByCountyIdAsync(county.Id);
 
             Assert.Equal(2, list.Count);
             Assert.All(list, c => Assert.Equal(county.Id, c.CountyId));
@@ -93,10 +86,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetCitiesByCountyIdAsync_Should_Return_Empty_When_None()
         {
-            var repo = new FakeGeographyRepository();
-            var service = new GeographyService(repo);
-
-            var list = await service.GetCitiesByCountyIdAsync(Guid.NewGuid());
+            var list = await _service.GetCitiesByCountyIdAsync(Guid.NewGuid());
 
             Assert.NotNull(list);
             Assert.Empty(list);

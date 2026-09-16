@@ -4,18 +4,23 @@ using Application.DTO.Common;
 using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
-using Application.UnitTests.Fakes;
+using Application.UnitTests.Helper;
 using Xunit;
 
 namespace Application.UnitTests.Services
 {
     public class ClientServiceTest
     {
+        private readonly FakeRepositories _fakeRepositories;
+
+        public ClientServiceTest()
+        {
+            _fakeRepositories = new FakeRepositories();
+        }
         [Fact]
         public async Task CreateAsync_Should_Create_Individual_With_Valid_CNP()
         {
-            var repo = new FakeClientRepository();
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var request = new CreateClientRequest
             {
@@ -31,14 +36,13 @@ namespace Application.UnitTests.Services
             Assert.NotNull(dto);
             Assert.Equal(request.Name, dto.Name);
             Assert.Equal(request.IdentificationNumber, dto.IdentificationNumber);
-            Assert.Single(repo.Storage);
+            Assert.Single(_fakeRepositories.Client.Storage);
         }
 
         [Fact]
         public async Task CreateAsync_Should_Create_Company_With_RO_Prefix()
         {
-            var repo = new FakeClientRepository();
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var request = new CreateClientRequest
             {
@@ -58,8 +62,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task CreateAsync_Should_Throw_When_Identification_Invalid_For_Individual()
         {
-            var repo = new FakeClientRepository();
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var request = new CreateClientRequest
             {
@@ -74,11 +77,10 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task CreateAsync_Should_Throw_When_Duplicate_Identification()
         {
-            var repo = new FakeClientRepository();
             var existing = new Client(ClientType.Individual, "Existing", "1234567890123");
-            await repo.AddAsync(existing);
+            await _fakeRepositories.Client.AddAsync(existing);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var request = new CreateClientRequest
             {
@@ -94,11 +96,10 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetByIdAsync_Should_Return_Dto_When_Found()
         {
-            var repo = new FakeClientRepository();
             var client = new Client(ClientType.Individual, "John", "1234567890123");
-            await repo.AddAsync(client);
+            await _fakeRepositories.Client.AddAsync(client);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var dto = await service.GetByIdAsync(client.Id);
 
@@ -110,8 +111,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task GetByIdAsync_Should_Return_Null_When_Not_Found()
         {
-            var repo = new FakeClientRepository();
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var dto = await service.GetByIdAsync(Guid.NewGuid());
 
@@ -121,13 +121,12 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task SearchAsync_Should_Return_All_Clients_When_No_Filters_Are_Provided()
         {
-            var repo = new FakeClientRepository();
             var c1 = new Client(ClientType.Individual, "Alice", "1111111111111");
             var c2 = new Client(ClientType.Company, "Acme", "RO22222");
-            await repo.AddAsync(c1);
-            await repo.AddAsync(c2);
+            await _fakeRepositories.Client.AddAsync(c1);
+            await _fakeRepositories.Client.AddAsync(c2);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var all = await service.SearchAsync(null, null, new PaginationRequest { PageSize = 10 });
             Assert.Equal(2, all.TotalCount);
@@ -137,13 +136,12 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task SearchAsync_Should_Return_Matching_Clients_By_Name()
         {
-            var repo = new FakeClientRepository();
             var c1 = new Client(ClientType.Individual, "Alice", "1111111111111");
             var c2 = new Client(ClientType.Company, "Acme", "RO22222");
-            await repo.AddAsync(c1);
-            await repo.AddAsync(c2);
+            await _fakeRepositories.Client.AddAsync(c1);
+            await _fakeRepositories.Client.AddAsync(c2);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var filtered = await service.SearchAsync("Acme", null, new PaginationRequest());
             Assert.Equal(1, filtered.TotalCount);
@@ -154,11 +152,10 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task UpdateAsync_Should_Update_When_Valid()
         {
-            var repo = new FakeClientRepository();
             var client = new Client(ClientType.Individual, "John", "1234567890123");
-            await repo.AddAsync(client);
+            await _fakeRepositories.Client.AddAsync(client);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var update = new UpdateClientRequest
             {
@@ -181,8 +178,7 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task UpdateAsync_Should_Throw_When_Client_Not_Found()
         {
-            var repo = new FakeClientRepository();
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var update = new UpdateClientRequest
             {
@@ -198,11 +194,10 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task UpdateAsync_Should_Throw_When_Identification_Changed()
         {
-            var repo = new FakeClientRepository();
             var client = new Client(ClientType.Individual, "John", "1234567890123");
-            await repo.AddAsync(client);
+            await _fakeRepositories.Client.AddAsync(client);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var update = new UpdateClientRequest
             {
@@ -218,13 +213,12 @@ namespace Application.UnitTests.Services
         [Fact]
         public async Task UpdateAsync_Should_Throw_When_Identification_Exists_For_Other()
         {
-            var repo = new FakeClientRepository();
             var client1 = new Client(ClientType.Individual, "A", "1234567890123");
             var client2 = new Client(ClientType.Individual, "B", "9999999999999");
-            await repo.AddAsync(client1);
-            await repo.AddAsync(client2);
+            await _fakeRepositories.Client.AddAsync(client1);
+            await _fakeRepositories.Client.AddAsync(client2);
 
-            var service = new ClientService(repo);
+            var service = new ClientService(_fakeRepositories.Client);
 
             var update = new UpdateClientRequest
             {

@@ -1,0 +1,50 @@
+﻿using InsuranceApp.Application.Abstractions.Persistence;
+using InsuranceApp.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace InsuranceApp.Infrastructure.Persistence.Repositories;
+
+internal sealed class GeographyRepository(InsuranceDbContext dbContext) : IGeographyRepository
+{
+    public async Task<IReadOnlyList<Country>> GetCountriesAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Countries
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<County>> GetCountiesByCountryAsync(int countryId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Counties
+            .AsNoTracking()
+            .Where(x => x.CountryId == countryId)
+            .OrderBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<City>> GetCitiesByCountyAsync(int countyId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Cities
+            .AsNoTracking()
+            .Where(x => x.CountyId == countyId)
+            .OrderBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<bool> CountryExistsAsync(int countryId, CancellationToken cancellationToken)
+    {
+        return dbContext.Countries
+            .AnyAsync(
+                x => x.CountryId == countryId,
+                cancellationToken);
+    }
+
+    public Task<bool> CountyExistsAsync(int countyId, CancellationToken cancellationToken)
+    {
+        return dbContext.Counties
+            .AnyAsync(
+                x => x.CountyId == countyId,
+                cancellationToken);
+    }
+}

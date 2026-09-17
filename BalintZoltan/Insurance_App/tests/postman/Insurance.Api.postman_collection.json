@@ -105,7 +105,11 @@
                 "exec": [
                   "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
-                  "pm.test('Response contains paged items', function () { pm.expect(body.items).to.be.an('array'); });"
+                  "pm.test('Response contains paged items', function () { pm.expect(body.items).to.be.an('array'); });",
+                  "pm.test('Page number is 1', function () { pm.expect(body.pageNumber).to.eql(1); });",
+                  "pm.test('Page size is 10', function () { pm.expect(body.pageSize).to.eql(10); });",
+                  "pm.test('Total count is numeric', function () { pm.expect(body.totalCount).to.be.a('number'); });",
+                  "pm.test('Total pages is numeric', function () { pm.expect(body.totalPages).to.be.a('number'); });"
                 ]
               }
             }
@@ -113,7 +117,7 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/brokers/clients?name=Postman",
+              "raw": "{{baseUrl}}/api/brokers/clients?name=Postman&pageNumber=1&pageSize=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -124,8 +128,16 @@
               ],
               "query": [
                 {
-                "key": "name",
+                  "key": "name",
                   "value": "Postman"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
                 }
               ]
             }
@@ -327,14 +339,18 @@
                 "exec": [
                   "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
-                  "pm.test('Response contains paged items', function () { pm.expect(body.items).to.be.an('array'); });"
+                  "pm.test('Response contains paged items', function () { pm.expect(body.items).to.be.an('array'); });",
+                  "pm.test('Page number is 1', function () { pm.expect(body.pageNumber).to.eql(1); });",
+                  "pm.test('Page size is 10', function () { pm.expect(body.pageSize).to.eql(10); });",
+                  "pm.test('Total count is numeric', function () { pm.expect(body.totalCount).to.be.a('number'); });",
+                  "pm.test('Total pages is numeric', function () { pm.expect(body.totalPages).to.be.a('number'); });"
                 ]
               }
             }
           ],
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/brokers/clients/{{clientId}}/buildings"
+            "url": "{{baseUrl}}/api/brokers/clients/{{clientId}}/buildings?pageNumber=1&pageSize=10"
           }
         },
         {

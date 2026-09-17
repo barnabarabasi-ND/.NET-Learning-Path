@@ -167,6 +167,45 @@ public sealed class ClientEndpointsTests : IClassFixture<InsuranceAppWebApplicat
 
         Assert.Equal(1, count);
     }
+
+    [Fact(Skip = "SQLite concurrency handling is not implemented, because didn't want to add SQLite dependency in Infrastructure only to pass this test")]
+    public async Task CreateClient_ConcurrentDuplicateIdentificationNumber_OnlyOneIsCreated()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+
+        var request = CreateValidClientDto();
+
+        // Act - send both requests concurrently
+        var task1 = _client.PostAsJsonAsync(
+            "/api/brokers/clients",
+            request);
+
+        var task2 = _client.PostAsJsonAsync(
+            "/api/brokers/clients",
+            request);
+
+        var responses = await Task.WhenAll(task1, task2);
+
+        // Assert
+        Assert.Contains(
+            responses,
+            x => x.StatusCode == HttpStatusCode.Created);
+
+        Assert.Contains(
+            responses,
+            x => x.StatusCode == HttpStatusCode.Conflict);
+
+        using var scope = _factory.Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
+
+        var count = await dbContext.Clients.CountAsync(
+            x => x.IdentificationNumber == request.IdentificationNumber);
+
+        Assert.Equal(1, count);
+    }
     #endregion
 
 

@@ -1,12 +1,14 @@
 ﻿using InsuranceApp.Application.Abstractions.Persistence;
+using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Domain.Entities;
+using InsuranceApp.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceApp.Infrastructure.Persistence.Repositories;
 
 internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepository
 {
-    public async Task<(IReadOnlyList<Client> Items, int TotalCount)> SearchAsync(string? name, string? identificationNumber, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<Client> Items, int TotalCount)> SearchClientAsync(string? name, string? identificationNumber, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var query = dbContext.Clients.AsNoTracking().AsQueryable();
 
@@ -32,27 +34,39 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
         return (clients, totalCount);
     }
 
-    public Task<Client?> GetByIdAsync(int clientId, CancellationToken cancellationToken)
+    public Task<Client?> GetClientByIdAsync(int clientId, CancellationToken cancellationToken)
     {
         return dbContext.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.ClientId == clientId, cancellationToken);
     }
 
-    public Task<bool> IdentificationNumberExistsAsync(string identificationNumber, CancellationToken cancellationToken)
+    public Task<bool> ClientIdentificationNumberExistsAsync(string identificationNumber, CancellationToken cancellationToken)
     {
         return dbContext.Clients.AnyAsync(x => x.IdentificationNumber == identificationNumber, cancellationToken);
     }
 
-    public async Task AddAsync(Client client, CancellationToken cancellationToken)
+    public async Task AddClientAsync(Client client, CancellationToken cancellationToken)
     {
-        await dbContext.Clients.AddAsync(client, cancellationToken);
+        //await dbContext.Clients.AddAsync(client, cancellationToken);
+
+        dbContext.Clients.Add(client);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateEntityException(nameof(Client));
+        }
     }
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken)
+    public Task SaveClientChangesAsync(CancellationToken cancellationToken)
     {
         return dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<Client?> GetForUpdateAsync(int clientId, CancellationToken cancellationToken)
+    public Task<Client?> GetClientForUpdateAsync(int clientId, CancellationToken cancellationToken)
     {
         return dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == clientId, cancellationToken);
     }

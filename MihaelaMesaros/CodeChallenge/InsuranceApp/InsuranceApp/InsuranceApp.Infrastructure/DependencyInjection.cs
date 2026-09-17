@@ -15,8 +15,7 @@ public static class DependencyInjection
 
         if (environment.Equals("Testing", StringComparison.OrdinalIgnoreCase))
         {
-            // For testing, SQLite will be configured in WebApplicationFactory.
-            // Placeholder for Testing environment - actual config happens in WebApplicationFactory
+            // For testing, the database provider is configured in WebApplicationFactory.
             services.AddDbContext<InsuranceDbContext>();
         }
         else

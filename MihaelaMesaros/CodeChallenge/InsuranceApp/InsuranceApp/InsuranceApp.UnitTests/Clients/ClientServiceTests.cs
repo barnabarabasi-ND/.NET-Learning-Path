@@ -1,6 +1,7 @@
 ﻿using InsuranceApp.Application.Abstractions.Persistence;
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.DTOs.Client;
+using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Application.Services;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
@@ -35,7 +36,7 @@ public sealed class ClientServiceTests
         var client = CreateClientEntity();
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(
+            .Setup(x => x.GetClientByIdAsync(
                 client.ClientId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(client);
@@ -65,7 +66,7 @@ public sealed class ClientServiceTests
         const int clientId = 999;
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(
+            .Setup(x => x.GetClientByIdAsync(
                 clientId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Client?)null);
@@ -97,7 +98,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.GetByIdAsync(
+            x => x.GetClientByIdAsync(
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -133,7 +134,7 @@ public sealed class ClientServiceTests
         };
 
         _repositoryMock
-            .Setup(x => x.SearchAsync(
+            .Setup(x => x.SearchClientAsync(
                 "John",
                 null,
                 1,
@@ -182,7 +183,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.SearchAsync(
+            x => x.SearchClientAsync(
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<int>(),
@@ -215,7 +216,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.SearchAsync(
+            x => x.SearchClientAsync(
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<int>(),
@@ -235,7 +236,7 @@ public sealed class ClientServiceTests
             20);
 
         _repositoryMock
-            .Setup(x => x.SearchAsync(
+            .Setup(x => x.SearchClientAsync(
                 "John",
                 "1980101223344",
                 1,
@@ -252,7 +253,7 @@ public sealed class ClientServiceTests
         Assert.True(result.IsSuccess);
 
         _repositoryMock.Verify(
-            x => x.SearchAsync(
+            x => x.SearchClientAsync(
                 "John",
                 "1980101223344",
                 1,
@@ -272,7 +273,7 @@ public sealed class ClientServiceTests
         var dto = CreateValidClientDto();
 
         _repositoryMock
-            .Setup(x => x.IdentificationNumberExistsAsync(
+            .Setup(x => x.ClientIdentificationNumberExistsAsync(
                 dto.IdentificationNumber,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -296,7 +297,7 @@ public sealed class ClientServiceTests
         Assert.Equal(dto.Address, result.Value.Address);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.Is<Client>(client =>
                     client.Name == dto.Name &&
                     client.IdentificationNumber == dto.IdentificationNumber &&
@@ -304,10 +305,6 @@ public sealed class ClientServiceTests
                 It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _repositoryMock.Verify(
-            x => x.SaveChangesAsync(
-                It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Fact]
@@ -330,7 +327,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.IsAny<Client>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -356,7 +353,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.IsAny<Client>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -382,7 +379,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.IsAny<Client>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -408,7 +405,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.IsAny<Client>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -421,7 +418,7 @@ public sealed class ClientServiceTests
         var dto = CreateValidClientDto();
 
         _repositoryMock
-            .Setup(x => x.IdentificationNumberExistsAsync(
+            .Setup(x => x.ClientIdentificationNumberExistsAsync(
                 dto.IdentificationNumber,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
@@ -437,15 +434,11 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Conflict, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.IsAny<Client>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
 
-        _repositoryMock.Verify(
-            x => x.SaveChangesAsync(
-                It.IsAny<CancellationToken>()),
-            Times.Never);
     }
 
     [Theory]
@@ -472,7 +465,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ClientErrors.InvalidNameLength.Code, result.Error.Code);
 
         _repositoryMock.Verify(
-            x => x.AddAsync(
+            x => x.AddClientAsync(
                 It.IsAny<Client>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -523,7 +516,7 @@ public sealed class ClientServiceTests
             result.Error!.Code);
 
         _repositoryMock.Verify(
-            x => x.IdentificationNumberExistsAsync(
+            x => x.ClientIdentificationNumberExistsAsync(
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -627,7 +620,7 @@ public sealed class ClientServiceTests
         };
 
         _repositoryMock
-            .Setup(x => x.IdentificationNumberExistsAsync(
+            .Setup(x => x.ClientIdentificationNumberExistsAsync(
                 "1980101223344",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -647,6 +640,48 @@ public sealed class ClientServiceTests
         Assert.Equal("john@test.com", result.Value.Email);
         Assert.Equal("0712345678", result.Value.Phone);
         Assert.Equal("Cluj-Napoca", result.Value.Address);
+    }
+
+    [Fact]
+    public async Task CreateClientAsync_DuplicateOnInsertConcurrency_ReturnsConflict()
+    {
+        // Arrange
+        var dto = CreateValidClientDto();
+
+        // Pre-check does not find a duplicate.
+        _repositoryMock
+            .Setup(x => x.ClientIdentificationNumberExistsAsync(
+                dto.IdentificationNumber,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Simulates another request inserting the same IdentificationNumber
+        // between the pre-check and the database insert.
+        _repositoryMock
+            .Setup(x => x.AddClientAsync(
+                It.IsAny<Client>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(
+                new DuplicateEntityException(nameof(Client)));
+
+        // Act
+        var result = await _service.CreateClientAsync(
+            dto,
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Conflict, result.Error.Type);
+        Assert.Equal(
+            ClientErrors.DuplicateIdentificationNumber.Code,
+            result.Error.Code);
+
+        _repositoryMock.Verify(
+            x => x.AddClientAsync(
+                It.IsAny<Client>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
     #endregion
 
@@ -668,7 +703,7 @@ public sealed class ClientServiceTests
             "Bucharest");
 
         _repositoryMock
-            .Setup(x => x.GetForUpdateAsync(
+            .Setup(x => x.GetClientForUpdateAsync(
                 client.ClientId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(client);
@@ -696,7 +731,7 @@ public sealed class ClientServiceTests
         Assert.NotNull(client.ModifiedAt);
 
         _repositoryMock.Verify(
-            x => x.SaveChangesAsync(
+            x => x.SaveClientChangesAsync(
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -710,7 +745,7 @@ public sealed class ClientServiceTests
         var dto = CreateValidUpdateClientDto();
 
         _repositoryMock
-            .Setup(x => x.GetForUpdateAsync(
+            .Setup(x => x.GetClientForUpdateAsync(
                 clientId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Client?)null);
@@ -727,7 +762,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.SaveChangesAsync(
+            x => x.SaveClientChangesAsync(
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -753,7 +788,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.GetForUpdateAsync(
+            x => x.GetClientForUpdateAsync(
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -780,7 +815,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.GetForUpdateAsync(
+            x => x.GetClientForUpdateAsync(
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -807,7 +842,7 @@ public sealed class ClientServiceTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
 
         _repositoryMock.Verify(
-            x => x.GetForUpdateAsync(
+            x => x.GetClientForUpdateAsync(
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -838,7 +873,7 @@ public sealed class ClientServiceTests
             result.Error!.Code);
 
         _repositoryMock.Verify(
-            x => x.GetForUpdateAsync(
+            x => x.GetClientForUpdateAsync(
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);

@@ -2,6 +2,7 @@
 using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.DTOs.Client;
+using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
@@ -24,14 +25,14 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
         }
 
         var (clients, totalCount) =
-            await clientRepository.SearchAsync(
+            await clientRepository.SearchClientAsync(
                 clientSearchDto.Name?.Trim(),
                 clientSearchDto.Identifier?.Trim(),
                 clientSearchDto.PageNumber,
                 clientSearchDto.PageSize,
                 cancellationToken);
 
-        var items = clients.Select(MapToDto).ToList();
+        var items = clients.Select(MapClientToDto).ToList();
 
         var pagedResult = new PagedResult<ClientDto>(items, clientSearchDto.PageNumber, clientSearchDto.PageSize, totalCount);
 
@@ -45,14 +46,14 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return Result<ClientDto>.Failure(ClientErrors.InvalidClientId);
         }
 
-        var client = await clientRepository.GetByIdAsync(clientId, cancellationToken);
+        var client = await clientRepository.GetClientByIdAsync(clientId, cancellationToken);
 
         if (client is null)
         {
             return Result<ClientDto>.Failure(ClientErrors.NotFound(clientId));
         }
 
-        return Result<ClientDto>.Success(MapToDto(client));
+        return Result<ClientDto>.Success(MapClientToDto(client));
     }
 
     public async Task<Result<ClientDto>> CreateClientAsync(CreateClientDto createClientDto, CancellationToken cancellationToken)
@@ -92,7 +93,7 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return Result<ClientDto>.Failure(validationIdentificationNumber);
         }
 
-        var identificationNumberExists = await clientRepository.IdentificationNumberExistsAsync(clientIdentificationNumber!, cancellationToken);
+        var identificationNumberExists = await clientRepository.ClientIdentificationNumberExistsAsync(clientIdentificationNumber!, cancellationToken);
 
         if (identificationNumberExists)
         {
@@ -111,16 +112,21 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             CreatedAt = DateTime.UtcNow
         };
 
-        await clientRepository.AddAsync(client, cancellationToken);
-
-        await clientRepository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await clientRepository.AddClientAsync(client, cancellationToken);
+        }
+        catch (DuplicateEntityException)
+        {
+            return Result<ClientDto>.Failure(ClientErrors.DuplicateIdentificationNumber);
+        }
 
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation("Client {ClientId} created.", client.ClientId);
         }
 
-        return Result<ClientDto>.Success(MapToDto(client));
+        return Result<ClientDto>.Success(MapClientToDto(client));
     }
 
     public async Task<Result<ClientDto>> UpdateClientAsync(int clientId, UpdateClientDto updateClientDto, CancellationToken cancellationToken)
@@ -150,7 +156,7 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
         }
 
 
-        var client = await clientRepository.GetForUpdateAsync(clientId, cancellationToken);
+        var client = await clientRepository.GetClientForUpdateAsync(clientId, cancellationToken);
 
         if (client is null)
         {
@@ -163,18 +169,18 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
         client.Address = clientAddress;
         client.ModifiedAt = DateTime.UtcNow;
 
-        await clientRepository.SaveChangesAsync(cancellationToken);
+        await clientRepository.SaveClientChangesAsync(cancellationToken);
 
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation("Client {ClientId} updated.", clientId);
         }
 
-        return Result<ClientDto>.Success(MapToDto(client));
+        return Result<ClientDto>.Success(MapClientToDto(client));
     }
 
 
-    private static ClientDto MapToDto(Client client)
+    private static ClientDto MapClientToDto(Client client)
     {
         return new ClientDto(
             client.ClientId,

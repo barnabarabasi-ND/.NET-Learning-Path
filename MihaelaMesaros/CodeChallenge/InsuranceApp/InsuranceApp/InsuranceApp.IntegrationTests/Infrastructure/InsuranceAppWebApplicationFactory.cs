@@ -9,8 +9,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace InsuranceApp.IntegrationTests.Infrastructure;
 
-public sealed class InsuranceAppWebApplicationFactory
-    : WebApplicationFactory<Program>
+public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly SqliteConnection _connection;
 
@@ -22,10 +21,8 @@ public sealed class InsuranceAppWebApplicationFactory
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Set environment to Testing BEFORE services are configured
         builder.UseEnvironment("Testing");
 
-        // Also set the environment variable so it's available to configuration
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
         builder.ConfigureServices(services =>

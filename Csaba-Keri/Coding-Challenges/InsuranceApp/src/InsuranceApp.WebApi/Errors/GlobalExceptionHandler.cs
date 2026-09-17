@@ -22,11 +22,34 @@ public class GlobalExceptionHandler : IExceptionHandler
         CancellationToken cancellationToken
     )
     {
+        if (exception is ValidationException validationException)
+        {
+            var errors = validationException.Errors
+                .GroupBy(error => error.PropertyName)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group
+                        .Select(error => error.ErrorMessage)
+                        .Distinct()
+                        .ToArray()
+                );
+
+            if (errors.Count == 0)
+            {
+                errors[string.Empty] = [validationException.Message];
+            }
+
+            await Results.ValidationProblem(
+                errors: errors,
+                title: "One or more validation errors occurred.",
+                instance: httpContext.Request.Path
+            ).ExecuteAsync(httpContext);
+
+            return true;
+        }
+
         var (statusCode, title) = exception switch
         {
-            ValidationException =>
-                (StatusCodes.Status400BadRequest, "Validation failed."),
-
             EntityNotFoundException =>
                 (StatusCodes.Status404NotFound, "Resource not found."),
 
@@ -49,7 +72,9 @@ public class GlobalExceptionHandler : IExceptionHandler
         await Results.Problem(
             statusCode: statusCode,
             title: title,
-            detail: exception.Message,
+            detail: statusCode == StatusCodes.Status500InternalServerError
+                ? "Please contact support and include the traceId."
+                : exception.Message,
             instance: httpContext.Request.Path
         ).ExecuteAsync(httpContext);
 

@@ -46,8 +46,6 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
 
     public async Task AddClientAsync(Client client, CancellationToken cancellationToken)
     {
-        //await dbContext.Clients.AddAsync(client, cancellationToken);
-
         dbContext.Clients.Add(client);
 
         try

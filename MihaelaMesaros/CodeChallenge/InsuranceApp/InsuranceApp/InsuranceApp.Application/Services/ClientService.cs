@@ -3,6 +3,7 @@ using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.DTOs.Client;
 using InsuranceApp.Application.Exceptions;
+using InsuranceApp.Domain.Constants;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
@@ -14,12 +15,12 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 {
     public async Task<Result<PagedResult<ClientDto>>> SearchClientsAsync(ClientSearchDto clientSearchDto, CancellationToken cancellationToken)
     {
-        if (clientSearchDto.PageNumber < 1)
+        if (clientSearchDto.PageNumber is < CommonConstraints.MinPageNumber or > CommonConstraints.MaxPageNumber)
         {
             return Result<PagedResult<ClientDto>>.Failure(ClientErrors.InvalidPageNumber);
         }
 
-        if (clientSearchDto.PageSize is < 1 or > 100)
+        if (clientSearchDto.PageSize is < CommonConstraints.MinPageSize or > CommonConstraints.MaxPageSize)
         {
             return Result<PagedResult<ClientDto>>.Failure(ClientErrors.InvalidPageSize);
         }
@@ -201,7 +202,7 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return ClientErrors.NameRequired;
         }
 
-        if (clientName.Length is < 3 or > 200)
+        if (clientName.Length is < ClientConstraints.NameMinLength or > ClientConstraints.NameMaxLength)
         {
             return ClientErrors.InvalidNameLength;
         }
@@ -215,17 +216,18 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
         clientPhone = clientPhone?.Trim();
         clientAddress = clientAddress?.Trim();
 
-        if (!string.IsNullOrWhiteSpace(clientEmail) && (clientEmail.Length > 200 || !MailAddress.TryCreate(clientEmail, out _)))
+        if (!string.IsNullOrWhiteSpace(clientEmail) 
+            && (clientEmail.Length > ClientConstraints.EmailMaxLength || !MailAddress.TryCreate(clientEmail, out _)))
         {
             return ClientErrors.InvalidEmail;
         }
 
-        if (!string.IsNullOrWhiteSpace(clientPhone) && clientPhone.Length > 50)
+        if (!string.IsNullOrWhiteSpace(clientPhone) && clientPhone.Length > ClientConstraints.PhoneMaxLength)
         {
             return ClientErrors.InvalidPhoneLength;
         }
 
-        if (!string.IsNullOrWhiteSpace(clientAddress) && clientAddress.Length > 300)
+        if (!string.IsNullOrWhiteSpace(clientAddress) && clientAddress.Length > ClientConstraints.AddressMaxLength)
         {
             return ClientErrors.InvalidAddressLength;
         }
@@ -247,7 +249,8 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return ClientErrors.IdentificationNumberRequired;
         }
 
-        if (identificationNumber.Length is < 3 or > 50)
+        if (identificationNumber.Length is < ClientConstraints.IdentificationNumberMinLength 
+            or > ClientConstraints.IdentificationNumberMaxLength)
         {
             return ClientErrors.InvalidIdentificationNumberLength;
         }

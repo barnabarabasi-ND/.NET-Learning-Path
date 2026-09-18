@@ -45,4 +45,9 @@ internal sealed class GeographyRepository(InsuranceDbContext dbContext) : IGeogr
     {
         return dbContext.Counties.AnyAsync(x => x.CountyId == countyId, cancellationToken);
     }
+
+    public Task<bool> CityExistsAsync(int cityId, CancellationToken cancellationToken)
+    {
+        return dbContext.Cities.AnyAsync(x => x.CityId == cityId, cancellationToken);
+    }
 }

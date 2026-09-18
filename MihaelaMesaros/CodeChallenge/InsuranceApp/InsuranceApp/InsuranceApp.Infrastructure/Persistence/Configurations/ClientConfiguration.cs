@@ -1,4 +1,5 @@
-﻿using InsuranceApp.Domain.Entities;
+﻿using InsuranceApp.Domain.Constants;
+using InsuranceApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -17,18 +18,18 @@ internal sealed class ClientConfiguration
 
         builder.Property(x => x.ClientType).IsRequired();
 
-        builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Name).HasMaxLength(ClientConstraints.NameMaxLength).IsRequired();
 
-        builder.Property(x => x.IdentificationNumber).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.IdentificationNumber).HasMaxLength(ClientConstraints.IdentificationNumberMaxLength).IsRequired();
+        builder.HasIndex(x => x.IdentificationNumber).IsUnique();
 
-        builder.Property(x => x.Email).HasMaxLength(200);
+        builder.Property(x => x.Email).HasMaxLength(ClientConstraints.EmailMaxLength);
 
-        builder.Property(x => x.Phone).HasMaxLength(50);
+        builder.Property(x => x.Phone).HasMaxLength(ClientConstraints.PhoneMaxLength);
 
-        builder.Property(x => x.Address).HasMaxLength(300);
+        builder.Property(x => x.Address).HasMaxLength(ClientConstraints.AddressMaxLength);
 
         builder.Property(x => x.CreatedAt).IsRequired();
-
-        builder.HasIndex(x => x.IdentificationNumber).IsUnique();
+        
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace InsuranceApp.Application.Common;
+﻿using InsuranceApp.Domain.Constants;
+
+namespace InsuranceApp.Application.Common;
 
 public static class ClientErrors
 {
@@ -14,7 +16,7 @@ public static class ClientErrors
 
     public static readonly Error InvalidNameLength = new(
         "Client.InvalidNameLength",
-        "Client name must be between 3 and 200 characters.",
+        $"Client name must have between {ClientConstraints.NameMinLength} and {ClientConstraints.NameMaxLength} characters.",
         ErrorType.Validation);
 
     public static readonly Error IdentificationNumberRequired = new(
@@ -24,17 +26,17 @@ public static class ClientErrors
 
     public static readonly Error InvalidIdentificationNumberLength = new(
         "Client.InvalidIdentificationNumberLength",
-        "Identification number must be between 3 and 50 characters.",
+        $"Identification number must have between {ClientConstraints.IdentificationNumberMinLength} and {ClientConstraints.IdentificationNumberMaxLength} characters.",
         ErrorType.Validation);
 
     public static readonly Error InvalidPhoneLength = new(
         "Client.InvalidPhoneLength",
-        "Phone number must be less than 50 characters.",
+        $"Phone number must not exceed {ClientConstraints.PhoneMaxLength} characters.",
         ErrorType.Validation);
 
     public static readonly Error InvalidAddressLength = new(
         "Client.InvalidAddressLength",
-        "Address must be less than 300 characters.",
+        $"Address must not exceed {ClientConstraints.AddressMaxLength} characters.",
         ErrorType.Validation);
 
     public static readonly Error InvalidClientType = new(
@@ -44,7 +46,7 @@ public static class ClientErrors
 
     public static readonly Error InvalidEmail = new(
         "Client.InvalidEmail",
-        "Email address is invalid.",
+        $"Email address must be valid and must not exceed {ClientConstraints.EmailMaxLength} characters.",
         ErrorType.Validation);
 
     public static readonly Error DuplicateIdentificationNumber = new(
@@ -57,14 +59,13 @@ public static class ClientErrors
         $"Client with ID {clientId} was not found.",
         ErrorType.NotFound);
 
-
     public static readonly Error InvalidPageNumber = new(
         "Client.InvalidPageNumber",
-        "Page number must be greater than zero.",
+        $"Page number must be in range {CommonConstraints.MinPageNumber} - {CommonConstraints.MaxPageNumber}.",
         ErrorType.Validation);
 
     public static readonly Error InvalidPageSize = new(
         "Client.InvalidPageSize",
-        "Page size must be between 1 and 100.",
+        $"Page size must be in range {CommonConstraints.MinPageSize} - {CommonConstraints.MaxPageSize}.",
         ErrorType.Validation);
 }

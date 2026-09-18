@@ -195,7 +195,7 @@ public sealed class ClientServiceTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    [InlineData(101)]
+    [InlineData(1001)]
     public async Task SearchClientsAsync_InvalidPageSize_ReturnsValidationError(int pageSize)
     {
         // Arrange

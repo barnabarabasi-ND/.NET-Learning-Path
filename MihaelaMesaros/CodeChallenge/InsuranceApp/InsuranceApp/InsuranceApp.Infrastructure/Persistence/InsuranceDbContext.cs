@@ -13,6 +13,8 @@ public sealed class InsuranceDbContext(DbContextOptions<InsuranceDbContext> opti
 
     public DbSet<Client> Clients => Set<Client>();
 
+    public DbSet<Building> Buildings => Set<Building>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

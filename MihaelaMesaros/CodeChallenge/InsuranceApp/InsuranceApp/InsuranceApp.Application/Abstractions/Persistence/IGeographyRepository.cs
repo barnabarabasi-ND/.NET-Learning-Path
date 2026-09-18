@@ -13,4 +13,6 @@ public interface IGeographyRepository
     Task<bool> CountryExistsAsync(int countryId, CancellationToken cancellationToken);
 
     Task<bool> CountyExistsAsync(int countyId, CancellationToken cancellationToken);
+
+    Task<bool> CityExistsAsync(int cityId, CancellationToken cancellationToken);
 }

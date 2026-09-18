@@ -1,4 +1,5 @@
-﻿using InsuranceApp.Infrastructure.Persistence.Entities;
+﻿using InsuranceApp.Domain.Geography;
+using InsuranceApp.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,7 +19,7 @@ public class CityConfiguration : IEntityTypeConfiguration<CityEntity>
         
         builder.Property(entity => entity.Name)
             .HasColumnName("name")
-            .HasMaxLength(100)
+            .HasMaxLength(City.MaxNameLength)
             .IsRequired();
         
         builder.Property(entity => entity.CountyId)

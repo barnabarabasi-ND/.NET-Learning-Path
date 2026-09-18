@@ -70,7 +70,7 @@ public class BuildingConfiguration : IEntityTypeConfiguration<BuildingEntity>
         builder.ToTable("buildings", table =>
         {
             table.HasCheckConstraint("ck_buildings_type", "type IN ('Residential', 'Office', 'Industrial')");
-            table.HasCheckConstraint("ck_buildings_construction_year", "construction_year BETWEEN 1 AND 9999");
+            table.HasCheckConstraint("ck_buildings_construction_year", $"construction_year BETWEEN {Building.MinConstructionYear} AND {Building.MaxConstructionYear}");
             table.HasCheckConstraint("ck_buildings_number_of_floors", "number_of_floors >= 1");
             table.HasCheckConstraint("ck_buildings_surface_area", "surface_area > 0");
             table.HasCheckConstraint("ck_buildings_insured_value", "insured_value > 0");

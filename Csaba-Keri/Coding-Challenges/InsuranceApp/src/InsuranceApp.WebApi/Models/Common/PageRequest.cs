@@ -1,8 +1,8 @@
-﻿namespace InsuranceApp.WebApi.Models.Common;
+﻿using InsuranceApp.Application.Common.Pagination;
 
-public class PageRequest
-{
-    public int PageNumber { get; init; } = 1;
+namespace InsuranceApp.WebApi.Models.Common;
 
-    public int PageSize { get; init; } = 20;
-}
+public record PageRequest(
+    int PageNumber = PaginationDefaults.PageNumber,
+    int PageSize = PaginationDefaults.PageSize
+);

@@ -1,12 +1,10 @@
-﻿namespace InsuranceApp.WebApi.Models.Clients;
+﻿using InsuranceApp.Application.Common.Pagination;
 
-public class SearchClientsRequest
-{
-    public string? Name { get; init; }
-    
-    public string? Identifier { get; init; }
-    
-    public int PageNumber { get; init; } = 1;
-    
-    public int PageSize { get; init; } = 20;
-}
+namespace InsuranceApp.WebApi.Models.Clients;
+
+public record SearchClientsRequest(
+    string? Name,
+    string? Identifier,
+    int PageNumber = PaginationDefaults.PageNumber,
+    int PageSize = PaginationDefaults.PageSize
+);

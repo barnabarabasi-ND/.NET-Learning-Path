@@ -2,23 +2,22 @@
 
 namespace InsuranceApp.WebApi.Models.Buildings;
 
-public class SaveBuildingRequest
-{
+public record SaveBuildingRequest(
     [Required]
-    public BuildingTypeDto? Type { get; init; }
+    BuildingTypeDto? Type,
 
     [Required]
-    public BuildingAddressRequest? Address { get; init; }
+    BuildingAddressRequest? Address,
 
     [Required]
-    public int? ConstructionYear { get; init; }
+    int? ConstructionYear,
 
     [Required]
-    public int? NumberOfFloors { get; init; }
+    int? NumberOfFloors,
 
     [Required]
-    public decimal? SurfaceArea { get; init; }
+    decimal? SurfaceArea,
 
     [Required]
-    public decimal? InsuredValue { get; init; }
-}
+    decimal? InsuredValue
+);

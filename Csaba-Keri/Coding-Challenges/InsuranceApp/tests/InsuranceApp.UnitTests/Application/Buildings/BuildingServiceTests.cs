@@ -454,26 +454,26 @@ public sealed class BuildingServiceTests
     private CreateBuildingCommand CreateCommand(int constructionYear = CurrentYear)
     {
         return new(
-            clientId: _clientId,
-            type: BuildingType.Residential,
-            address: new(_cityId, "Example Street", "12A"),
-            constructionYear: constructionYear,
-            numberOfFloors: 2,
-            surfaceArea: 125.50m,
-            insuredValue: 250000m
+            ClientId: _clientId,
+            Type: BuildingType.Residential,
+            Address: new(_cityId, "Example Street", "12A"),
+            ConstructionYear: constructionYear,
+            NumberOfFloors: 2,
+            SurfaceArea: 125.50m,
+            InsuredValue: 250000m
         );
     }
 
     private UpdateBuildingCommand UpdateCommand(Guid buildingId, int constructionYear = CurrentYear)
     {
         return new(
-            buildingId: buildingId,
-            type: BuildingType.Office,
-            address: new(_cityId, "Updated Street", "8B"),
-            constructionYear: constructionYear,
-            numberOfFloors: 3,
-            surfaceArea: 200m,
-            insuredValue: 500000m
+            BuildingId: buildingId,
+            Type: BuildingType.Office,
+            Address: new(_cityId, "Updated Street", "8B"),
+            ConstructionYear: constructionYear,
+            NumberOfFloors: 3,
+            SurfaceArea: 200m,
+            InsuredValue: 500000m
         );
     }
 

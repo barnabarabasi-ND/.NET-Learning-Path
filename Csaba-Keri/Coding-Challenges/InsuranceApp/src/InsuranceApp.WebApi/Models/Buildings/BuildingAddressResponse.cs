@@ -1,10 +1,10 @@
 ﻿namespace InsuranceApp.WebApi.Models.Buildings;
 
-public class BuildingAddressResponse(Guid cityId, string street, string number)
+public record BuildingAddressResponse(Guid CityId, string Street, string Number)
 {
-    public Guid CityId { get; } = cityId;
+    public Guid CityId { get; } = CityId;
     
-    public string Street { get; } = street;
+    public string Street { get; } = Street;
     
-    public string Number { get; } = number;
+    public string Number { get; } = Number;
 }

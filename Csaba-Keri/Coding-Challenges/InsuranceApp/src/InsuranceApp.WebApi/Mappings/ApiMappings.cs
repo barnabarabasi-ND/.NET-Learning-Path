@@ -66,103 +66,103 @@ internal static class ApiMappings
     public static CreateClientCommand ToCommand(this CreateClientRequest request)
     {
         return new(
-            type: request.Type!.Value.ToDomain(),
-            identificationNumber: request.IdentificationNumber,
-            name: request.Name,
-            email: request.Email,
-            phone: request.Phone,
-            primaryAddress: request.PrimaryAddress
+            Type: request.Type!.Value.ToDomain(),
+            IdentificationNumber: request.IdentificationNumber,
+            Name: request.Name,
+            Email: request.Email,
+            Phone: request.Phone,
+            PrimaryAddress: request.PrimaryAddress
         );
     }
 
     public static UpdateClientCommand ToCommand(this UpdateClientRequest request, Guid clientId)
     {
         return new(
-            clientId: clientId,
-            name: request.Name,
-            email: request.Email,
-            phone: request.Phone,
-            primaryAddress: request.PrimaryAddress
+            ClientId: clientId,
+            Name: request.Name,
+            Email: request.Email,
+            Phone: request.Phone,
+            PrimaryAddress: request.PrimaryAddress
         );
     }
 
     public static CreateBuildingCommand ToCreateCommand(this SaveBuildingRequest request, Guid clientId)
     {
         return new(
-            clientId: clientId,
-            type: request.Type!.Value.ToDomain(),
-            address: request.Address!.ToCommand(),
-            constructionYear: request.ConstructionYear!.Value,
-            numberOfFloors: request.NumberOfFloors!.Value,
-            surfaceArea: request.SurfaceArea!.Value,
-            insuredValue: request.InsuredValue!.Value
+            ClientId: clientId,
+            Type: request.Type!.Value.ToDomain(),
+            Address: request.Address!.ToCommand(),
+            ConstructionYear: request.ConstructionYear!.Value,
+            NumberOfFloors: request.NumberOfFloors!.Value,
+            SurfaceArea: request.SurfaceArea!.Value,
+            InsuredValue: request.InsuredValue!.Value
         );
     }
 
     public static UpdateBuildingCommand ToUpdateCommand(this SaveBuildingRequest request, Guid buildingId)
     {
         return new(
-            buildingId: buildingId,
-            type: request.Type!.Value.ToDomain(),
-            address: request.Address!.ToCommand(),
-            constructionYear: request.ConstructionYear!.Value,
-            numberOfFloors: request.NumberOfFloors!.Value,
-            surfaceArea: request.SurfaceArea!.Value,
-            insuredValue: request.InsuredValue!.Value
+            BuildingId: buildingId,
+            Type: request.Type!.Value.ToDomain(),
+            Address: request.Address!.ToCommand(),
+            ConstructionYear: request.ConstructionYear!.Value,
+            NumberOfFloors: request.NumberOfFloors!.Value,
+            SurfaceArea: request.SurfaceArea!.Value,
+            InsuredValue: request.InsuredValue!.Value
         );
     }
 
     private static BuildingAddressCommand ToCommand(this BuildingAddressRequest request)
     {
         return new(
-            cityId: request.CityId!.Value,
-            street: request.Street,
-            number: request.Number
+            CityId: request.CityId!.Value,
+            Street: request.Street,
+            Number: request.Number
         );
     }
 
     public static PageQuery ToQuery(this PageRequest request)
     {
         return new(
-            pageNumber: request.PageNumber,
-            pageSize: request.PageSize
+            PageNumber: request.PageNumber,
+            PageSize: request.PageSize
         );
     }
 
     public static SearchClientsQuery ToQuery(this SearchClientsRequest request)
     {
         return new(
-            name: request.Name,
-            identifier: request.Identifier,
-            pageNumber: request.PageNumber,
-            pageSize: request.PageSize
+            Name: request.Name,
+            Identifier: request.Identifier,
+            PageNumber: request.PageNumber,
+            PageSize: request.PageSize
         );
     }
 
     public static ClientResponse ToResponse(this ClientResult result)
     {
         return new(
-            id: result.Id,
-            type: result.Type.ToDto(),
-            identificationNumber: result.IdentificationNumber,
-            name: result.Name,
-            email: result.Email,
-            phone: result.Phone,
-            primaryAddress: result.PrimaryAddress
+            Id: result.Id,
+            Type: result.Type.ToDto(),
+            IdentificationNumber: result.IdentificationNumber,
+            Name: result.Name,
+            Email: result.Email,
+            Phone: result.Phone,
+            PrimaryAddress: result.PrimaryAddress
         );
     }
 
     public static BuildingResponse ToResponse(this BuildingResult result)
     {
         return new(
-            id: result.Id,
-            clientId: result.ClientId,
-            type: result.Type.ToDto(),
-            address: result.Address.ToResponse(),
-            constructionYear: result.ConstructionYear,
-            numberOfFloors: result.NumberOfFloors,
-            surfaceArea: result.SurfaceArea,
-            insuredValue: result.InsuredValue
+            Id: result.Id,
+            ClientId: result.ClientId,
+            Type: result.Type.ToDto(),
+            Address: result.Address.ToResponse(),
+            ConstructionYear: result.ConstructionYear,
+            NumberOfFloors: result.NumberOfFloors,
+            SurfaceArea: result.SurfaceArea,
+            InsuredValue: result.InsuredValue
         );
     }
 
@@ -172,18 +172,18 @@ internal static class ApiMappings
         var geography = result.Geography;
 
         return new(
-            id: building.Id,
-            clientId: building.ClientId,
-            type: building.Type.ToDto(),
-            address: building.Address.ToResponse(),
-            constructionYear: building.ConstructionYear,
-            numberOfFloors: building.NumberOfFloors,
-            surfaceArea: building.SurfaceArea,
-            insuredValue: building.InsuredValue,
-            geography: new(
-                country: new(geography.Country.Id, geography.Country.Name),
-                county: new(geography.County.Id, geography.County.Name),
-                city: new(geography.City.Id, geography.City.Name)
+            Id: building.Id,
+            ClientId: building.ClientId,
+            Type: building.Type.ToDto(),
+            Address: building.Address.ToResponse(),
+            ConstructionYear: building.ConstructionYear,
+            NumberOfFloors: building.NumberOfFloors,
+            SurfaceArea: building.SurfaceArea,
+            InsuredValue: building.InsuredValue,
+            Geography: new(
+                Country: new(geography.Country.Id, geography.Country.Name),
+                County: new(geography.County.Id, geography.County.Name),
+                City: new(geography.City.Id, geography.City.Name)
             )
         );
     }
@@ -191,35 +191,35 @@ internal static class ApiMappings
     public static BuildingAddressResponse ToResponse(this BuildingAddressResult result)
     {
         return new(
-            cityId: result.CityId,
-            street: result.Street,
-            number: result.Number
+            CityId: result.CityId,
+            Street: result.Street,
+            Number: result.Number
         );
     }
 
     public static CountryResponse ToResponse(this CountryResult result)
     {
         return new(
-            id: result.Id,
-            name: result.Name
+            Id: result.Id,
+            Name: result.Name
         );
     }
 
     public static CountyResponse ToResponse(this CountyResult result)
     {
         return new(
-            id: result.Id,
-            name: result.Name,
-            countryId: result.CountryId
+            Id: result.Id,
+            Name: result.Name,
+            CountryId: result.CountryId
         );
     }
 
     public static CityResponse ToResponse(this CityResult result)
     {
         return new(
-            id: result.Id,
-            name: result.Name,
-            countyId: result.CountyId
+            Id: result.Id,
+            Name: result.Name,
+            CountyId: result.CountyId
         );
     }
 

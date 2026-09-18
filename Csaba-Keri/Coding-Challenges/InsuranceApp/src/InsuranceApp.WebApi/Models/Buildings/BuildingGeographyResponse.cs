@@ -1,14 +1,14 @@
 ﻿namespace InsuranceApp.WebApi.Models.Buildings;
 
-public class BuildingGeographyResponse(
-    NamedLocationResponse country,
-    NamedLocationResponse county,
-    NamedLocationResponse city
+public record BuildingGeographyResponse(
+    NamedLocationResponse Country,
+    NamedLocationResponse County,
+    NamedLocationResponse City
 )
 {
-    public NamedLocationResponse Country { get; } = country;
+    public NamedLocationResponse Country { get; } = Country;
 
-    public NamedLocationResponse County { get; } = county;
+    public NamedLocationResponse County { get; } = County;
 
-    public NamedLocationResponse City { get; } = city;
+    public NamedLocationResponse City { get; } = City;
 }

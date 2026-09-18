@@ -70,9 +70,9 @@ public class GeographyRepository : IGeographyRepository
                      join country in _context.Countries on county.CountryId equals country.Id
                      where city.Id == cityId
                      select new CityGeographyResult(
-                         city: new(city.Id, city.Name, county.Id),
-                         county: new(county.Id, county.Name, country.Id),
-                         country: new(country.Id, country.Name))
+                         City: new(city.Id, city.Name, county.Id),
+                         County: new(county.Id, county.Name, country.Id),
+                         Country: new(country.Id, country.Name))
                      ).AsNoTracking();
 
         return query.SingleOrDefaultAsync(cancellationToken);

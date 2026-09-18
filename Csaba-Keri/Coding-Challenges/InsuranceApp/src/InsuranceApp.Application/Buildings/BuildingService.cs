@@ -70,7 +70,7 @@ public class BuildingService : IBuildingService
         var geography = await _geographyRepository.GetCityGeographyAsync(building.Address.CityId, cancellationToken)
             ?? throw new InvalidOperationException("The stored building has no valid geography.");
 
-        return new BuildingDetailsResult(building.ToResult(), geography);
+        return building.ToDetailsResult(geography);
     }
 
     public async Task<PagedResult<BuildingResult>> GetByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken)
@@ -107,7 +107,7 @@ public class BuildingService : IBuildingService
             id: Guid.NewGuid(),
             clientId: command.ClientId,
             type: command.Type,
-            address: new BuildingAddress(address.CityId, address.Street!, address.Number!),
+            address: address.ToDomain(),
             constructionYear: command.ConstructionYear,
             numberOfFloors: command.NumberOfFloors,
             surfaceArea: command.SurfaceArea,
@@ -117,7 +117,7 @@ public class BuildingService : IBuildingService
         await _buildingRepository.AddAsync(building, cancellationToken);
         _logger.LogInformation("Building {BuildingId} created.", building.Id);
 
-        return new BuildingDetailsResult(building.ToResult(), geography);
+        return building.ToDetailsResult(geography);
     }
 
     public async Task<BuildingDetailsResult> UpdateAsync(UpdateBuildingCommand command, CancellationToken cancellationToken)
@@ -136,7 +136,7 @@ public class BuildingService : IBuildingService
 
         building.UpdateDetails(
             type: command.Type,
-            address: new BuildingAddress(address.CityId, address.Street!, address.Number!),
+            address: address.ToDomain(),
             constructionYear: command.ConstructionYear,
             numberOfFloors: command.NumberOfFloors,
             surfaceArea: command.SurfaceArea,
@@ -146,7 +146,7 @@ public class BuildingService : IBuildingService
         await _buildingRepository.UpdateAsync(building, cancellationToken);
         _logger.LogInformation("Building {BuildingId} updated.", building.Id);
 
-        return new BuildingDetailsResult(building.ToResult(), geography);
+        return building.ToDetailsResult(geography);
     }
 
     private void ValidateConstructionYear(int constructionYear)

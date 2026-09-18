@@ -9,8 +9,8 @@ internal static class GeographyMappings
     public static CountryResult ToResult(this Country country)
     {
         return new(
-            id: country.Id,
-            name: country.Name
+            Id: country.Id,
+            Name: country.Name
         );
     }
 
@@ -27,9 +27,9 @@ internal static class GeographyMappings
     public static CountyResult ToResult(this County county)
     {
         return new(
-            id: county.Id,
-            name: county.Name,
-            countryId: county.CountryId
+            Id: county.Id,
+            Name: county.Name,
+            CountryId: county.CountryId
         );
     }
 
@@ -46,9 +46,9 @@ internal static class GeographyMappings
     public static CityResult ToResult(this City city)
     {
         return new(
-            id: city.Id,
-            name: city.Name,
-            countyId: city.CountyId
+            Id: city.Id,
+            Name: city.Name,
+            CountyId: city.CountyId
         );
     }
 

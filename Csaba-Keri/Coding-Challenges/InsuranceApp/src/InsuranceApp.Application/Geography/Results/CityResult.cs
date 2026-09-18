@@ -1,15 +1,8 @@
 ﻿namespace InsuranceApp.Application.Geography.Results;
 
-public record CityResult
+public record CityResult(Guid Id, string Name, Guid CountyId)
 {
-    public Guid Id { get; }
-    public string Name { get; }
-    public Guid CountyId { get; }
-
-    public CityResult(Guid id, string name, Guid countyId)
-    {
-        Id = id;
-        Name = name;
-        CountyId = countyId;
-    }
+    public Guid Id { get; } = Id;
+    public string Name { get; } = Name;
+    public Guid CountyId { get; } = CountyId;
 }

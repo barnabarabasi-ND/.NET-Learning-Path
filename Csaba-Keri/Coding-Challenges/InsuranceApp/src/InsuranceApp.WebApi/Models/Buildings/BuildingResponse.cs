@@ -1,29 +1,29 @@
 ﻿namespace InsuranceApp.WebApi.Models.Buildings;
 
-public class BuildingResponse(
-    Guid id,
-    Guid clientId,
-    BuildingTypeDto type,
-    BuildingAddressResponse address,
-    int constructionYear,
-    int numberOfFloors,
-    decimal surfaceArea,
-    decimal insuredValue
+public record BuildingResponse(
+    Guid Id,
+    Guid ClientId,
+    BuildingTypeDto Type,
+    BuildingAddressResponse Address,
+    int ConstructionYear,
+    int NumberOfFloors,
+    decimal SurfaceArea,
+    decimal InsuredValue
 )
 {
-    public Guid Id { get; } = id;
+    public Guid Id { get; } = Id;
 
-    public Guid ClientId { get; } = clientId;
+    public Guid ClientId { get; } = ClientId;
 
-    public BuildingTypeDto Type { get; } = type;
+    public BuildingTypeDto Type { get; } = Type;
 
-    public BuildingAddressResponse Address { get; } = address;
+    public BuildingAddressResponse Address { get; } = Address;
 
-    public int ConstructionYear { get; } = constructionYear;
+    public int ConstructionYear { get; } = ConstructionYear;
 
-    public int NumberOfFloors { get; } = numberOfFloors;
+    public int NumberOfFloors { get; } = NumberOfFloors;
 
-    public decimal SurfaceArea { get; } = surfaceArea;
+    public decimal SurfaceArea { get; } = SurfaceArea;
 
-    public decimal InsuredValue { get; } = insuredValue;
+    public decimal InsuredValue { get; } = InsuredValue;
 }

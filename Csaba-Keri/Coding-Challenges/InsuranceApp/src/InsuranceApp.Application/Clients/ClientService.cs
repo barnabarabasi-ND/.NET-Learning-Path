@@ -74,7 +74,7 @@ public class ClientService : IClientService
         );
 
         var identifierExists = await _repository.ExistsByIdentificationNumberAsync(
-            client.IdentificationNumber!,
+            client.IdentificationNumber,
             cancellationToken
         );
 
@@ -124,12 +124,7 @@ public class ClientService : IClientService
 
         var page = await _repository.SearchAsync(normalizedQuery, cancellationToken);
 
-        return new(
-            items: page.Items.Select(client => client.ToResult()),
-            pageNumber: page.PageNumber,
-            pageSize: page.PageSize,
-            totalCount: page.TotalCount
-        );
+        return page.ToResult();
     }
 
     private async Task<Client> GetClientByIdOrThrowAsync(Guid clientId, CancellationToken cancellationToken)

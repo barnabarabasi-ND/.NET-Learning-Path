@@ -2,14 +2,8 @@
 
 namespace InsuranceApp.Application.Buildings.Results;
 
-public record BuildingDetailsResult
+public record BuildingDetailsResult(BuildingResult Building, CityGeographyResult Geography)
 {
-    public BuildingResult Building { get; }
-    public CityGeographyResult Geography { get; }
-
-    public BuildingDetailsResult(BuildingResult building, CityGeographyResult geography)
-    {
-        Building = building;
-        Geography = geography;
-    }
+    public BuildingResult Building { get; } = Building;
+    public CityGeographyResult Geography { get; } = Geography;
 }

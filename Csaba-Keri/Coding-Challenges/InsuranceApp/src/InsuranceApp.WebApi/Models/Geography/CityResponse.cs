@@ -1,10 +1,10 @@
 ﻿namespace InsuranceApp.WebApi.Models.Geography;
 
-public class CityResponse(Guid id, string name, Guid countyId)
+public record CityResponse(Guid Id, string Name, Guid CountyId)
 {
-    public Guid Id { get; } = id;
+    public Guid Id { get; } = Id;
 
-    public string Name { get; } = name;
+    public string Name { get; } = Name;
 
-    public Guid CountyId { get; } = countyId;
+    public Guid CountyId { get; } = CountyId;
 }

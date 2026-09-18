@@ -283,10 +283,10 @@ public sealed class ClientServiceTests
         var identifier = "";
 
         var query = new SearchClientsQuery(
-            name: $"  {queryName}  ",
-            identifier: $"  {identifier}  ",
-            pageNumber: pageNumber,
-            pageSize: pageSize
+            Name: $"  {queryName}  ",
+            Identifier: $"  {identifier}  ",
+            PageNumber: pageNumber,
+            PageSize: pageSize
         );
 
         _repository.SearchAsync(Arg.Any<SearchClientsQuery>(), CancellationToken.None)
@@ -386,23 +386,23 @@ public sealed class ClientServiceTests
     private static CreateClientCommand CreateCommand()
     {
         return new(
-            type: ClientType.Individual,
-            identificationNumber: "1234567890123",
-            name: "Example Client",
-            email: "received@example.com",
-            phone: "+40 700 000 000",
-            primaryAddress: "Example Street 10"
+            Type: ClientType.Individual,
+            IdentificationNumber: "1234567890123",
+            Name: "Example Client",
+            Email: "received@example.com",
+            Phone: "+40 700 000 000",
+            PrimaryAddress: "Example Street 10"
         );
     }
 
     private static UpdateClientCommand UpdateCommand(Guid clientId)
     {
         return new(
-            clientId: clientId,
-            name: "Updated Client",
-            email: "updated@example.com",
-            phone: "+40 700 000 001",
-            primaryAddress: null
+            ClientId: clientId,
+            Name: "Updated Client",
+            Email: "updated@example.com",
+            Phone: "+40 700 000 001",
+            PrimaryAddress: null
         );
     }
 

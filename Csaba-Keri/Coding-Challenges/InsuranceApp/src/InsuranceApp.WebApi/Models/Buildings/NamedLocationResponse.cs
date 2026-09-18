@@ -1,8 +1,8 @@
 ﻿namespace InsuranceApp.WebApi.Models.Buildings;
 
-public class NamedLocationResponse(Guid id, string name)
+public record NamedLocationResponse(Guid Id, string Name)
 {
-    public Guid Id { get; } = id;
+    public Guid Id { get; } = Id;
 
-    public string Name { get; } = name;
+    public string Name { get; } = Name;
 }

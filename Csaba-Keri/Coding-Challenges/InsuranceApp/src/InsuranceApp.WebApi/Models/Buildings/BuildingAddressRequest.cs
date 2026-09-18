@@ -2,14 +2,13 @@
 
 namespace InsuranceApp.WebApi.Models.Buildings;
 
-public class BuildingAddressRequest
-{
+public record BuildingAddressRequest(
     [Required]
-    public Guid? CityId { get; init; }
+    Guid? CityId,
 
     [Required]
-    public string? Street { get; init; }
-    
+    string? Street,
+
     [Required]
-    public string? Number { get; init; }
-}
+    string? Number
+);

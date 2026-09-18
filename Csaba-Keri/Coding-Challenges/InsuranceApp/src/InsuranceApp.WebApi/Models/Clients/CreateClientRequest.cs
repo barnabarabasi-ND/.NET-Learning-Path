@@ -2,22 +2,21 @@
 
 namespace InsuranceApp.WebApi.Models.Clients;
 
-public class CreateClientRequest
-{
+public record CreateClientRequest(
     [Required]
-    public ClientTypeDto? Type { get; init; }
+    ClientTypeDto? Type,
 
     [Required]
-    public string? IdentificationNumber { get; init; }
+    string? IdentificationNumber,
 
     [Required]
-    public string? Name { get; init; }
+    string? Name,
 
     [Required]
-    public string? Email { get; init; }
+    string? Email,
 
     [Required]
-    public string? Phone { get; init; }
+    string? Phone,
 
-    public string? PrimaryAddress { get; init; }
-}
+    string? PrimaryAddress
+);

@@ -2,35 +2,23 @@
 
 namespace InsuranceApp.Application.Buildings.Results;
 
-public record BuildingResult
+public record BuildingResult(
+    Guid Id,
+    Guid ClientId,
+    BuildingType Type,
+    BuildingAddressResult Address,
+    int ConstructionYear,
+    int NumberOfFloors,
+    decimal SurfaceArea,
+    decimal InsuredValue
+)
 {
-    public Guid Id { get; }
-    public Guid ClientId { get; }
-    public BuildingType Type { get; }
-    public BuildingAddressResult Address { get; }
-    public int ConstructionYear { get; }
-    public int NumberOfFloors { get; }
-    public decimal SurfaceArea { get; }
-    public decimal InsuredValue { get; }
-
-    public BuildingResult(
-        Guid id,
-        Guid clientId,
-        BuildingType type,
-        BuildingAddressResult address,
-        int constructionYear,
-        int numberOfFloors,
-        decimal surfaceArea,
-        decimal insuredValue
-    )
-    {
-        Id = id;
-        ClientId = clientId;
-        Type = type;
-        Address = address;
-        ConstructionYear = constructionYear;
-        NumberOfFloors = numberOfFloors;
-        SurfaceArea = surfaceArea;
-        InsuredValue = insuredValue;
-    }
+    public Guid Id { get; } = Id;
+    public Guid ClientId { get; } = ClientId;
+    public BuildingType Type { get; } = Type;
+    public BuildingAddressResult Address { get; } = Address;
+    public int ConstructionYear { get; } = ConstructionYear;
+    public int NumberOfFloors { get; } = NumberOfFloors;
+    public decimal SurfaceArea { get; } = SurfaceArea;
+    public decimal InsuredValue { get; } = InsuredValue;
 }

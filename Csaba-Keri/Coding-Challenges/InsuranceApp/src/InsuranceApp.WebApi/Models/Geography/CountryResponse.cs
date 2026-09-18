@@ -1,8 +1,8 @@
 ﻿namespace InsuranceApp.WebApi.Models.Geography;
 
-public class CountryResponse(Guid id, string name)
+public record CountryResponse(Guid Id, string Name)
 {
-    public Guid Id { get; } = id;
+    public Guid Id { get; } = Id;
 
-    public string Name { get; } = name;
+    public string Name { get; } = Name;
 }

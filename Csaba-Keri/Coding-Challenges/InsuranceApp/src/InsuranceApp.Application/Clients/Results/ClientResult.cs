@@ -2,32 +2,21 @@
 
 namespace InsuranceApp.Application.Clients.Results;
 
-public record ClientResult
+public record ClientResult(
+    Guid Id,
+    ClientType Type,
+    string IdentificationNumber,
+    string Name,
+    string Email,
+    string Phone,
+    string? PrimaryAddress
+)
 {
-    public Guid Id { get; }
-    public ClientType Type { get; }
-    public string IdentificationNumber { get; }
-    public string Name { get; }
-    public string Email { get; }
-    public string Phone { get; }
-    public string? PrimaryAddress { get; }
-
-    public ClientResult(
-        Guid id,
-        ClientType type,
-        string identificationNumber,
-        string name,
-        string email,
-        string phone,
-        string? primaryAddress
-    )
-    {
-        Id = id;
-        Type = type;
-        IdentificationNumber = identificationNumber;
-        Name = name;
-        Email = email;
-        Phone = phone;
-        PrimaryAddress = primaryAddress;
-    }
+    public Guid Id { get; } = Id;
+    public ClientType Type { get; } = Type;
+    public string IdentificationNumber { get; } = IdentificationNumber;
+    public string Name { get; } = Name;
+    public string Email { get; } = Email;
+    public string Phone { get; } = Phone;
+    public string? PrimaryAddress { get; } = PrimaryAddress;
 }

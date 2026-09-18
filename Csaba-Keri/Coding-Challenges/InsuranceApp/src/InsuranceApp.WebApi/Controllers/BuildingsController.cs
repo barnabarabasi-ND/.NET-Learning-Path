@@ -8,6 +8,7 @@ namespace InsuranceApp.WebApi.Controllers;
 
 [ApiController]
 [Route("api/brokers/buildings")]
+[ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 public class BuildingsController : ControllerBase
 {
     private readonly IBuildingService _service;
@@ -20,6 +21,8 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpGet("/api/brokers/clients/{clientId}/buildings")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PagedResponse<BuildingResponse>>> GetByClientId(
         [FromRoute] Guid clientId,
         [FromQuery] PageRequest request,
@@ -32,6 +35,8 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpGet("{buildingId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BuildingDetailsResponse>> GetById(
         [FromRoute] Guid buildingId,
         CancellationToken cancellationToken
@@ -43,7 +48,8 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpPost("/api/brokers/clients/{clientId}/buildings")]
-    [ProducesResponseType(typeof(BuildingDetailsResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BuildingDetailsResponse>> Create(
         [FromRoute] Guid clientId,
         [FromBody] SaveBuildingRequest request,
@@ -56,6 +62,8 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpPut("{buildingId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BuildingDetailsResponse>> Update(
         [FromRoute] Guid buildingId,
         [FromBody] SaveBuildingRequest request,

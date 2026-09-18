@@ -8,6 +8,7 @@ namespace InsuranceApp.WebApi.Controllers;
 
 [ApiController]
 [Route("api/brokers")]
+[ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 public class GeographyController : ControllerBase
 {
     private readonly IGeographyService _service;
@@ -20,6 +21,7 @@ public class GeographyController : ControllerBase
     }
 
     [HttpGet("countries")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResponse<CountryResponse>>> GetCountries(
         [FromQuery] PageRequest request,
         CancellationToken cancellationToken
@@ -31,6 +33,8 @@ public class GeographyController : ControllerBase
     }
 
     [HttpGet("countries/{countryId}/counties")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PagedResponse<CountyResponse>>> GetCounties(
         [FromRoute] Guid countryId,
         [FromQuery] PageRequest request,
@@ -43,6 +47,8 @@ public class GeographyController : ControllerBase
     }
 
     [HttpGet("counties/{countyId}/cities")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PagedResponse<CityResponse>>> GetCities(
         [FromRoute] Guid countyId,
         [FromQuery] PageRequest request,

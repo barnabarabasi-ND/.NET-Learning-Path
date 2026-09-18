@@ -8,6 +8,7 @@ namespace InsuranceApp.WebApi.Controllers;
 
 [ApiController]
 [Route("api/brokers/clients")]
+[ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 public class ClientsController : ControllerBase
 {
     private readonly IClientService _service;
@@ -20,6 +21,7 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResponse<ClientResponse>>> Search(
         [FromQuery] SearchClientsRequest request,
         CancellationToken cancellationToken
@@ -31,6 +33,8 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet("{clientId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ClientResponse>> GetById(
         [FromRoute] Guid clientId,
         CancellationToken cancellationToken
@@ -42,7 +46,8 @@ public class ClientsController : ControllerBase
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(ClientResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ClientResponse>> Create(
         [FromBody] CreateClientRequest request,
         CancellationToken cancellationToken
@@ -54,6 +59,8 @@ public class ClientsController : ControllerBase
     }
 
     [HttpPut("{clientId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ClientResponse>> Update(
         [FromRoute] Guid clientId,
         [FromBody] UpdateClientRequest request,

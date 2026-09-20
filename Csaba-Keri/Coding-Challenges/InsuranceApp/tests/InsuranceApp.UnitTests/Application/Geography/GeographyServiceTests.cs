@@ -63,7 +63,7 @@ public sealed class GeographyServiceTests
     }
 
     [Fact]
-    public async Task GetCountiesAsync_WhenCountryExists_ReturnsCountiesForThatCountry()
+    public async Task GetCountiesByCountryIdAsync_WhenCountryExists_ReturnsCountiesForThatCountry()
     {
         // Arrange
         var countryId = Guid.NewGuid();
@@ -78,11 +78,11 @@ public sealed class GeographyServiceTests
         _repository.CountryExistsAsync(countryId, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
-        _repository.GetCountiesAsync(countryId, query, CancellationToken.None)
+        _repository.GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCountiesAsync(countryId, query, CancellationToken.None);
+        var result = await _service.GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -101,11 +101,11 @@ public sealed class GeographyServiceTests
         );
 
         await _repository.Received(1).CountryExistsAsync(countryId, CancellationToken.None);
-        await _repository.Received(1).GetCountiesAsync(countryId, query, CancellationToken.None);
+        await _repository.Received(1).GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None);
     }
 
     [Fact]
-    public async Task GetCitiesAsync_WhenCountyExists_ReturnsCitiesForThatCounty()
+    public async Task GetCitiesByCountyIdAsync_WhenCountyExists_ReturnsCitiesForThatCounty()
     {
         // Arrange
         var countyId = Guid.NewGuid();
@@ -120,11 +120,11 @@ public sealed class GeographyServiceTests
         _repository.CountyExistsAsync(countyId, CancellationToken.None)
             .Returns(Task.FromResult(true));
         
-        _repository.GetCitiesAsync(countyId, query, CancellationToken.None)
+        _repository.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCitiesAsync(countyId, query, CancellationToken.None);
+        var result = await _service.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -143,7 +143,7 @@ public sealed class GeographyServiceTests
         );
 
         await _repository.Received(1).CountyExistsAsync(countyId, CancellationToken.None);
-        await _repository.Received(1).GetCitiesAsync(countyId, query, CancellationToken.None);
+        await _repository.Received(1).GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
     }
 
     [Theory]
@@ -158,8 +158,8 @@ public sealed class GeographyServiceTests
         var query = new PageQuery();
 
         Func<Task> action = queryCounties
-            ? () => _service.GetCountiesAsync(parentId, query, CancellationToken.None)
-            : () => _service.GetCitiesAsync(parentId, query, CancellationToken.None);
+            ? () => _service.GetCountiesByCountryIdAsync(parentId, query, CancellationToken.None)
+            : () => _service.GetCitiesByCountyIdAsync(parentId, query, CancellationToken.None);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(action);
@@ -167,11 +167,11 @@ public sealed class GeographyServiceTests
         Assert.Equal(entityName, exception.EntityName);
         Assert.Equal(parentId, exception.EntityId);
         
-        await _repository.DidNotReceive().GetCountiesAsync(
+        await _repository.DidNotReceive().GetCountiesByCountryIdAsync(
             Arg.Any<Guid>(), Arg.Any<PageQuery>(), Arg.Any<CancellationToken>()
         );
         
-        await _repository.DidNotReceive().GetCitiesAsync(
+        await _repository.DidNotReceive().GetCitiesByCountyIdAsync(
             Arg.Any<Guid>(), Arg.Any<PageQuery>(), Arg.Any<CancellationToken>()
         );
     }
@@ -187,8 +187,8 @@ public sealed class GeographyServiceTests
         var query = new PageQuery();
 
         Func<Task> action = queryCounties
-            ? () => _service.GetCountiesAsync(Guid.Empty, query, CancellationToken.None)
-            : () => _service.GetCitiesAsync(Guid.Empty, query, CancellationToken.None);
+            ? () => _service.GetCountiesByCountryIdAsync(Guid.Empty, query, CancellationToken.None)
+            : () => _service.GetCitiesByCountyIdAsync(Guid.Empty, query, CancellationToken.None);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(action);
@@ -217,7 +217,7 @@ public sealed class GeographyServiceTests
     }
 
     [Fact]
-    public async Task GetCitiesAsync_WhenRequestedPageIsEmpty_PreservesTotalCount()
+    public async Task GetCitiesByCountyIdAsync_WhenRequestedPageIsEmpty_PreservesTotalCount()
     {
         // Arrange
         var countyId = Guid.NewGuid();
@@ -231,11 +231,11 @@ public sealed class GeographyServiceTests
         _repository.CountyExistsAsync(countyId, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
-        _repository.GetCitiesAsync(countyId, query, CancellationToken.None)
+        _repository.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCitiesAsync(countyId, query, CancellationToken.None);
+        var result = await _service.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
 
         // Assert
         Assert.Empty(result.Items);

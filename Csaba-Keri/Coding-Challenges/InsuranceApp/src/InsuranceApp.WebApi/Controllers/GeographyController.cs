@@ -11,13 +11,13 @@ namespace InsuranceApp.WebApi.Controllers;
 [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 public class GeographyController : ControllerBase
 {
-    private readonly IGeographyService _service;
+    private readonly IGeographyService _geographyService;
 
-    public GeographyController(IGeographyService service)
+    public GeographyController(IGeographyService geographyService)
     {
-        ArgumentNullException.ThrowIfNull(service);
+        ArgumentNullException.ThrowIfNull(geographyService);
 
-        _service = service;
+        _geographyService = geographyService;
     }
 
     [HttpGet("countries")]
@@ -27,7 +27,7 @@ public class GeographyController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.GetCountriesAsync(request.ToQuery(), cancellationToken);
+        var result = await _geographyService.GetCountriesAsync(request.ToQuery(), cancellationToken);
         
         return Ok(result.ToResponse(country => country.ToResponse()));
     }
@@ -35,13 +35,13 @@ public class GeographyController : ControllerBase
     [HttpGet("countries/{countryId}/counties")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PagedResponse<CountyResponse>>> GetCounties(
+    public async Task<ActionResult<PagedResponse<CountyResponse>>> GetCountiesByCountryId(
         [FromRoute] Guid countryId,
         [FromQuery] PageRequest request,
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.GetCountiesAsync(countryId, request.ToQuery(), cancellationToken);
+        var result = await _geographyService.GetCountiesByCountryIdAsync(countryId, request.ToQuery(), cancellationToken);
         
         return Ok(result.ToResponse(county => county.ToResponse()));
     }
@@ -49,13 +49,13 @@ public class GeographyController : ControllerBase
     [HttpGet("counties/{countyId}/cities")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PagedResponse<CityResponse>>> GetCities(
+    public async Task<ActionResult<PagedResponse<CityResponse>>> GetCitiesByCountyId(
         [FromRoute] Guid countyId,
         [FromQuery] PageRequest request,
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.GetCitiesAsync(countyId, request.ToQuery(), cancellationToken);
+        var result = await _geographyService.GetCitiesByCountyIdAsync(countyId, request.ToQuery(), cancellationToken);
         
         return Ok(result.ToResponse(city => city.ToResponse()));
     }

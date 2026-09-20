@@ -55,7 +55,7 @@ public class BuildingService : IBuildingService
         _logger = logger;
     }
 
-    public async Task<BuildingDetailsResult> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken)
+    public async Task<BuildingDetailsResult> GetBuildingDetailsByIdAsync(Guid buildingId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -64,7 +64,7 @@ public class BuildingService : IBuildingService
             ThrowValidationException("BuildingId", "Building identifier must not be empty.");
         }
 
-        var building = await _buildingRepository.GetByIdAsync(buildingId, cancellationToken)
+        var building = await _buildingRepository.GetBuildingByIdAsync(buildingId, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(Building), buildingId);
 
         var geography = await _geographyRepository.GetCityGeographyAsync(building.Address.CityId, cancellationToken)
@@ -73,7 +73,7 @@ public class BuildingService : IBuildingService
         return building.ToDetailsResult(geography);
     }
 
-    public async Task<PagedResult<BuildingResult>> GetByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken)
+    public async Task<PagedResult<BuildingResult>> GetBuildingsByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
         cancellationToken.ThrowIfCancellationRequested();
@@ -86,12 +86,12 @@ public class BuildingService : IBuildingService
 
         await EnsureClientExistsAsync(clientId, cancellationToken);
 
-        var page = await _buildingRepository.GetByClientIdAsync(clientId, query, cancellationToken);
+        var page = await _buildingRepository.GetBuildingsByClientIdAsync(clientId, query, cancellationToken);
 
         return page.ToResult();
     }
 
-    public async Task<BuildingDetailsResult> CreateAsync(CreateBuildingCommand command, CancellationToken cancellationToken)
+    public async Task<BuildingDetailsResult> CreateBuildingAsync(CreateBuildingCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -114,13 +114,13 @@ public class BuildingService : IBuildingService
             insuredValue: command.InsuredValue
         );
 
-        await _buildingRepository.AddAsync(building, cancellationToken);
+        await _buildingRepository.AddBuildingAsync(building, cancellationToken);
         _logger.LogInformation("Building {BuildingId} created.", building.Id);
 
         return building.ToDetailsResult(geography);
     }
 
-    public async Task<BuildingDetailsResult> UpdateAsync(UpdateBuildingCommand command, CancellationToken cancellationToken)
+    public async Task<BuildingDetailsResult> UpdateBuildingAsync(UpdateBuildingCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -128,7 +128,7 @@ public class BuildingService : IBuildingService
 
         ValidateConstructionYear(command.ConstructionYear);
 
-        var building = await _buildingRepository.GetByIdAsync(command.BuildingId, cancellationToken)
+        var building = await _buildingRepository.GetBuildingByIdAsync(command.BuildingId, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(Building), command.BuildingId);
 
         var address = command.Address!;
@@ -143,7 +143,7 @@ public class BuildingService : IBuildingService
             insuredValue: command.InsuredValue
         );
 
-        await _buildingRepository.UpdateAsync(building, cancellationToken);
+        await _buildingRepository.UpdateBuildingAsync(building, cancellationToken);
         _logger.LogInformation("Building {BuildingId} updated.", building.Id);
 
         return building.ToDetailsResult(geography);
@@ -161,7 +161,7 @@ public class BuildingService : IBuildingService
 
     private async Task EnsureClientExistsAsync(Guid clientId, CancellationToken cancellationToken)
     {
-        if (!await _clientRepository.ExistsByIdAsync(clientId, cancellationToken))
+        if (!await _clientRepository.ClientExistsByIdAsync(clientId, cancellationToken))
         {
             throw new EntityNotFoundException(nameof(Client), clientId);
         }

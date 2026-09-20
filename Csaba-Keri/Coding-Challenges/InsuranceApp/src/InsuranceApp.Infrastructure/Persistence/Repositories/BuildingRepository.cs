@@ -22,7 +22,7 @@ public class BuildingRepository : IBuildingRepository
         _context = context;
     }
 
-    public async Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken)
+    public async Task<Building?> GetBuildingByIdAsync(Guid buildingId, CancellationToken cancellationToken)
     {
         var entity = await _context.Buildings
             .AsNoTracking()
@@ -31,7 +31,7 @@ public class BuildingRepository : IBuildingRepository
         return entity?.ToDomain();
     }
 
-    public Task<PagedResult<Building>> GetByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken)
+    public Task<PagedResult<Building>> GetBuildingsByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken)
     {
         return _context.Buildings
             .AsNoTracking()
@@ -40,7 +40,7 @@ public class BuildingRepository : IBuildingRepository
             .ToDomainPageAsync(query.PageNumber, query.PageSize, entity => entity.ToDomain(), cancellationToken);
     }
 
-    public async Task AddAsync(Building building, CancellationToken cancellationToken)
+    public async Task AddBuildingAsync(Building building, CancellationToken cancellationToken)
     {
         _context.Buildings.Add(building.ToEntity());
 
@@ -57,7 +57,7 @@ public class BuildingRepository : IBuildingRepository
         }
     }
 
-    public async Task UpdateAsync(Building building, CancellationToken cancellationToken)
+    public async Task UpdateBuildingAsync(Building building, CancellationToken cancellationToken)
     {
         var affected = 0;
 

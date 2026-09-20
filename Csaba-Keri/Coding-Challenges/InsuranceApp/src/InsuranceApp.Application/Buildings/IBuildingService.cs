@@ -6,11 +6,11 @@ namespace InsuranceApp.Application.Buildings;
 
 public interface IBuildingService
 {
-    Task<BuildingDetailsResult> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken);
+    Task<BuildingDetailsResult> GetBuildingDetailsByIdAsync(Guid buildingId, CancellationToken cancellationToken);
 
-    Task<PagedResult<BuildingResult>> GetByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<BuildingResult>> GetBuildingsByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken);
 
-    Task<BuildingDetailsResult> CreateAsync(CreateBuildingCommand command, CancellationToken cancellationToken);
+    Task<BuildingDetailsResult> CreateBuildingAsync(CreateBuildingCommand command, CancellationToken cancellationToken);
 
-    Task<BuildingDetailsResult> UpdateAsync(UpdateBuildingCommand command, CancellationToken cancellationToken);
+    Task<BuildingDetailsResult> UpdateBuildingAsync(UpdateBuildingCommand command, CancellationToken cancellationToken);
 }

@@ -14,34 +14,34 @@ namespace InsuranceApp.Application.Clients;
 
 public class ClientService : IClientService
 {
-    private readonly IClientRepository _repository;
+    private readonly IClientRepository _clientRepository;
     private readonly IValidator<CreateClientCommand> _createValidator;
     private readonly IValidator<UpdateClientCommand> _updateValidator;
     private readonly IValidator<SearchClientsQuery> _searchValidator;
     private readonly ILogger<ClientService> _logger;
 
     public ClientService(
-        IClientRepository repository,
+        IClientRepository clientRepository,
         IValidator<CreateClientCommand> createValidator,
         IValidator<UpdateClientCommand> updateValidator,
         IValidator<SearchClientsQuery> searchValidator,
         ILogger<ClientService> logger
     )
     {
-        ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(clientRepository);
         ArgumentNullException.ThrowIfNull(createValidator);
         ArgumentNullException.ThrowIfNull(updateValidator);
         ArgumentNullException.ThrowIfNull(searchValidator);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _repository = repository;
+        _clientRepository = clientRepository;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _searchValidator = searchValidator;
         _logger = logger;
     }
 
-    public async Task<ClientResult> GetByIdAsync(Guid clientId, CancellationToken cancellationToken)
+    public async Task<ClientResult> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -57,7 +57,7 @@ public class ClientService : IClientService
         return client.ToResult();
     }
 
-    public async Task<ClientResult> CreateAsync(CreateClientCommand command, CancellationToken cancellationToken)
+    public async Task<ClientResult> CreateClientAsync(CreateClientCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -73,7 +73,7 @@ public class ClientService : IClientService
             primaryAddress: command.PrimaryAddress
         );
 
-        var identifierExists = await _repository.ExistsByIdentificationNumberAsync(
+        var identifierExists = await _clientRepository.ClientExistsByIdentificationNumberAsync(
             client.IdentificationNumber,
             cancellationToken
         );
@@ -83,13 +83,13 @@ public class ClientService : IClientService
             throw new DuplicateClientIdentificationException();
         }
 
-        await _repository.AddAsync(client, cancellationToken);
+        await _clientRepository.AddClientAsync(client, cancellationToken);
         _logger.LogInformation("Client {ClientId} created.", client.Id);
 
         return client.ToResult();
     }
 
-    public async Task<ClientResult> UpdateAsync(UpdateClientCommand command, CancellationToken cancellationToken)
+    public async Task<ClientResult> UpdateClientAsync(UpdateClientCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -104,13 +104,13 @@ public class ClientService : IClientService
             primaryAddress: command.PrimaryAddress
         );
 
-        await _repository.UpdateAsync(client, cancellationToken);
+        await _clientRepository.UpdateClientAsync(client, cancellationToken);
         _logger.LogInformation("Client {ClientId} updated.", client.Id);
 
         return client.ToResult();
     }
 
-    public async Task<PagedResult<ClientResult>> SearchAsync(SearchClientsQuery query, CancellationToken cancellationToken)
+    public async Task<PagedResult<ClientResult>> SearchClientsAsync(SearchClientsQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
         cancellationToken.ThrowIfCancellationRequested();
@@ -122,14 +122,14 @@ public class ClientService : IClientService
             Identifier = NormalizeOptionalFilter(query.Identifier)
         };
 
-        var page = await _repository.SearchAsync(normalizedQuery, cancellationToken);
+        var page = await _clientRepository.SearchClientsAsync(normalizedQuery, cancellationToken);
 
         return page.ToResult();
     }
 
     private async Task<Client> GetClientByIdOrThrowAsync(Guid clientId, CancellationToken cancellationToken)
     {
-        var client = await _repository.GetByIdAsync(clientId, cancellationToken)
+        var client = await _clientRepository.GetClientByIdAsync(clientId, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(Client), clientId);
 
         return client;

@@ -6,15 +6,15 @@ namespace InsuranceApp.Application.Clients;
 
 public interface IClientRepository
 {
-    Task<Client?> GetByIdAsync(Guid clientId, CancellationToken cancellationToken);
+    Task<Client?> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken);
 
-    Task<bool> ExistsByIdentificationNumberAsync(string identificationNumber, CancellationToken cancellationToken);
+    Task<bool> ClientExistsByIdentificationNumberAsync(string identificationNumber, CancellationToken cancellationToken);
 
-    Task<bool> ExistsByIdAsync(Guid clientId, CancellationToken cancellationToken);
+    Task<bool> ClientExistsByIdAsync(Guid clientId, CancellationToken cancellationToken);
 
-    Task AddAsync(Client client, CancellationToken cancellationToken);
+    Task AddClientAsync(Client client, CancellationToken cancellationToken);
 
-    Task UpdateAsync(Client client, CancellationToken cancellationToken);
+    Task UpdateClientAsync(Client client, CancellationToken cancellationToken);
 
-    Task<PagedResult<Client>> SearchAsync(SearchClientsQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<Client>> SearchClientsAsync(SearchClientsQuery query, CancellationToken cancellationToken);
 }

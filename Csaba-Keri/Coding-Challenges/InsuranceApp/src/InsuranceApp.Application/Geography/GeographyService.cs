@@ -10,15 +10,15 @@ namespace InsuranceApp.Application.Geography;
 
 public class GeographyService : IGeographyService
 {
-    private readonly IGeographyRepository _repository;
+    private readonly IGeographyRepository _geographyRepository;
     private readonly IValidator<PageQuery> _pageValidator;
 
-    public GeographyService(IGeographyRepository repository, IValidator<PageQuery> pageValidator)
+    public GeographyService(IGeographyRepository geographyRepository, IValidator<PageQuery> pageValidator)
     {
-        ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(geographyRepository);
         ArgumentNullException.ThrowIfNull(pageValidator);
 
-        _repository = repository;
+        _geographyRepository = geographyRepository;
         _pageValidator = pageValidator;
     }
 
@@ -26,12 +26,12 @@ public class GeographyService : IGeographyService
     {
         await ValidatePageAsync(query, cancellationToken);
 
-        var page = await _repository.GetCountriesAsync(query, cancellationToken);
+        var page = await _geographyRepository.GetCountriesAsync(query, cancellationToken);
 
         return page.ToResult();
     }
 
-    public async Task<PagedResult<CountyResult>> GetCountiesAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken)
+    public async Task<PagedResult<CountyResult>> GetCountiesByCountryIdAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken)
     {
         await ValidatePageAsync(query, cancellationToken);
 
@@ -42,17 +42,17 @@ public class GeographyService : IGeographyService
             ]);
         }
 
-        if (!await _repository.CountryExistsAsync(countryId, cancellationToken))
+        if (!await _geographyRepository.CountryExistsAsync(countryId, cancellationToken))
         {
             throw new EntityNotFoundException(nameof(Country), countryId);
         }
 
-        var page = await _repository.GetCountiesAsync(countryId, query, cancellationToken);
+        var page = await _geographyRepository.GetCountiesByCountryIdAsync(countryId, query, cancellationToken);
 
         return page.ToResult();
     }
 
-    public async Task<PagedResult<CityResult>> GetCitiesAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken)
+    public async Task<PagedResult<CityResult>> GetCitiesByCountyIdAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken)
     {
         await ValidatePageAsync(query, cancellationToken);
 
@@ -63,12 +63,12 @@ public class GeographyService : IGeographyService
             ]);
         }
 
-        if (!await _repository.CountyExistsAsync(countyId, cancellationToken))
+        if (!await _geographyRepository.CountyExistsAsync(countyId, cancellationToken))
         {
             throw new EntityNotFoundException(nameof(County), countyId);
         }
 
-        var page = await _repository.GetCitiesAsync(countyId, query, cancellationToken);
+        var page = await _geographyRepository.GetCitiesByCountyIdAsync(countyId, query, cancellationToken);
 
         return page.ToResult();
     }

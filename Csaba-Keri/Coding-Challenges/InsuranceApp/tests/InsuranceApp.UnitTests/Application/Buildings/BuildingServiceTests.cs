@@ -56,14 +56,14 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenBuiltInCurrentYear_SavesAndReturnsDetails()
+    public async Task CreateBuildingAsync_WhenBuiltInCurrentYear_SavesAndReturnsDetails()
     {
         // Arrange
         var command = CreateCommand();
         ArrangeExistingReferences();
 
         // Act
-        var result = await _service.CreateAsync(command, CancellationToken.None);
+        var result = await _service.CreateBuildingAsync(command, CancellationToken.None);
 
         // Assert
         var building = result.Building;
@@ -87,10 +87,10 @@ public sealed class BuildingServiceTests
         );
         
         _timeProvider.Received(1).GetUtcNow();
-        await _clientRepository.Received(1).ExistsByIdAsync(_clientId, CancellationToken.None);
+        await _clientRepository.Received(1).ClientExistsByIdAsync(_clientId, CancellationToken.None);
         await _geographyRepository.Received(1).GetCityGeographyAsync(_cityId, CancellationToken.None);
         
-        await _buildingRepository.Received(1).AddAsync(
+        await _buildingRepository.Received(1).AddBuildingAsync(
             Arg.Is<Building>(received =>
                 received.Id == building.Id
                 && received.ClientId == _clientId
@@ -108,14 +108,14 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenClientIsMissing_ThrowsWithoutSaving()
+    public async Task CreateBuildingAsync_WhenClientIsMissing_ThrowsWithoutSaving()
     {
         // Arrange
         var command = CreateCommand();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.CreateAsync(command, CancellationToken.None)
+            () => _service.CreateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
@@ -125,17 +125,17 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenCityIsMissing_ThrowsValidationErrorWithoutSaving()
+    public async Task CreateBuildingAsync_WhenCityIsMissing_ThrowsValidationErrorWithoutSaving()
     {
         // Arrange
         var command = CreateCommand();
 
-        _clientRepository.ExistsByIdAsync(_clientId, CancellationToken.None)
+        _clientRepository.ClientExistsByIdAsync(_clientId, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync(command, CancellationToken.None)
+            () => _service.CreateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Equal("Address.CityId", Assert.Single(exception.Errors).PropertyName);
@@ -143,7 +143,7 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
+    public async Task CreateBuildingAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
     {
         // Arrange
         var command = CreateCommand();
@@ -154,7 +154,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync(command, CancellationToken.None)
+            () => _service.CreateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
@@ -170,8 +170,8 @@ public sealed class BuildingServiceTests
     {
         // Arrange
         Func<Task> action = create
-            ? () => _service.CreateAsync(CreateCommand(CurrentYear + 1), CancellationToken.None)
-            : () => _service.UpdateAsync(UpdateCommand(Guid.NewGuid(), CurrentYear + 1), CancellationToken.None);
+            ? () => _service.CreateBuildingAsync(CreateCommand(CurrentYear + 1), CancellationToken.None)
+            : () => _service.UpdateBuildingAsync(UpdateCommand(Guid.NewGuid(), CurrentYear + 1), CancellationToken.None);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(action);
@@ -184,7 +184,7 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WhenValid_ReplacesDetailsAndPreservesOwner()
+    public async Task UpdateBuildingAsync_WhenValid_ReplacesDetailsAndPreservesOwner()
     {
         // Arrange
         var building = CreateDomainBuilding();
@@ -192,11 +192,11 @@ public sealed class BuildingServiceTests
 
         ArrangeExistingReferences();
 
-        _buildingRepository.GetByIdAsync(building.Id, CancellationToken.None)
+        _buildingRepository.GetBuildingByIdAsync(building.Id, CancellationToken.None)
             .Returns(Task.FromResult<Building?>(building));
 
         // Act
-        var result = await _service.UpdateAsync(command, CancellationToken.None);
+        var result = await _service.UpdateBuildingAsync(command, CancellationToken.None);
 
         // Assert
         Assert.Equal(command.BuildingId, result.Building.Id);
@@ -220,7 +220,7 @@ public sealed class BuildingServiceTests
 
         _timeProvider.Received(1).GetUtcNow();
 
-        await _buildingRepository.Received(1).UpdateAsync(
+        await _buildingRepository.Received(1).UpdateBuildingAsync(
             Arg.Is<Building>(received =>
                 received.Id == command.BuildingId
                 && received.ClientId == _clientId
@@ -237,39 +237,39 @@ public sealed class BuildingServiceTests
         );
 
         await _buildingRepository.DidNotReceive()
-            .AddAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>());
+            .AddBuildingAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateAsync_WhenBuildingIsMissing_ThrowsWithoutSaving()
+    public async Task UpdateBuildingAsync_WhenBuildingIsMissing_ThrowsWithoutSaving()
     {
         // Arrange
         var command = UpdateCommand(Guid.NewGuid());
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.UpdateAsync(command, CancellationToken.None)
+            () => _service.UpdateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Building), exception.EntityName);
         Assert.Equal(command.BuildingId, exception.EntityId);
         
         await _buildingRepository.DidNotReceive()
-            .UpdateAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>());
+            .UpdateBuildingAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task GetByIdAsync_WhenBuildingExists_ReturnsDetailsWithGeography()
+    public async Task GetBuildingDetailsByIdAsync_WhenBuildingExists_ReturnsDetailsWithGeography()
     {
         // Arrange
         var building = CreateDomainBuilding();
         ArrangeExistingReferences();
         
-        _buildingRepository.GetByIdAsync(building.Id, CancellationToken.None)
+        _buildingRepository.GetBuildingByIdAsync(building.Id, CancellationToken.None)
             .Returns(Task.FromResult<Building?>(building));
 
         // Act
-        var result = await _service.GetByIdAsync(building.Id, CancellationToken.None);
+        var result = await _service.GetBuildingDetailsByIdAsync(building.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(building.Id, result.Building.Id);
@@ -289,14 +289,14 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_WhenBuildingIsMissing_ThrowsNotFound()
+    public async Task GetBuildingDetailsByIdAsync_WhenBuildingIsMissing_ThrowsNotFound()
     {
         // Arrange
         var buildingId = Guid.NewGuid();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.GetByIdAsync(buildingId, CancellationToken.None)
+            () => _service.GetBuildingDetailsByIdAsync(buildingId, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Building), exception.EntityName);
@@ -305,7 +305,7 @@ public sealed class BuildingServiceTests
     }
 
     [Fact]
-    public async Task GetByClientIdAsync_WhenClientExists_ReturnsMappedPage()
+    public async Task GetBuildingsByClientIdAsync_WhenClientExists_ReturnsMappedPage()
     {
         // Arrange
         var building = CreateDomainBuilding();
@@ -316,14 +316,14 @@ public sealed class BuildingServiceTests
         var query = new PageQuery(pageNumber, pageSize);
         var page = new PagedResult<Building>([building], pageNumber, pageSize, totalCount);
 
-        _clientRepository.ExistsByIdAsync(_clientId, CancellationToken.None)
+        _clientRepository.ClientExistsByIdAsync(_clientId, CancellationToken.None)
             .Returns(Task.FromResult(true));
         
-        _buildingRepository.GetByClientIdAsync(_clientId, query, CancellationToken.None)
+        _buildingRepository.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetByClientIdAsync(_clientId, query, CancellationToken.None);
+        var result = await _service.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -342,23 +342,23 @@ public sealed class BuildingServiceTests
         );
 
         await _clientRepository.Received(1)
-            .ExistsByIdAsync(_clientId, CancellationToken.None);
+            .ClientExistsByIdAsync(_clientId, CancellationToken.None);
 
         await _buildingRepository.Received(1)
-            .GetByClientIdAsync(_clientId, query, CancellationToken.None);
+            .GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None);
 
         Assert.Empty(_geographyRepository.ReceivedCalls());
     }
 
     [Fact]
-    public async Task GetByClientIdAsync_WhenClientIsMissing_ThrowsWithoutListingBuildings()
+    public async Task GetBuildingsByClientIdAsync_WhenClientIsMissing_ThrowsWithoutListingBuildings()
     {
         // Arrange
         var query = new PageQuery();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.GetByClientIdAsync(_clientId, query, CancellationToken.None)
+            () => _service.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
@@ -370,13 +370,13 @@ public sealed class BuildingServiceTests
     {
         var repository = Substitute.For<IBuildingRepository>();
 
-        repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        repository.GetBuildingByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Building?>(null));
 
-        repository.AddAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>())
+        repository.AddBuildingAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        repository.UpdateAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>())
+        repository.UpdateBuildingAsync(Arg.Any<Building>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         repository.ClearReceivedCalls();
@@ -388,7 +388,7 @@ public sealed class BuildingServiceTests
     {
         var repository = Substitute.For<IClientRepository>();
 
-        repository.ExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        repository.ClientExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(false));
 
         repository.ClearReceivedCalls();
@@ -444,7 +444,7 @@ public sealed class BuildingServiceTests
 
     private void ArrangeExistingReferences()
     {
-        _clientRepository.ExistsByIdAsync(_clientId, Arg.Any<CancellationToken>())
+        _clientRepository.ClientExistsByIdAsync(_clientId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
 
         _geographyRepository.GetCityGeographyAsync(_cityId, Arg.Any<CancellationToken>())

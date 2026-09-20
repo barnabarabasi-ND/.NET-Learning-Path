@@ -12,9 +12,9 @@ public interface IGeographyRepository
 
     Task<PagedResult<Country>> GetCountriesAsync(PageQuery query, CancellationToken cancellationToken);
 
-    Task<PagedResult<County>> GetCountiesAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<County>> GetCountiesByCountryIdAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken);
 
-    Task<PagedResult<City>> GetCitiesAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<City>> GetCitiesByCountyIdAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken);
 
     Task<CityGeographyResult?> GetCityGeographyAsync(Guid cityId, CancellationToken cancellationToken);
 

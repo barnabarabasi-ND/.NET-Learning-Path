@@ -5,11 +5,11 @@ namespace InsuranceApp.Application.Buildings;
 
 public interface IBuildingRepository
 {
-    Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken);
+    Task<Building?> GetBuildingByIdAsync(Guid buildingId, CancellationToken cancellationToken);
 
-    Task<PagedResult<Building>> GetByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<Building>> GetBuildingsByClientIdAsync(Guid clientId, PageQuery query, CancellationToken cancellationToken);
 
-    Task AddAsync(Building building, CancellationToken cancellationToken);
+    Task AddBuildingAsync(Building building, CancellationToken cancellationToken);
 
-    Task UpdateAsync(Building building, CancellationToken cancellationToken);
+    Task UpdateBuildingAsync(Building building, CancellationToken cancellationToken);
 }

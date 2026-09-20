@@ -34,7 +34,7 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenValid_SavesClientAndReturnsResult()
+    public async Task CreateClientAsync_WhenValid_SavesClientAndReturnsResult()
     {
         // Arrange
         var identificationNumber = "1234567890123";
@@ -44,7 +44,7 @@ public sealed class ClientServiceTests
         };
 
         // Act
-        var result = await _service.CreateAsync(command, CancellationToken.None);
+        var result = await _service.CreateClientAsync(command, CancellationToken.None);
 
         // Assert
         Assert.NotEqual(Guid.Empty, result.Id);
@@ -62,9 +62,9 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).ExistsByIdentificationNumberAsync(identificationNumber, CancellationToken.None);
+        await _repository.Received(1).ClientExistsByIdentificationNumberAsync(identificationNumber, CancellationToken.None);
 
-        await _repository.Received(1).AddAsync(
+        await _repository.Received(1).AddClientAsync(
             Arg.Is<Client>(received =>
                 received.Id == result.Id
                 && received.Type == command.Type
@@ -79,24 +79,24 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenIdentifierExists_ThrowsWithoutSaving()
+    public async Task CreateClientAsync_WhenIdentifierExists_ThrowsWithoutSaving()
     {
         // Arrange
         var command = CreateCommand();
 
-        _repository.ExistsByIdentificationNumberAsync(command.IdentificationNumber!, CancellationToken.None)
+        _repository.ClientExistsByIdentificationNumberAsync(command.IdentificationNumber!, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
         // Act & Assert
         await Assert.ThrowsAsync<DuplicateClientIdentificationException>(
-            () => _service.CreateAsync(command, CancellationToken.None)
+            () => _service.CreateClientAsync(command, CancellationToken.None)
         );
 
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task CreateAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
+    public async Task CreateClientAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
     {
         // Arrange
         var command = CreateCommand();
@@ -107,7 +107,7 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync(command, CancellationToken.None)
+            () => _service.CreateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
@@ -115,35 +115,35 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenSaveReportsConcurrentDuplicate_PropagatesConflict()
+    public async Task CreateClientAsync_WhenSaveReportsConcurrentDuplicate_PropagatesConflict()
     {
         // Arrange
         var command = CreateCommand();
         var conflict = new DuplicateClientIdentificationException();
 
-        _repository.AddAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
+        _repository.AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(conflict));
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<DuplicateClientIdentificationException>(
-            () => _service.CreateAsync(command, CancellationToken.None)
+            () => _service.CreateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Same(conflict, exception);
     }
 
     [Fact]
-    public async Task GetByIdAsync_WhenClientExists_ReturnsClientResult()
+    public async Task GetClientByIdAsync_WhenClientExists_ReturnsClientResult()
     {
         // Arrange
         var client = CreateDomainClient();
 
-        _repository.GetByIdAsync(client.Id, CancellationToken.None)
+        _repository.GetClientByIdAsync(client.Id, CancellationToken.None)
             .Returns(Task.FromResult<Client?>(client)
         );
 
         // Act
-        var result = await _service.GetByIdAsync(client.Id, CancellationToken.None);
+        var result = await _service.GetClientByIdAsync(client.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(client.Id, result.Id);
@@ -154,18 +154,18 @@ public sealed class ClientServiceTests
         Assert.Equal(client.Phone, result.Phone);
         Assert.Equal(client.PrimaryAddress, result.PrimaryAddress);
 
-        await _repository.Received(1).GetByIdAsync(client.Id, CancellationToken.None);
+        await _repository.Received(1).GetClientByIdAsync(client.Id, CancellationToken.None);
     }
 
     [Fact]
-    public async Task GetByIdAsync_WhenClientIsMissing_ThrowsNotFound()
+    public async Task GetClientByIdAsync_WhenClientIsMissing_ThrowsNotFound()
     {
         // Arrange
         var clientId = Guid.NewGuid();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.GetByIdAsync(clientId, CancellationToken.None)
+            () => _service.GetClientByIdAsync(clientId, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
@@ -173,14 +173,14 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_WhenIdIsEmpty_ThrowsWithoutRepositoryCalls()
+    public async Task GetClientByIdAsync_WhenIdIsEmpty_ThrowsWithoutRepositoryCalls()
     {
         // Arrange
         var clientId = Guid.Empty;
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.GetByIdAsync(clientId, CancellationToken.None)
+            () => _service.GetClientByIdAsync(clientId, CancellationToken.None)
         );
 
         Assert.Equal("ClientId", Assert.Single(exception.Errors).PropertyName);
@@ -188,17 +188,17 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WhenClientExists_SavesDetailsAndPreservesIdentity()
+    public async Task UpdateClientAsync_WhenClientExists_SavesDetailsAndPreservesIdentity()
     {
         // Arrange
         var client = CreateDomainClient();
         var command = UpdateCommand(client.Id);
 
-        _repository.GetByIdAsync(client.Id, CancellationToken.None)
+        _repository.GetClientByIdAsync(client.Id, CancellationToken.None)
             .Returns(Task.FromResult<Client?>(client));
 
         // Act
-        var result = await _service.UpdateAsync(command, CancellationToken.None);
+        var result = await _service.UpdateClientAsync(command, CancellationToken.None);
 
         // Assert
         Assert.Equal(command.ClientId, result.Id);
@@ -216,7 +216,7 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).UpdateAsync(
+        await _repository.Received(1).UpdateClientAsync(
             Arg.Is<Client>(received =>
                 received.Id == command.ClientId
                 && received.Type == client.Type
@@ -229,28 +229,28 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateAsync_WhenClientIsMissing_ThrowsWithoutSaving()
+    public async Task UpdateClientAsync_WhenClientIsMissing_ThrowsWithoutSaving()
     {
         // Arrange
         var command = UpdateCommand(Guid.NewGuid());
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.UpdateAsync(command, CancellationToken.None)
+            () => _service.UpdateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
         Assert.Equal(command.ClientId, exception.EntityId);
 
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().UpdateClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task UpdateAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
+    public async Task UpdateClientAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
     {
         // Arrange
         var command = UpdateCommand(Guid.NewGuid());
@@ -261,7 +261,7 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.UpdateAsync(command, CancellationToken.None)
+            () => _service.UpdateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
@@ -269,7 +269,7 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WhenValid_NormalizesFiltersAndReturnsMappedPage()
+    public async Task SearchClientsAsync_WhenValid_NormalizesFiltersAndReturnsMappedPage()
     {
         // Arrange
         var client = CreateDomainClient();
@@ -289,11 +289,11 @@ public sealed class ClientServiceTests
             PageSize: pageSize
         );
 
-        _repository.SearchAsync(Arg.Any<SearchClientsQuery>(), CancellationToken.None)
+        _repository.SearchClientsAsync(Arg.Any<SearchClientsQuery>(), CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.SearchAsync(query, CancellationToken.None);
+        var result = await _service.SearchClientsAsync(query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -310,7 +310,7 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).SearchAsync(
+        await _repository.Received(1).SearchClientsAsync(
             Arg.Is<SearchClientsQuery>(received =>
                 received.Name == queryName
                 && received.Identifier == null
@@ -322,7 +322,7 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
+    public async Task SearchClientsAsync_WhenValidationFails_ThrowsWithoutRepositoryCalls()
     {
         // Arrange
         var query = new SearchClientsQuery();
@@ -333,7 +333,7 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.SearchAsync(query, CancellationToken.None)
+            () => _service.SearchClientsAsync(query, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
@@ -344,16 +344,16 @@ public sealed class ClientServiceTests
     {
         var repository = Substitute.For<IClientRepository>();
 
-        repository.ExistsByIdentificationNumberAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        repository.ClientExistsByIdentificationNumberAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(false));
 
-        repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        repository.GetClientByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Client?>(null));
 
-        repository.AddAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
+        repository.AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        repository.UpdateAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
+        repository.UpdateClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         repository.ClearReceivedCalls();

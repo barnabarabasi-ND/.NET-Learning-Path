@@ -7,11 +7,11 @@ namespace InsuranceApp.Application.Clients;
 
 public interface IClientService
 {
-    Task<ClientResult> GetByIdAsync(Guid clientId, CancellationToken cancellationToken);
+    Task<ClientResult> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken);
 
-    Task<ClientResult> CreateAsync(CreateClientCommand command, CancellationToken cancellationToken);
+    Task<ClientResult> CreateClientAsync(CreateClientCommand command, CancellationToken cancellationToken);
 
-    Task<ClientResult> UpdateAsync(UpdateClientCommand command, CancellationToken cancellationToken);
+    Task<ClientResult> UpdateClientAsync(UpdateClientCommand command, CancellationToken cancellationToken);
 
-    Task<PagedResult<ClientResult>> SearchAsync(SearchClientsQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<ClientResult>> SearchClientsAsync(SearchClientsQuery query, CancellationToken cancellationToken);
 }

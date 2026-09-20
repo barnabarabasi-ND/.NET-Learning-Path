@@ -21,7 +21,7 @@ public class ClientRepository : IClientRepository
         _context = context;
     }
 
-    public Task<bool> ExistsByIdAsync(Guid clientId, CancellationToken cancellationToken)
+    public Task<bool> ClientExistsByIdAsync(Guid clientId, CancellationToken cancellationToken)
     {
         return _context.Clients.AnyAsync(
             client => client.Id == clientId,
@@ -29,7 +29,7 @@ public class ClientRepository : IClientRepository
         );
     }
 
-    public Task<bool> ExistsByIdentificationNumberAsync(string identificationNumber, CancellationToken cancellationToken)
+    public Task<bool> ClientExistsByIdentificationNumberAsync(string identificationNumber, CancellationToken cancellationToken)
     {
         return _context.Clients.AnyAsync(
             client => client.IdentificationNumber == identificationNumber,
@@ -37,7 +37,7 @@ public class ClientRepository : IClientRepository
         );
     }
 
-    public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken cancellationToken)
+    public async Task<Client?> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken)
     {
         var entity = await _context.Clients
             .AsNoTracking()
@@ -46,7 +46,7 @@ public class ClientRepository : IClientRepository
         return entity?.ToDomain();
     }
 
-    public async Task AddAsync(Client client, CancellationToken cancellationToken)
+    public async Task AddClientAsync(Client client, CancellationToken cancellationToken)
     {
         _context.Clients.Add(client.ToEntity());
 
@@ -64,7 +64,7 @@ public class ClientRepository : IClientRepository
         }
     }
 
-    public async Task UpdateAsync(Client client, CancellationToken cancellationToken)
+    public async Task UpdateClientAsync(Client client, CancellationToken cancellationToken)
     {
         var affected = await _context.Clients
             .Where(entity => entity.Id == client.Id)
@@ -80,7 +80,7 @@ public class ClientRepository : IClientRepository
         }
     }
 
-    public Task<PagedResult<Client>> SearchAsync(SearchClientsQuery query, CancellationToken cancellationToken)
+    public Task<PagedResult<Client>> SearchClientsAsync(SearchClientsQuery query, CancellationToken cancellationToken)
     {
         var clients = _context.Clients.AsNoTracking();
 

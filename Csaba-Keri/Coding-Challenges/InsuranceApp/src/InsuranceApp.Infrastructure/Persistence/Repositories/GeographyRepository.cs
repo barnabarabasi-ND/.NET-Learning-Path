@@ -43,7 +43,7 @@ public class GeographyRepository : IGeographyRepository
             .ToDomainPageAsync(query.PageNumber, query.PageSize, entity => entity.ToDomain(), cancellationToken);
     }
 
-    public Task<PagedResult<County>> GetCountiesAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken)
+    public Task<PagedResult<County>> GetCountiesByCountryIdAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken)
     {
         return _context.Counties
             .AsNoTracking()
@@ -53,7 +53,7 @@ public class GeographyRepository : IGeographyRepository
             .ToDomainPageAsync(query.PageNumber, query.PageSize, entity => entity.ToDomain(), cancellationToken);
     }
 
-    public Task<PagedResult<City>> GetCitiesAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken)
+    public Task<PagedResult<City>> GetCitiesByCountyIdAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken)
     {
         return _context.Cities
             .AsNoTracking()

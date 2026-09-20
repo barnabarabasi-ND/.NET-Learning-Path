@@ -11,23 +11,23 @@ namespace InsuranceApp.WebApi.Controllers;
 [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 public class ClientsController : ControllerBase
 {
-    private readonly IClientService _service;
+    private readonly IClientService _clientService;
 
-    public ClientsController(IClientService service)
+    public ClientsController(IClientService clientService)
     {
-        ArgumentNullException.ThrowIfNull(service);
+        ArgumentNullException.ThrowIfNull(clientService);
 
-        _service = service;
+        _clientService = clientService;
     }
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResponse<ClientResponse>>> Search(
+    public async Task<ActionResult<PagedResponse<ClientResponse>>> SearchClients(
         [FromQuery] SearchClientsRequest request,
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.SearchAsync(request.ToQuery(), cancellationToken);
+        var result = await _clientService.SearchClientsAsync(request.ToQuery(), cancellationToken);
         
         return Ok(result.ToResponse(client => client.ToResponse()));
     }
@@ -35,12 +35,12 @@ public class ClientsController : ControllerBase
     [HttpGet("{clientId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponse>> GetById(
+    public async Task<ActionResult<ClientResponse>> GetClientById(
         [FromRoute] Guid clientId,
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.GetByIdAsync(clientId, cancellationToken);
+        var result = await _clientService.GetClientByIdAsync(clientId, cancellationToken);
         
         return Ok(result.ToResponse());
     }
@@ -48,26 +48,26 @@ public class ClientsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ClientResponse>> Create(
+    public async Task<ActionResult<ClientResponse>> CreateClient(
         [FromBody] CreateClientRequest request,
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.CreateAsync(request.ToCommand(), cancellationToken);
+        var result = await _clientService.CreateClientAsync(request.ToCommand(), cancellationToken);
         
-        return CreatedAtAction(nameof(GetById), new { clientId = result.Id }, result.ToResponse());
+        return CreatedAtAction(nameof(GetClientById), new { clientId = result.Id }, result.ToResponse());
     }
 
     [HttpPut("{clientId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponse>> Update(
+    public async Task<ActionResult<ClientResponse>> UpdateClient(
         [FromRoute] Guid clientId,
         [FromBody] UpdateClientRequest request,
         CancellationToken cancellationToken
     )
     {
-        var result = await _service.UpdateAsync(request.ToCommand(clientId), cancellationToken);
+        var result = await _clientService.UpdateClientAsync(request.ToCommand(clientId), cancellationToken);
         
         return Ok(result.ToResponse());
     }

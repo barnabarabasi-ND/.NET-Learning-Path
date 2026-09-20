@@ -124,7 +124,7 @@ public class ClientService : IClientService
 
         var page = await _clientRepository.SearchClientsAsync(normalizedQuery, cancellationToken);
 
-        return page.ToResult();
+        return page.Map(client => client.ToResult());
     }
 
     private async Task<Client> GetClientByIdOrThrowAsync(Guid clientId, CancellationToken cancellationToken)

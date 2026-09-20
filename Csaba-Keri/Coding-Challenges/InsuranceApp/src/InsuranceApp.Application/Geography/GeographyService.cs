@@ -28,7 +28,7 @@ public class GeographyService : IGeographyService
 
         var page = await _geographyRepository.GetCountriesAsync(query, cancellationToken);
 
-        return page.ToResult();
+        return page.Map(country => country.ToResult());
     }
 
     public async Task<PagedResult<CountyResult>> GetCountiesByCountryIdAsync(Guid countryId, PageQuery query, CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ public class GeographyService : IGeographyService
 
         var page = await _geographyRepository.GetCountiesByCountryIdAsync(countryId, query, cancellationToken);
 
-        return page.ToResult();
+        return page.Map(county => county.ToResult());
     }
 
     public async Task<PagedResult<CityResult>> GetCitiesByCountyIdAsync(Guid countyId, PageQuery query, CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ public class GeographyService : IGeographyService
 
         var page = await _geographyRepository.GetCitiesByCountyIdAsync(countyId, query, cancellationToken);
 
-        return page.ToResult();
+        return page.Map(city => city.ToResult());
     }
 
     private async Task ValidatePageAsync(PageQuery query, CancellationToken cancellationToken)

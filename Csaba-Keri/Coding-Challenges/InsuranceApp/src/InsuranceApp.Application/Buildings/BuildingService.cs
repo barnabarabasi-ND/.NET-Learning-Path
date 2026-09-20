@@ -88,7 +88,7 @@ public class BuildingService : IBuildingService
 
         var page = await _buildingRepository.GetBuildingsByClientIdAsync(clientId, query, cancellationToken);
 
-        return page.ToResult();
+        return page.Map(building => building.ToResult());
     }
 
     public async Task<BuildingDetailsResult> CreateBuildingAsync(CreateBuildingCommand command, CancellationToken cancellationToken)

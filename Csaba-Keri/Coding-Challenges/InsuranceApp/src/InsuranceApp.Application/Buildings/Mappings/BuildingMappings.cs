@@ -1,6 +1,5 @@
 ﻿using InsuranceApp.Application.Buildings.Commands;
 using InsuranceApp.Application.Buildings.Results;
-using InsuranceApp.Application.Common.Pagination;
 using InsuranceApp.Application.Geography.Results;
 using InsuranceApp.Domain.Buildings;
 
@@ -37,16 +36,6 @@ internal static class BuildingMappings
             NumberOfFloors: building.NumberOfFloors,
             SurfaceArea: building.SurfaceArea,
             InsuredValue: building.InsuredValue
-        );
-    }
-
-    public static PagedResult<BuildingResult> ToResult(this PagedResult<Building> page)
-    {
-        return new(
-            items: page.Items.Select(building => building.ToResult()),
-            pageNumber: page.PageNumber,
-            pageSize: page.PageSize,
-            totalCount: page.TotalCount
         );
     }
 

@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using InsuranceApp.Application.Clients.Commands;
 using InsuranceApp.Domain.Clients;
-using System.Net.Mail;
 
 namespace InsuranceApp.Application.Clients.Validation;
 
@@ -22,7 +21,7 @@ public abstract class ClientDetailsValidator<TCommand> : AbstractValidator<TComm
             .NotEmpty().WithMessage("Email is required.")
             .Must(value => value!.Trim().Length <= Client.MaxEmailLength)
             .WithMessage($"Email must not exceed {Client.MaxEmailLength} characters.")
-            .Must(IsSingleEmailAddress)
+            .Must(value => EmailAddressRules.IsSingleAddress(value!.Trim()))
             .WithMessage("A single email address without a display name is required.");
 
         RuleFor(command => command.Phone)
@@ -33,13 +32,5 @@ public abstract class ClientDetailsValidator<TCommand> : AbstractValidator<TComm
         RuleFor(command => command.PrimaryAddress)
             .Must(value => string.IsNullOrWhiteSpace(value) || value.Trim().Length <= Client.MaxPrimaryAddressLength)
             .WithMessage($"Primary address must not exceed {Client.MaxPrimaryAddressLength} characters.");
-    }
-
-    private static bool IsSingleEmailAddress(string? email)
-    {
-        var normalizedEmail = email?.Trim();
-
-        return MailAddress.TryCreate(normalizedEmail, out var parsedAddress)
-            && string.Equals(parsedAddress.Address, normalizedEmail, StringComparison.Ordinal);
     }
 }

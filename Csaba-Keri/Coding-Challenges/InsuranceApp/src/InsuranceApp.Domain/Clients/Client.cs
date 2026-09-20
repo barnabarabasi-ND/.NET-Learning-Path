@@ -1,6 +1,4 @@
-﻿using System.Net.Mail;
-
-namespace InsuranceApp.Domain.Clients;
+﻿namespace InsuranceApp.Domain.Clients;
 
 public class Client
 {
@@ -106,8 +104,7 @@ public class Client
     {
         var normalizedEmail = NormalizeRequired(email, MaxEmailLength, nameof(email));
 
-        if (!MailAddress.TryCreate(normalizedEmail, out var parsedAddress)
-            || !string.Equals(parsedAddress.Address, normalizedEmail, StringComparison.Ordinal))
+        if (!EmailAddressRules.IsSingleAddress(normalizedEmail))
         {
             throw new ArgumentException(
                 "A single email address without a display name is required.",

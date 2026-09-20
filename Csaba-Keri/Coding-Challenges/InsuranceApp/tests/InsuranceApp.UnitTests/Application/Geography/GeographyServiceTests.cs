@@ -4,23 +4,25 @@ using InsuranceApp.Application.Common.Exceptions;
 using InsuranceApp.Application.Common.Pagination;
 using InsuranceApp.Application.Geography;
 using InsuranceApp.Domain.Geography;
+using InsuranceApp.UnitTests.Common;
 using NSubstitute;
 
 namespace InsuranceApp.UnitTests.Application.Geography;
 
 public sealed class GeographyServiceTests
 {
-    private readonly IGeographyRepository _repository;
+    private readonly IGeographyRepository _geographyRepository;
     private readonly IValidator<PageQuery> _pageValidator;
 
-    private readonly GeographyService _service;
+    private readonly GeographyService _geographyService;
 
     public GeographyServiceTests()
     {
-        _repository = CreateGeographyRepositoryMock();
-        _pageValidator = CreateValidatorMock<PageQuery>();
+        _geographyRepository = CreateGeographyRepositoryMock();
 
-        _service = new(_repository, _pageValidator);
+        _pageValidator = ValidatorMocks.CreatePassing<PageQuery>();
+
+        _geographyService = new(_geographyRepository, _pageValidator);
     }
 
     [Fact]
@@ -38,11 +40,11 @@ public sealed class GeographyServiceTests
         var totalCount = 2L;
         var page = new PagedResult<Country>([country], pageNumber, pageSize, totalCount);
 
-        _repository.GetCountriesAsync(query, cancellationSource.Token)
+        _geographyRepository.GetCountriesAsync(query, cancellationSource.Token)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCountriesAsync(query, cancellationSource.Token);
+        var result = await _geographyService.GetCountriesAsync(query, cancellationSource.Token);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -59,7 +61,7 @@ public sealed class GeographyServiceTests
             cancellationSource.Token
         );
 
-        await _repository.Received(1).GetCountriesAsync(query, cancellationSource.Token);
+        await _geographyRepository.Received(1).GetCountriesAsync(query, cancellationSource.Token);
     }
 
     [Fact]
@@ -75,14 +77,14 @@ public sealed class GeographyServiceTests
         var totalCount = 1L;
         var page = new PagedResult<County>([county], pageNumber, pageSize, totalCount);
 
-        _repository.CountryExistsAsync(countryId, CancellationToken.None)
+        _geographyRepository.CountryExistsAsync(countryId, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
-        _repository.GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None)
+        _geographyRepository.GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None);
+        var result = await _geographyService.GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -100,8 +102,8 @@ public sealed class GeographyServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).CountryExistsAsync(countryId, CancellationToken.None);
-        await _repository.Received(1).GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None);
+        await _geographyRepository.Received(1).CountryExistsAsync(countryId, CancellationToken.None);
+        await _geographyRepository.Received(1).GetCountiesByCountryIdAsync(countryId, query, CancellationToken.None);
     }
 
     [Fact]
@@ -117,14 +119,14 @@ public sealed class GeographyServiceTests
         var totalCount = 1L;
         var page = new PagedResult<City>([city], pageNumber, pageSize, totalCount);
 
-        _repository.CountyExistsAsync(countyId, CancellationToken.None)
+        _geographyRepository.CountyExistsAsync(countyId, CancellationToken.None)
             .Returns(Task.FromResult(true));
         
-        _repository.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None)
+        _geographyRepository.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
+        var result = await _geographyService.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -142,8 +144,8 @@ public sealed class GeographyServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).CountyExistsAsync(countyId, CancellationToken.None);
-        await _repository.Received(1).GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
+        await _geographyRepository.Received(1).CountyExistsAsync(countyId, CancellationToken.None);
+        await _geographyRepository.Received(1).GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
     }
 
     [Theory]
@@ -158,8 +160,8 @@ public sealed class GeographyServiceTests
         var query = new PageQuery();
 
         Func<Task> action = queryCounties
-            ? () => _service.GetCountiesByCountryIdAsync(parentId, query, CancellationToken.None)
-            : () => _service.GetCitiesByCountyIdAsync(parentId, query, CancellationToken.None);
+            ? () => _geographyService.GetCountiesByCountryIdAsync(parentId, query, CancellationToken.None)
+            : () => _geographyService.GetCitiesByCountyIdAsync(parentId, query, CancellationToken.None);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(action);
@@ -167,11 +169,11 @@ public sealed class GeographyServiceTests
         Assert.Equal(entityName, exception.EntityName);
         Assert.Equal(parentId, exception.EntityId);
         
-        await _repository.DidNotReceive().GetCountiesByCountryIdAsync(
+        await _geographyRepository.DidNotReceive().GetCountiesByCountryIdAsync(
             Arg.Any<Guid>(), Arg.Any<PageQuery>(), Arg.Any<CancellationToken>()
         );
         
-        await _repository.DidNotReceive().GetCitiesByCountyIdAsync(
+        await _geographyRepository.DidNotReceive().GetCitiesByCountyIdAsync(
             Arg.Any<Guid>(), Arg.Any<PageQuery>(), Arg.Any<CancellationToken>()
         );
     }
@@ -187,14 +189,14 @@ public sealed class GeographyServiceTests
         var query = new PageQuery();
 
         Func<Task> action = queryCounties
-            ? () => _service.GetCountiesByCountryIdAsync(Guid.Empty, query, CancellationToken.None)
-            : () => _service.GetCitiesByCountyIdAsync(Guid.Empty, query, CancellationToken.None);
+            ? () => _geographyService.GetCountiesByCountryIdAsync(Guid.Empty, query, CancellationToken.None)
+            : () => _geographyService.GetCitiesByCountyIdAsync(Guid.Empty, query, CancellationToken.None);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(action);
 
         Assert.Equal(propertyName, Assert.Single(exception.Errors).PropertyName);
-        Assert.Empty(_repository.ReceivedCalls());
+        Assert.Empty(_geographyRepository.ReceivedCalls());
     }
 
     [Fact]
@@ -209,11 +211,11 @@ public sealed class GeographyServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.GetCountriesAsync(query, CancellationToken.None)
+            () => _geographyService.GetCountriesAsync(query, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
-        Assert.Empty(_repository.ReceivedCalls());
+        Assert.Empty(_geographyRepository.ReceivedCalls());
     }
 
     [Fact]
@@ -228,14 +230,14 @@ public sealed class GeographyServiceTests
         var query = new PageQuery(pageNumber, pageSize);
         var page = new PagedResult<City>([], pageNumber, pageSize, totalCount);
 
-        _repository.CountyExistsAsync(countyId, CancellationToken.None)
+        _geographyRepository.CountyExistsAsync(countyId, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
-        _repository.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None)
+        _geographyRepository.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
+        var result = await _geographyService.GetCitiesByCountyIdAsync(countyId, query, CancellationToken.None);
 
         // Assert
         Assert.Empty(result.Items);
@@ -243,7 +245,7 @@ public sealed class GeographyServiceTests
         Assert.Equal(pageSize, result.PageSize);
         Assert.Equal(totalCount, result.TotalCount);
 
-        await _repository.Received(1).CountyExistsAsync(countyId, CancellationToken.None);
+        await _geographyRepository.Received(1).CountyExistsAsync(countyId, CancellationToken.None);
     }
 
     private static IGeographyRepository CreateGeographyRepositoryMock()
@@ -259,18 +261,5 @@ public sealed class GeographyServiceTests
         repository.ClearReceivedCalls();
 
         return repository;
-    }
-
-    private static IValidator<T> CreateValidatorMock<T>()
-    {
-        var validator = Substitute.For<IValidator<T>>();
-
-        // ValidateAndThrowAsync calls this overload.
-        validator.ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new ValidationResult()));
-
-        validator.ClearReceivedCalls();
-
-        return validator;
     }
 }

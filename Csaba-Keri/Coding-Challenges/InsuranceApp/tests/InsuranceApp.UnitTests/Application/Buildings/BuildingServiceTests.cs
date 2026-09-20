@@ -9,6 +9,7 @@ using InsuranceApp.Application.Geography;
 using InsuranceApp.Application.Geography.Results;
 using InsuranceApp.Domain.Buildings;
 using InsuranceApp.Domain.Clients;
+using InsuranceApp.UnitTests.Common;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -25,7 +26,7 @@ public sealed class BuildingServiceTests
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<BuildingService> _logger;
 
-    private readonly BuildingService _service;
+    private readonly BuildingService _buildingService;
 
     private const int CurrentYear = 2030;
     private readonly Guid _clientId = Guid.NewGuid();
@@ -38,14 +39,14 @@ public sealed class BuildingServiceTests
         _clientRepository = CreateClientRepositoryMock();
         _geographyRepository = CreateGeographyRepositoryMock();
 
-        _createValidator = CreateValidatorMock<CreateBuildingCommand>();
-        _updateValidator = CreateValidatorMock<UpdateBuildingCommand>();
-        _pageValidator = CreateValidatorMock<PageQuery>();
+        _createValidator = ValidatorMocks.CreatePassing<CreateBuildingCommand>();
+        _updateValidator = ValidatorMocks.CreatePassing<UpdateBuildingCommand>();
+        _pageValidator = ValidatorMocks.CreatePassing<PageQuery>();
 
         _timeProvider = CreateTimeProviderMock();
-        _logger = CreateLoggerMock<BuildingService>();
+        _logger = Substitute.For<ILogger<BuildingService>>();
 
-        _service = new(_buildingRepository, _clientRepository, _geographyRepository,
+        _buildingService = new(_buildingRepository, _clientRepository, _geographyRepository,
             _createValidator, _updateValidator, _pageValidator, _timeProvider, _logger
         );
 
@@ -63,7 +64,7 @@ public sealed class BuildingServiceTests
         ArrangeExistingReferences();
 
         // Act
-        var result = await _service.CreateBuildingAsync(command, CancellationToken.None);
+        var result = await _buildingService.CreateBuildingAsync(command, CancellationToken.None);
 
         // Assert
         var building = result.Building;
@@ -115,7 +116,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.CreateBuildingAsync(command, CancellationToken.None)
+            () => _buildingService.CreateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
@@ -135,7 +136,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateBuildingAsync(command, CancellationToken.None)
+            () => _buildingService.CreateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Equal("Address.CityId", Assert.Single(exception.Errors).PropertyName);
@@ -154,7 +155,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateBuildingAsync(command, CancellationToken.None)
+            () => _buildingService.CreateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
@@ -170,8 +171,8 @@ public sealed class BuildingServiceTests
     {
         // Arrange
         Func<Task> action = create
-            ? () => _service.CreateBuildingAsync(CreateCommand(CurrentYear + 1), CancellationToken.None)
-            : () => _service.UpdateBuildingAsync(UpdateCommand(Guid.NewGuid(), CurrentYear + 1), CancellationToken.None);
+            ? () => _buildingService.CreateBuildingAsync(CreateCommand(CurrentYear + 1), CancellationToken.None)
+            : () => _buildingService.UpdateBuildingAsync(UpdateCommand(Guid.NewGuid(), CurrentYear + 1), CancellationToken.None);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(action);
@@ -196,7 +197,7 @@ public sealed class BuildingServiceTests
             .Returns(Task.FromResult<Building?>(building));
 
         // Act
-        var result = await _service.UpdateBuildingAsync(command, CancellationToken.None);
+        var result = await _buildingService.UpdateBuildingAsync(command, CancellationToken.None);
 
         // Assert
         Assert.Equal(command.BuildingId, result.Building.Id);
@@ -248,7 +249,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.UpdateBuildingAsync(command, CancellationToken.None)
+            () => _buildingService.UpdateBuildingAsync(command, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Building), exception.EntityName);
@@ -269,7 +270,7 @@ public sealed class BuildingServiceTests
             .Returns(Task.FromResult<Building?>(building));
 
         // Act
-        var result = await _service.GetBuildingDetailsByIdAsync(building.Id, CancellationToken.None);
+        var result = await _buildingService.GetBuildingDetailsByIdAsync(building.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(building.Id, result.Building.Id);
@@ -296,7 +297,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.GetBuildingDetailsByIdAsync(buildingId, CancellationToken.None)
+            () => _buildingService.GetBuildingDetailsByIdAsync(buildingId, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Building), exception.EntityName);
@@ -323,7 +324,7 @@ public sealed class BuildingServiceTests
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None);
+        var result = await _buildingService.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -358,7 +359,7 @@ public sealed class BuildingServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None)
+            () => _buildingService.GetBuildingsByClientIdAsync(_clientId, query, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
@@ -408,19 +409,6 @@ public sealed class BuildingServiceTests
         return repository;
     }
 
-    private static IValidator<T> CreateValidatorMock<T>()
-    {
-        var validator = Substitute.For<IValidator<T>>();
-
-        // ValidateAndThrowAsync calls this overload.
-        validator.ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new ValidationResult()));
-
-        validator.ClearReceivedCalls();
-
-        return validator;
-    }
-
     private static TimeProvider CreateTimeProviderMock()
     {
         var provider = Substitute.For<TimeProvider>();
@@ -431,15 +419,6 @@ public sealed class BuildingServiceTests
         provider.ClearReceivedCalls();
 
         return provider;
-    }
-
-    private static ILogger<T> CreateLoggerMock<T>()
-    {
-        var logger = Substitute.For<ILogger<T>>();
-
-        logger.ClearReceivedCalls();
-
-        return logger;
     }
 
     private void ArrangeExistingReferences()

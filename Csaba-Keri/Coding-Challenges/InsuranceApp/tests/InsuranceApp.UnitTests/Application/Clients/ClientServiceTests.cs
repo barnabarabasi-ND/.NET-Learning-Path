@@ -7,6 +7,7 @@ using InsuranceApp.Application.Clients.Queries;
 using InsuranceApp.Application.Common.Exceptions;
 using InsuranceApp.Application.Common.Pagination;
 using InsuranceApp.Domain.Clients;
+using InsuranceApp.UnitTests.Common;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -14,23 +15,25 @@ namespace InsuranceApp.UnitTests.Application.Clients;
 
 public sealed class ClientServiceTests
 {
-    private readonly IClientRepository _repository;
+    private readonly IClientRepository _clientRepository;
     private readonly IValidator<CreateClientCommand> _createValidator;
     private readonly IValidator<UpdateClientCommand> _updateValidator;
     private readonly IValidator<SearchClientsQuery> _searchValidator;
     private readonly ILogger<ClientService> _logger;
 
-    private readonly ClientService _service;
+    private readonly ClientService _clientService;
 
     public ClientServiceTests()
     {
-        _repository = CreateClientRepositoryMock();
-        _createValidator = CreateValidatorMock<CreateClientCommand>();
-        _updateValidator = CreateValidatorMock<UpdateClientCommand>();
-        _searchValidator = CreateValidatorMock<SearchClientsQuery>();
-        _logger = CreateLoggerMock<ClientService>();
+        _clientRepository = CreateClientRepositoryMock();
 
-        _service = new(_repository, _createValidator, _updateValidator, _searchValidator, _logger);
+        _createValidator = ValidatorMocks.CreatePassing<CreateClientCommand>();
+        _updateValidator = ValidatorMocks.CreatePassing<UpdateClientCommand>();
+        _searchValidator = ValidatorMocks.CreatePassing<SearchClientsQuery>();
+
+        _logger = Substitute.For<ILogger<ClientService>>();
+
+        _clientService = new(_clientRepository, _createValidator, _updateValidator, _searchValidator, _logger);
     }
 
     [Fact]
@@ -44,7 +47,7 @@ public sealed class ClientServiceTests
         };
 
         // Act
-        var result = await _service.CreateClientAsync(command, CancellationToken.None);
+        var result = await _clientService.CreateClientAsync(command, CancellationToken.None);
 
         // Assert
         Assert.NotEqual(Guid.Empty, result.Id);
@@ -62,9 +65,9 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).ClientExistsByIdentificationNumberAsync(identificationNumber, CancellationToken.None);
+        await _clientRepository.Received(1).ClientExistsByIdentificationNumberAsync(identificationNumber, CancellationToken.None);
 
-        await _repository.Received(1).AddClientAsync(
+        await _clientRepository.Received(1).AddClientAsync(
             Arg.Is<Client>(received =>
                 received.Id == result.Id
                 && received.Type == command.Type
@@ -84,15 +87,15 @@ public sealed class ClientServiceTests
         // Arrange
         var command = CreateCommand();
 
-        _repository.ClientExistsByIdentificationNumberAsync(command.IdentificationNumber!, CancellationToken.None)
+        _clientRepository.ClientExistsByIdentificationNumberAsync(command.IdentificationNumber!, CancellationToken.None)
             .Returns(Task.FromResult(true));
 
         // Act & Assert
         await Assert.ThrowsAsync<DuplicateClientIdentificationException>(
-            () => _service.CreateClientAsync(command, CancellationToken.None)
+            () => _clientService.CreateClientAsync(command, CancellationToken.None)
         );
 
-        await _repository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
+        await _clientRepository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -107,11 +110,11 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateClientAsync(command, CancellationToken.None)
+            () => _clientService.CreateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
-        Assert.Empty(_repository.ReceivedCalls());
+        Assert.Empty(_clientRepository.ReceivedCalls());
     }
 
     [Fact]
@@ -121,12 +124,12 @@ public sealed class ClientServiceTests
         var command = CreateCommand();
         var conflict = new DuplicateClientIdentificationException();
 
-        _repository.AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
+        _clientRepository.AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(conflict));
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<DuplicateClientIdentificationException>(
-            () => _service.CreateClientAsync(command, CancellationToken.None)
+            () => _clientService.CreateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Same(conflict, exception);
@@ -138,12 +141,12 @@ public sealed class ClientServiceTests
         // Arrange
         var client = CreateDomainClient();
 
-        _repository.GetClientByIdAsync(client.Id, CancellationToken.None)
+        _clientRepository.GetClientByIdAsync(client.Id, CancellationToken.None)
             .Returns(Task.FromResult<Client?>(client)
         );
 
         // Act
-        var result = await _service.GetClientByIdAsync(client.Id, CancellationToken.None);
+        var result = await _clientService.GetClientByIdAsync(client.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(client.Id, result.Id);
@@ -154,7 +157,7 @@ public sealed class ClientServiceTests
         Assert.Equal(client.Phone, result.Phone);
         Assert.Equal(client.PrimaryAddress, result.PrimaryAddress);
 
-        await _repository.Received(1).GetClientByIdAsync(client.Id, CancellationToken.None);
+        await _clientRepository.Received(1).GetClientByIdAsync(client.Id, CancellationToken.None);
     }
 
     [Fact]
@@ -165,7 +168,7 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.GetClientByIdAsync(clientId, CancellationToken.None)
+            () => _clientService.GetClientByIdAsync(clientId, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
@@ -180,11 +183,11 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.GetClientByIdAsync(clientId, CancellationToken.None)
+            () => _clientService.GetClientByIdAsync(clientId, CancellationToken.None)
         );
 
         Assert.Equal("ClientId", Assert.Single(exception.Errors).PropertyName);
-        Assert.Empty(_repository.ReceivedCalls());
+        Assert.Empty(_clientRepository.ReceivedCalls());
     }
 
     [Fact]
@@ -194,11 +197,11 @@ public sealed class ClientServiceTests
         var client = CreateDomainClient();
         var command = UpdateCommand(client.Id);
 
-        _repository.GetClientByIdAsync(client.Id, CancellationToken.None)
+        _clientRepository.GetClientByIdAsync(client.Id, CancellationToken.None)
             .Returns(Task.FromResult<Client?>(client));
 
         // Act
-        var result = await _service.UpdateClientAsync(command, CancellationToken.None);
+        var result = await _clientService.UpdateClientAsync(command, CancellationToken.None);
 
         // Assert
         Assert.Equal(command.ClientId, result.Id);
@@ -216,7 +219,7 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).UpdateClientAsync(
+        await _clientRepository.Received(1).UpdateClientAsync(
             Arg.Is<Client>(received =>
                 received.Id == command.ClientId
                 && received.Type == client.Type
@@ -229,7 +232,7 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
+        await _clientRepository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -240,13 +243,13 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _service.UpdateClientAsync(command, CancellationToken.None)
+            () => _clientService.UpdateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Equal(nameof(Client), exception.EntityName);
         Assert.Equal(command.ClientId, exception.EntityId);
 
-        await _repository.DidNotReceive().UpdateClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
+        await _clientRepository.DidNotReceive().UpdateClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -261,11 +264,11 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.UpdateClientAsync(command, CancellationToken.None)
+            () => _clientService.UpdateClientAsync(command, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
-        Assert.Empty(_repository.ReceivedCalls());
+        Assert.Empty(_clientRepository.ReceivedCalls());
     }
 
     [Fact]
@@ -289,11 +292,11 @@ public sealed class ClientServiceTests
             PageSize: pageSize
         );
 
-        _repository.SearchClientsAsync(Arg.Any<SearchClientsQuery>(), CancellationToken.None)
+        _clientRepository.SearchClientsAsync(Arg.Any<SearchClientsQuery>(), CancellationToken.None)
             .Returns(Task.FromResult(page));
 
         // Act
-        var result = await _service.SearchClientsAsync(query, CancellationToken.None);
+        var result = await _clientService.SearchClientsAsync(query, CancellationToken.None);
 
         // Assert
         var item = Assert.Single(result.Items);
@@ -310,7 +313,7 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _repository.Received(1).SearchClientsAsync(
+        await _clientRepository.Received(1).SearchClientsAsync(
             Arg.Is<SearchClientsQuery>(received =>
                 received.Name == queryName
                 && received.Identifier == null
@@ -333,11 +336,11 @@ public sealed class ClientServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.SearchClientsAsync(query, CancellationToken.None)
+            () => _clientService.SearchClientsAsync(query, CancellationToken.None)
         );
 
         Assert.Same(failure, exception);
-        Assert.Empty(_repository.ReceivedCalls());
+        Assert.Empty(_clientRepository.ReceivedCalls());
     }
 
     private static IClientRepository CreateClientRepositoryMock()
@@ -359,28 +362,6 @@ public sealed class ClientServiceTests
         repository.ClearReceivedCalls();
 
         return repository;
-    }
-
-    private static IValidator<T> CreateValidatorMock<T>()
-    {
-        var validator = Substitute.For<IValidator<T>>();
-
-        // ValidateAndThrowAsync calls this overload.
-        validator.ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new ValidationResult()));
-        
-        validator.ClearReceivedCalls();
-
-        return validator;
-    }
-
-    private static ILogger<T> CreateLoggerMock<T>()
-    {
-        var logger = Substitute.For<ILogger<T>>();
-
-        logger.ClearReceivedCalls();
-
-        return logger;
     }
 
     private static CreateClientCommand CreateCommand()

@@ -1,11 +1,11 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
 using InsuranceApp.Application.Buildings.Commands;
 using InsuranceApp.Application.Buildings.Mappings;
 using InsuranceApp.Application.Buildings.Results;
 using InsuranceApp.Application.Clients;
 using InsuranceApp.Application.Common.Exceptions;
 using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Common.Validation;
 using InsuranceApp.Application.Geography;
 using InsuranceApp.Application.Geography.Results;
 using InsuranceApp.Domain.Buildings;
@@ -61,7 +61,7 @@ public class BuildingService : IBuildingService
 
         if (buildingId == Guid.Empty)
         {
-            ThrowValidationException("BuildingId", "Building identifier must not be empty.");
+            throw ValidationExceptionFactory.Create("BuildingId", "Building identifier must not be empty.");
         }
 
         var building = await _buildingRepository.GetBuildingByIdAsync(buildingId, cancellationToken)
@@ -81,7 +81,7 @@ public class BuildingService : IBuildingService
 
         if (clientId == Guid.Empty)
         {
-            ThrowValidationException("ClientId", "Client identifier must not be empty.");
+            throw ValidationExceptionFactory.Create("ClientId", "Client identifier must not be empty.");
         }
 
         await EnsureClientExistsAsync(clientId, cancellationToken);
@@ -155,7 +155,7 @@ public class BuildingService : IBuildingService
 
         if (constructionYear > currentYear)
         {
-            ThrowValidationException("ConstructionYear", $"Construction year must not exceed {currentYear}.");
+            throw ValidationExceptionFactory.Create("ConstructionYear", $"Construction year must not exceed {currentYear}.");
         }
     }
 
@@ -170,18 +170,6 @@ public class BuildingService : IBuildingService
     private async Task<CityGeographyResult> GetRequiredCityGeographyAsync(Guid cityId, CancellationToken cancellationToken)
     {
         return await _geographyRepository.GetCityGeographyAsync(cityId, cancellationToken)
-            ?? throw CreateValidationException("Address.CityId", "The selected city does not exist.");
-    }
-
-    private static ValidationException CreateValidationException(string propertyName, string message)
-    {
-        return new ValidationException([
-            new ValidationFailure(propertyName, message)
-        ]);
-    }
-
-    private static void ThrowValidationException(string propertyName, string message)
-    {
-        throw CreateValidationException(propertyName, message);
+            ?? throw ValidationExceptionFactory.Create("Address.CityId", "The selected city does not exist.");
     }
 }

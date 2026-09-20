@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
 using InsuranceApp.Application.Common.Exceptions;
 using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Common.Validation;
 using InsuranceApp.Application.Geography.Mappings;
 using InsuranceApp.Application.Geography.Results;
 using InsuranceApp.Domain.Geography;
@@ -37,9 +37,7 @@ public class GeographyService : IGeographyService
 
         if (countryId == Guid.Empty)
         {
-            throw new ValidationException([
-                new ValidationFailure("CountryId", "Country identifier must not be empty.")
-            ]);
+            throw ValidationExceptionFactory.Create("CountryId", "Country identifier must not be empty.");
         }
 
         if (!await _geographyRepository.CountryExistsAsync(countryId, cancellationToken))
@@ -58,9 +56,7 @@ public class GeographyService : IGeographyService
 
         if (countyId == Guid.Empty)
         {
-            throw new ValidationException([
-                new ValidationFailure("CountyId", "County identifier must not be empty.")
-            ]);
+            throw ValidationExceptionFactory.Create("CountyId", "County identifier must not be empty.");
         }
 
         if (!await _geographyRepository.CountyExistsAsync(countyId, cancellationToken))

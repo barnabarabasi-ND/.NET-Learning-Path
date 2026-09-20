@@ -1,8 +1,7 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using InsuranceApp.Application.Buildings;
+﻿using InsuranceApp.Application.Buildings;
 using InsuranceApp.Application.Common.Exceptions;
 using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Common.Validation;
 using InsuranceApp.Domain.Buildings;
 using InsuranceApp.Domain.Clients;
 using InsuranceApp.Infrastructure.Persistence.Mappings;
@@ -96,6 +95,6 @@ public class BuildingRepository : IBuildingRepository
     {
         return exception.ConstraintName == DatabaseNames.BuildingClientForeignKey
             ? new EntityNotFoundException(nameof(Client), clientId)
-            : new ValidationException([new ValidationFailure("Address.CityId", "The selected city does not exist.")]);
+            : ValidationExceptionFactory.Create("Address.CityId", "The selected city does not exist.");
     }
 }

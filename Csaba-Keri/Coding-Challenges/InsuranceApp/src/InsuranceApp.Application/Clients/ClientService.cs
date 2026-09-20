@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
 using InsuranceApp.Application.Clients.Commands;
 using InsuranceApp.Application.Clients.Exceptions;
 using InsuranceApp.Application.Clients.Mappings;
@@ -7,6 +6,7 @@ using InsuranceApp.Application.Clients.Queries;
 using InsuranceApp.Application.Clients.Results;
 using InsuranceApp.Application.Common.Exceptions;
 using InsuranceApp.Application.Common.Pagination;
+using InsuranceApp.Application.Common.Validation;
 using InsuranceApp.Domain.Clients;
 using Microsoft.Extensions.Logging;
 
@@ -47,9 +47,7 @@ public class ClientService : IClientService
 
         if (clientId == Guid.Empty)
         {
-            throw new ValidationException([
-                new ValidationFailure("ClientId", "Client identifier must not be empty.")
-            ]);
+            throw ValidationExceptionFactory.Create("ClientId", "Client identifier must not be empty.");
         }
 
         var client = await GetClientByIdOrThrowAsync(clientId, cancellationToken);

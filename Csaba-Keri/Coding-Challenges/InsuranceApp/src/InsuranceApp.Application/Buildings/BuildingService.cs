@@ -64,8 +64,7 @@ public class BuildingService : IBuildingService
             throw ValidationExceptionFactory.Create("BuildingId", "Building identifier must not be empty.");
         }
 
-        var building = await _buildingRepository.GetBuildingByIdAsync(buildingId, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(Building), buildingId);
+        var building = await GetBuildingByIdOrThrowAsync(buildingId, cancellationToken);
 
         var geography = await _geographyRepository.GetCityGeographyAsync(building.Address.CityId, cancellationToken)
             ?? throw new InvalidOperationException("The stored building has no valid geography.");
@@ -128,8 +127,7 @@ public class BuildingService : IBuildingService
 
         ValidateConstructionYear(command.ConstructionYear);
 
-        var building = await _buildingRepository.GetBuildingByIdAsync(command.BuildingId, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(Building), command.BuildingId);
+        var building = await GetBuildingByIdOrThrowAsync(command.BuildingId, cancellationToken);
 
         var address = command.Address!;
         var geography = await GetRequiredCityGeographyAsync(address.CityId, cancellationToken);
@@ -165,6 +163,12 @@ public class BuildingService : IBuildingService
         {
             throw new EntityNotFoundException(nameof(Client), clientId);
         }
+    }
+
+    private async Task<Building> GetBuildingByIdOrThrowAsync(Guid buildingId, CancellationToken cancellationToken)
+    {
+        return await _buildingRepository.GetBuildingByIdAsync(buildingId, cancellationToken)
+            ?? throw new EntityNotFoundException(nameof(Building), buildingId);
     }
 
     private async Task<CityGeographyResult> GetRequiredCityGeographyAsync(Guid cityId, CancellationToken cancellationToken)

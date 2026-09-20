@@ -7,4 +7,4 @@ public record SearchClientsQuery(
     string? Identifier = null,
     int PageNumber = PaginationDefaults.PageNumber,
     int PageSize = PaginationDefaults.PageSize
-);
+) : PageQuery(PageNumber, PageSize);

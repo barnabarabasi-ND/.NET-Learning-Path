@@ -5,6 +5,7 @@ using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Application.Services;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
+using InsuranceApp.UnitTests.Common;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -63,7 +64,7 @@ public sealed class ClientServiceTests
     public async Task GetClientByIdAsync_NonExistingClient_ReturnsNotFound()
     {
         // Arrange
-        const int clientId = 999;
+        const int clientId = TestConstants.NonExistingId;
 
         _repositoryMock
             .Setup(x => x.GetClientByIdAsync(
@@ -365,7 +366,7 @@ public sealed class ClientServiceTests
         // Arrange
         var dto = CreateValidClientDto() with
         {
-            ClientType = (ClientType)999
+            ClientType = (ClientType)TestConstants.NonExistingId
         };
 
         // Act
@@ -699,7 +700,7 @@ public sealed class ClientServiceTests
         var dto = new UpdateClientDto(
             "John Updated",
             "john.updated@test.com",
-            "0799999999",
+            "0700123456",
             "Bucharest");
 
         _repositoryMock
@@ -720,7 +721,7 @@ public sealed class ClientServiceTests
 
         Assert.Equal("John Updated", result.Value.Name);
         Assert.Equal("john.updated@test.com", result.Value.Email);
-        Assert.Equal("0799999999", result.Value.Phone);
+        Assert.Equal("0700123456", result.Value.Phone);
         Assert.Equal("Bucharest", result.Value.Address);
 
         // IdentificationNumber must not be changed during update.
@@ -740,7 +741,7 @@ public sealed class ClientServiceTests
     public async Task UpdateClientAsync_NonExistingClient_ReturnsNotFound()
     {
         // Arrange
-        const int clientId = 999;
+        const int clientId = TestConstants.NonExistingId;
 
         var dto = CreateValidUpdateClientDto();
 
@@ -975,7 +976,7 @@ public sealed class ClientServiceTests
         return new UpdateClientDto(
             "John Updated",
             "john.updated@test.com",
-            "0799999999",
+            "0700123456",
             "Bucharest");
     }
 

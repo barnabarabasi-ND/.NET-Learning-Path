@@ -12,16 +12,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace InsuranceApp.IntegrationTests.Clients;
 
-public sealed class ClientEndpointsTests : IClassFixture<InsuranceAppWebApplicationFactory>
+public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {
-    private readonly InsuranceAppWebApplicationFactory _factory;
-    private readonly HttpClient _client;
+    private readonly InsuranceAppWebApplicationFactory _factory = factory;
+    private readonly HttpClient _client = factory.CreateClient();
 
-    public ClientEndpointsTests(InsuranceAppWebApplicationFactory factory)
+    public async Task InitializeAsync()
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        await _factory.ResetDatabaseAsync();
+        await _factory.SeedGeographyAsync();
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
 
     #region Create Client Tests
@@ -247,7 +249,7 @@ public sealed class ClientEndpointsTests : IClassFixture<InsuranceAppWebApplicat
 
         // Act
         var response = await _client.GetAsync(
-            "/api/brokers/clients/999");
+            $"/api/brokers/clients/{TestConstants.NonExistingId}");
 
         // Assert
         Assert.Equal(
@@ -414,7 +416,7 @@ public sealed class ClientEndpointsTests : IClassFixture<InsuranceAppWebApplicat
         var request = new UpdateClientDto(
             "John Updated",
             "john.updated@test.com",
-            "0799999999",
+            "0700123456",
             "Bucharest");
 
         // Act
@@ -482,7 +484,7 @@ public sealed class ClientEndpointsTests : IClassFixture<InsuranceAppWebApplicat
 
         // Act
         var response = await _client.PutAsJsonAsync(
-            "/api/brokers/clients/999",
+            $"/api/brokers/clients/{TestConstants.NonExistingId}",
             request);
 
         // Assert

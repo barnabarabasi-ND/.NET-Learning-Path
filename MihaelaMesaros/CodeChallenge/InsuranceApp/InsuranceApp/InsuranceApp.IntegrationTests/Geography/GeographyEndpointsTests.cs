@@ -6,24 +6,23 @@ using System.Net.Http.Json;
 
 namespace InsuranceApp.IntegrationTests.Geography;
 
-public sealed class GeographyEndpointsTests : IClassFixture<InsuranceAppWebApplicationFactory>
+public sealed class GeographyEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {
-    private readonly InsuranceAppWebApplicationFactory _factory;
-    private readonly HttpClient _client;
+    private readonly InsuranceAppWebApplicationFactory _factory = factory;
+    private readonly HttpClient _client = factory.CreateClient();
 
-    public GeographyEndpointsTests(
-        InsuranceAppWebApplicationFactory factory)
+    public async Task InitializeAsync()
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        await _factory.ResetDatabaseAsync();
+        await _factory.SeedGeographyAsync();
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
 
     [Fact]
     public async Task GetCountries_ReturnsOkWithCountries()
     {
-        // Arrange
-        await _factory.SeedGeographyAsync();
-
         // Act
         var response = await _client.GetAsync(
             "/api/brokers/countries");
@@ -50,9 +49,6 @@ public sealed class GeographyEndpointsTests : IClassFixture<InsuranceAppWebAppli
     [Fact]
     public async Task GetCounties_WhenCountryExists_ReturnsOkWithCounties()
     {
-        // Arrange
-        await _factory.SeedGeographyAsync();
-
         // Act
         var response = await _client.GetAsync(
             "/api/brokers/countries/1/counties");
@@ -79,12 +75,9 @@ public sealed class GeographyEndpointsTests : IClassFixture<InsuranceAppWebAppli
     [Fact]
     public async Task GetCounties_WhenCountryDoesNotExist_ReturnsNotFound()
     {
-        // Arrange
-        await _factory.SeedGeographyAsync();
-
         // Act
         var response = await _client.GetAsync(
-            "/api/brokers/countries/999/counties");
+            $"/api/brokers/countries/{TestConstants.NonExistingId}/counties");
 
         // Assert
         Assert.Equal(
@@ -95,9 +88,6 @@ public sealed class GeographyEndpointsTests : IClassFixture<InsuranceAppWebAppli
     [Fact]
     public async Task GetCities_WhenCountyExists_ReturnsOkWithCities()
     {
-        // Arrange
-        await _factory.SeedGeographyAsync();
-
         // Act
         var response = await _client.GetAsync(
             "/api/brokers/counties/1/cities");
@@ -124,12 +114,9 @@ public sealed class GeographyEndpointsTests : IClassFixture<InsuranceAppWebAppli
     [Fact]
     public async Task GetCities_WhenCountyDoesNotExist_ReturnsNotFound()
     {
-        // Arrange
-        await _factory.SeedGeographyAsync();
-
         // Act
         var response = await _client.GetAsync(
-            "/api/brokers/counties/999/cities");
+            $"/api/brokers/counties/{TestConstants.NonExistingId}/cities");
 
         // Assert
         Assert.Equal(
@@ -140,12 +127,9 @@ public sealed class GeographyEndpointsTests : IClassFixture<InsuranceAppWebAppli
     [Fact]
     public async Task GetCounties_WhenCountryDoesNotExist_ReturnsNotFoundProblemDetails()
     {
-        // Arrange
-        await _factory.SeedGeographyAsync();
-
         // Act
         var response = await _client.GetAsync(
-            "/api/brokers/countries/999/counties");
+            $"/api/brokers/countries/{TestConstants.NonExistingId}/counties");
 
         // Assert
         Assert.Equal(

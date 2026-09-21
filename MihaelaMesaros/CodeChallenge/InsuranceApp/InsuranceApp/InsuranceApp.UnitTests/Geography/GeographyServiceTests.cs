@@ -2,6 +2,7 @@
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.Services;
 using InsuranceApp.Domain.Entities;
+using InsuranceApp.UnitTests.Common;
 using Moq;
 
 namespace InsuranceApp.UnitTests.Geography;
@@ -87,7 +88,7 @@ public sealed class GeographyServiceTests
     public async Task GetCountiesByCountryAsync_WhenCountryDoesNotExist_ReturnsNotFound()
     {
         // Arrange
-        const int countryId = 999;
+        const int countryId = TestConstants.NonExistingId;
 
         _geographyRepositoryMock.Setup(x => x.CountryExistsAsync(countryId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
@@ -142,7 +143,7 @@ public sealed class GeographyServiceTests
     public async Task GetCitiesByCountyAsync_WhenCountyDoesNotExist_ReturnsNotFound()
     {
         // Arrange
-        const int countyId = 9999999;
+        const int countyId = TestConstants.NonExistingId;
 
         _geographyRepositoryMock.Setup(x => x.CountyExistsAsync(countyId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 

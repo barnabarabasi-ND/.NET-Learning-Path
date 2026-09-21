@@ -23,43 +23,51 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
     {
         builder.UseEnvironment("Testing");
 
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable(
+            "ASPNETCORE_ENVIRONMENT",
+            "Testing");
 
         builder.ConfigureServices(services =>
         {
-            // Remove SQL Server DbContext registration
             services.RemoveAll<InsuranceDbContext>();
             services.RemoveAll<DbContextOptions<InsuranceDbContext>>();
 
-            // Register SQLite in-memory database for integration tests
             services.AddDbContext<InsuranceDbContext>(options =>
                 options.UseSqlite(_connection));
 
             using var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
 
-            var dbContext = scope.ServiceProvider
-                .GetRequiredService<InsuranceDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
 
             dbContext.Database.EnsureCreated();
         });
+    }
+
+    public async Task ResetDatabaseAsync()
+    {
+        using var scope = Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+
+        // Delete children before parents to respect foreign keys.
+        dbContext.Buildings.RemoveRange(dbContext.Buildings);
+
+        dbContext.Clients.RemoveRange(dbContext.Clients);
+
+        dbContext.Cities.RemoveRange(dbContext.Cities);
+        dbContext.Counties.RemoveRange(dbContext.Counties);
+        dbContext.Countries.RemoveRange(dbContext.Countries);
+
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task SeedGeographyAsync()
     {
         using var scope = Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider
-            .GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
 
-        // Clean existing data in FK-safe order
-        dbContext.Cities.RemoveRange(dbContext.Cities);
-        dbContext.Counties.RemoveRange(dbContext.Counties);
-        dbContext.Countries.RemoveRange(dbContext.Countries);
-
-        await dbContext.SaveChangesAsync();
-
-        // Countries
         var romania = new Country
         {
             CountryId = 1,
@@ -72,7 +80,6 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
             Name = "Hungary"
         };
 
-        // Counties
         var cluj = new County
         {
             CountyId = 1,
@@ -87,7 +94,6 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
             Name = "Brasov"
         };
 
-        // Cities
         var clujNapoca = new City
         {
             CityId = 1,

@@ -2,10 +2,8 @@
 using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.DTOs.Building;
-using InsuranceApp.Application.Models.Building;
 using InsuranceApp.Domain.Constants;
 using InsuranceApp.Domain.Entities;
-using InsuranceApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace InsuranceApp.Application.Services;
@@ -57,16 +55,6 @@ public sealed class BuildingService(
 
     public async Task<Result<BuildingDto>> CreateBuildingForClientAsync(int clientId, CreateBuildingDto createBuildingDto, CancellationToken cancellationToken)
     {
-        var cityId = createBuildingDto.CityId;
-        var addressStreet = createBuildingDto.AddressStreet?.Trim();
-        var addressStreetNumber = createBuildingDto.AddressStreetNumber?.Trim();
-        var constructionYear = createBuildingDto.ConstructionYear;
-        var buildingType = createBuildingDto.BuildingType;
-        var numberOfFloors = createBuildingDto.NumberOfFloors;
-        var surfaceArea = createBuildingDto.SurfaceArea;
-        var insuredValue = createBuildingDto.InsuredValue;
-        var riskIndicators = createBuildingDto.RiskIndicators?.Trim();
-
         if (clientId <= 0)
         {
             return Result<BuildingDto>.Failure(BuildingErrors.InvalidClientId);
@@ -79,45 +67,39 @@ public sealed class BuildingService(
             return Result<BuildingDto>.Failure(ClientErrors.NotFound(clientId));
         }
 
-        var validationBuildingDetails = ValidateBuildingDetails(
-            new BuildingDetails(
-                cityId,
-                addressStreet,
-                addressStreetNumber,
-                constructionYear,
-                buildingType,
-                numberOfFloors,
-                surfaceArea,
-                insuredValue,
-                riskIndicators
-            )
-        );
+        createBuildingDto = createBuildingDto with
+        {
+            AddressStreet = createBuildingDto.AddressStreet?.Trim()!,
+            AddressStreetNumber = createBuildingDto.AddressStreetNumber?.Trim()!,
+            RiskIndicators = createBuildingDto.RiskIndicators?.Trim()
+        };
+
+        var validationBuildingDetails = ValidateBuildingDetails(createBuildingDto);
 
         if (validationBuildingDetails is not null)
         {
             return Result<BuildingDto>.Failure(validationBuildingDetails);
         }
 
-        var validationBuildingCity = await ValidateCityAsync(cityId, cancellationToken);
+        var validationBuildingCity = await ValidateCityAsync(createBuildingDto.CityId, cancellationToken);
 
         if (validationBuildingCity is not null)
         {
             return Result<BuildingDto>.Failure(validationBuildingCity);
         }
 
-
         var building = new Building
         {
             ClientId = clientId,
-            CityId = cityId,
-            AddressStreet = addressStreet!,
-            AddressStreetNumber = addressStreetNumber!,
-            ConstructionYear = constructionYear,
-            BuildingType = buildingType,
-            NumberOfFloors = numberOfFloors,
-            SurfaceArea = surfaceArea,
-            InsuredValue = insuredValue,
-            RiskIndicators = riskIndicators,
+            CityId = createBuildingDto.CityId,
+            AddressStreet = createBuildingDto.AddressStreet,
+            AddressStreetNumber = createBuildingDto.AddressStreetNumber,
+            ConstructionYear = createBuildingDto.ConstructionYear,
+            BuildingType = createBuildingDto.BuildingType,
+            NumberOfFloors = createBuildingDto.NumberOfFloors,
+            SurfaceArea = createBuildingDto.SurfaceArea,
+            InsuredValue = createBuildingDto.InsuredValue,
+            RiskIndicators = createBuildingDto.RiskIndicators,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -138,36 +120,21 @@ public sealed class BuildingService(
             return Result<BuildingDto>.Failure(BuildingErrors.InvalidBuildingId);
         }
 
-        var cityId = updateBuildingDto.CityId;
-        var addressStreet = updateBuildingDto.AddressStreet?.Trim();
-        var addressStreetNumber = updateBuildingDto.AddressStreetNumber?.Trim();
-        var constructionYear = updateBuildingDto.ConstructionYear;
-        var buildingType = updateBuildingDto.BuildingType;
-        var numberOfFloors = updateBuildingDto.NumberOfFloors;
-        var surfaceArea = updateBuildingDto.SurfaceArea;
-        var insuredValue = updateBuildingDto.InsuredValue;
-        var riskIndicators = updateBuildingDto.RiskIndicators?.Trim();
+        updateBuildingDto = updateBuildingDto with
+        {
+            AddressStreet = updateBuildingDto.AddressStreet?.Trim()!,
+            AddressStreetNumber = updateBuildingDto.AddressStreetNumber?.Trim()!,
+            RiskIndicators = updateBuildingDto.RiskIndicators?.Trim()
+        };
 
-        var validationBuildingDetails = ValidateBuildingDetails(
-            new BuildingDetails(
-                cityId,
-                addressStreet,
-                addressStreetNumber,
-                constructionYear,
-                buildingType,
-                numberOfFloors,
-                surfaceArea,
-                insuredValue,
-                riskIndicators
-            )
-        );
+        var validationBuildingDetails = ValidateBuildingDetails(updateBuildingDto);
 
         if (validationBuildingDetails is not null)
         {
             return Result<BuildingDto>.Failure(validationBuildingDetails);
         }
 
-        var validationBuildingCity = await ValidateCityAsync(cityId, cancellationToken);
+        var validationBuildingCity = await ValidateCityAsync(updateBuildingDto.CityId, cancellationToken);
 
         if (validationBuildingCity is not null)
         {
@@ -182,15 +149,15 @@ public sealed class BuildingService(
             return Result<BuildingDto>.Failure(BuildingErrors.NotFound(buildingId));
         }
 
-        building.CityId = cityId;
-        building.AddressStreet = addressStreet!;
-        building.AddressStreetNumber = addressStreetNumber!;
-        building.ConstructionYear = constructionYear;
-        building.BuildingType = buildingType;
-        building.NumberOfFloors = numberOfFloors;
-        building.SurfaceArea = surfaceArea;
-        building.InsuredValue = insuredValue;
-        building.RiskIndicators = riskIndicators;
+        building.CityId = updateBuildingDto.CityId;
+        building.AddressStreet = updateBuildingDto.AddressStreet;
+        building.AddressStreetNumber = updateBuildingDto.AddressStreetNumber;
+        building.ConstructionYear = updateBuildingDto.ConstructionYear;
+        building.BuildingType = updateBuildingDto.BuildingType;
+        building.NumberOfFloors = updateBuildingDto.NumberOfFloors;
+        building.SurfaceArea = updateBuildingDto.SurfaceArea;
+        building.InsuredValue = updateBuildingDto.InsuredValue;
+        building.RiskIndicators = updateBuildingDto.RiskIndicators;
         building.ModifiedAt = DateTime.UtcNow;
 
         await buildingRepository.SaveBuildingChangesAsync(cancellationToken);
@@ -228,78 +195,89 @@ public sealed class BuildingService(
 
         var cityExists = await geographyRepository.CityExistsAsync(cityId, cancellationToken);
 
-        return cityExists
-            ? null
-            : BuildingErrors.CityNotFound(cityId);
+        return cityExists ? null : BuildingErrors.CityNotFound(cityId);
     }
 
-    private static Error? ValidateBuildingDetails(BuildingDetails buildingDetails)
+    private static Error? ValidateBuildingDetails(IBuildingDetailsDto building)
     {
-        if (string.IsNullOrWhiteSpace(buildingDetails.AddressStreet))
+        if (string.IsNullOrWhiteSpace(building.AddressStreet))
         {
             return BuildingErrors.AddressStreetRequired;
         }
 
-        if (buildingDetails.AddressStreet.Length > BuildingConstraints.AddressStreetMaxLength)
+        if (building.AddressStreet.Length > BuildingConstraints.AddressStreetMaxLength)
         {
             return BuildingErrors.InvalidAddressStreetLength;
         }
 
-        if (string.IsNullOrWhiteSpace(buildingDetails.AddressStreetNumber))
+        if (string.IsNullOrWhiteSpace(building.AddressStreetNumber))
         {
             return BuildingErrors.AddressStreetNumberRequired;
         }
 
-        if (buildingDetails.AddressStreetNumber.Length > BuildingConstraints.AddressStreetNumberMaxLength)
+        if (building.AddressStreetNumber.Length > BuildingConstraints.AddressStreetNumberMaxLength)
         {
             return BuildingErrors.InvalidAddressStreetNumberLength;
         }
 
-        if (buildingDetails.ConstructionYear < BuildingConstraints.MinConstructionYear 
-            || buildingDetails.ConstructionYear > DateTime.UtcNow.Year)
+        if (building.ConstructionYear < BuildingConstraints.MinConstructionYear 
+            || building.ConstructionYear > DateTime.UtcNow.Year)
         {
             return BuildingErrors.InvalidConstructionYear;
         }
 
-        if (!Enum.IsDefined(buildingDetails.BuildingType))
+        if (!Enum.IsDefined(building.BuildingType))
         {
             return BuildingErrors.InvalidBuildingType;
         }
 
-        if (buildingDetails.NumberOfFloors < BuildingConstraints.MinNumberOfFloors
-            || buildingDetails.NumberOfFloors > BuildingConstraints.MaxNumberOfFloors)
+        if (building.NumberOfFloors < BuildingConstraints.MinNumberOfFloors 
+            || building.NumberOfFloors > BuildingConstraints.MaxNumberOfFloors)
         {
             return BuildingErrors.InvalidNumberOfFloors;
         }
 
-        if (!DecimalValidation.HasValidScale(buildingDetails.SurfaceArea, CommonConstraints.DecimalScale))
+        var decimalValidationError = ValidateBuildingDecimalValues(building);
+
+        if (decimalValidationError is not null)
         {
-            return BuildingErrors.InvalidSurfaceAreaScale;
+            return decimalValidationError;
         }
 
-        if (buildingDetails.SurfaceArea < BuildingConstraints.MinSurfaceArea 
-            || buildingDetails.SurfaceArea > BuildingConstraints.MaxSurfaceArea)
-        {
-            return BuildingErrors.InvalidSurfaceArea;
-        }
-
-        if (!DecimalValidation.HasValidScale(buildingDetails.InsuredValue, CommonConstraints.DecimalScale))
-        {
-            return BuildingErrors.InvalidInsuredValueScale;
-        }
-
-        if (buildingDetails.InsuredValue < BuildingConstraints.MinInsuredValue 
-            || buildingDetails.InsuredValue > BuildingConstraints.MaxInsuredValue)
-        {
-            return BuildingErrors.InvalidInsuredValue;
-        }
-
-        if (!string.IsNullOrWhiteSpace(buildingDetails.RiskIndicators) 
-            && buildingDetails.RiskIndicators.Length > BuildingConstraints.RiskIndicatorsMaxLength)
+        if (!string.IsNullOrWhiteSpace(building.RiskIndicators) 
+            && building.RiskIndicators.Length > BuildingConstraints.RiskIndicatorsMaxLength)
         {
             return BuildingErrors.InvalidRiskIndicatorsLength;
         }
 
         return null;
     }
+
+    private static Error? ValidateBuildingDecimalValues(IBuildingDetailsDto building)
+    {
+        if (!DecimalValidation.HasValidScale(building.SurfaceArea, CommonConstraints.DecimalScale))
+        {
+            return BuildingErrors.InvalidSurfaceAreaScale;
+        }
+
+        if (building.SurfaceArea < BuildingConstraints.MinSurfaceArea 
+            || building.SurfaceArea > BuildingConstraints.MaxSurfaceArea)
+        {
+            return BuildingErrors.InvalidSurfaceArea;
+        }
+
+        if (!DecimalValidation.HasValidScale(building.InsuredValue, CommonConstraints.DecimalScale))
+        {
+            return BuildingErrors.InvalidInsuredValueScale;
+        }
+
+        if (building.InsuredValue < BuildingConstraints.MinInsuredValue 
+            || building.InsuredValue > BuildingConstraints.MaxInsuredValue)
+        {
+            return BuildingErrors.InvalidInsuredValue;
+        }
+
+        return null;
+    }
+
 }

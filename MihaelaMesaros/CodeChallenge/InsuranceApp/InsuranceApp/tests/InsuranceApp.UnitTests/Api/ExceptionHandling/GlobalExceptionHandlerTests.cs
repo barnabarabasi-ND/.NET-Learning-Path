@@ -18,6 +18,11 @@ public sealed class GlobalExceptionHandlerTests
         _handler = new GlobalExceptionHandler(_loggerMock.Object);
     }
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     [Fact]
     public async Task TryHandleAsync_UnexpectedException_ReturnsTrueAnd500ProblemDetails()
     {
@@ -34,12 +39,7 @@ public sealed class GlobalExceptionHandlerTests
 
         httpContext.Response.Body.Position = 0;
 
-        var problemDetails = await JsonSerializer.DeserializeAsync<ProblemDetails>(
-            httpContext.Response.Body,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+        var problemDetails = await JsonSerializer.DeserializeAsync<ProblemDetails>(httpContext.Response.Body, JsonOptions);
 
         Assert.NotNull(problemDetails);
         Assert.Equal(StatusCodes.Status500InternalServerError, problemDetails.Status);

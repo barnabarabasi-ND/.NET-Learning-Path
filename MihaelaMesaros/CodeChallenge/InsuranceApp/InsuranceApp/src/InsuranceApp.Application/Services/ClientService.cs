@@ -59,42 +59,44 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
     public async Task<Result<ClientDto>> CreateClientAsync(CreateClientDto createClientDto, CancellationToken cancellationToken)
     {
-        var clientName = createClientDto.Name?.Trim();
-        var clientEmail = createClientDto.Email?.Trim();
-        var clientPhone = createClientDto.Phone?.Trim();
-        var clientAddress = createClientDto.Address?.Trim();
-        var clientType = createClientDto.ClientType;
-        var clientIdentificationNumber = createClientDto.IdentificationNumber?.Trim();
+        createClientDto = createClientDto with
+        {
+            Name = createClientDto.Name?.Trim()!,
+            IdentificationNumber = createClientDto.IdentificationNumber?.Trim()!,
+            Email = createClientDto.Email?.Trim(),
+            Phone = createClientDto.Phone?.Trim(),
+            Address = createClientDto.Address?.Trim()
+        };
 
-        var validationClientName = ValidateClientName(clientName);
+        var validationClientName = ValidateClientName(createClientDto.Name);
 
         if (validationClientName is not null)
         {
             return Result<ClientDto>.Failure(validationClientName);
         }
 
-        var validationClientContactInfo = ValidateClientContactInfo(clientEmail, clientPhone, clientAddress);
+        var validationClientContactInfo = ValidateClientContactInfo(createClientDto.Email, createClientDto.Phone, createClientDto.Address);
 
         if (validationClientContactInfo is not null)
         {
             return Result<ClientDto>.Failure(validationClientContactInfo);
         }
 
-        var validationClientType = ValidateClientType(clientType);
+        var validationClientType = ValidateClientType(createClientDto.ClientType);
 
         if (validationClientType is not null)
         {
             return Result<ClientDto>.Failure(validationClientType);
         }
 
-        var validationIdentificationNumber = ValidateIdentificationNumber(clientIdentificationNumber);
+        var validationIdentificationNumber = ValidateIdentificationNumber(createClientDto.IdentificationNumber);
 
         if (validationIdentificationNumber is not null)
         {
             return Result<ClientDto>.Failure(validationIdentificationNumber);
         }
 
-        var identificationNumberExists = await clientRepository.ClientIdentificationNumberExistsAsync(clientIdentificationNumber!, cancellationToken);
+        var identificationNumberExists = await clientRepository.ClientIdentificationNumberExistsAsync(createClientDto.IdentificationNumber, cancellationToken);
 
         if (identificationNumberExists)
         {
@@ -104,12 +106,12 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
         var client = new Client
         {
-            ClientType = clientType,
-            Name = clientName!,
-            IdentificationNumber = clientIdentificationNumber!,
-            Email = clientEmail,
-            Phone = clientPhone,
-            Address = clientAddress,
+            ClientType = createClientDto.ClientType,
+            Name = createClientDto.Name,
+            IdentificationNumber = createClientDto.IdentificationNumber,
+            Email = createClientDto.Email,
+            Phone = createClientDto.Phone,
+            Address = createClientDto.Address,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -137,19 +139,22 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return Result<ClientDto>.Failure(ClientErrors.InvalidClientId);
         }
 
-        var clientName = updateClientDto.Name?.Trim();
-        var clientEmail = updateClientDto.Email?.Trim();
-        var clientPhone = updateClientDto.Phone?.Trim();
-        var clientAddress = updateClientDto.Address?.Trim();
+        updateClientDto = updateClientDto with
+        {
+            Name = updateClientDto.Name?.Trim()!,
+            Email = updateClientDto.Email?.Trim(),
+            Phone = updateClientDto.Phone?.Trim(),
+            Address = updateClientDto.Address?.Trim()
+        };
 
-        var validationClientName = ValidateClientName(clientName);
+        var validationClientName = ValidateClientName(updateClientDto.Name);
 
         if (validationClientName is not null)
         {
             return Result<ClientDto>.Failure(validationClientName);
         }
 
-        var validationClientContactInfo = ValidateClientContactInfo(clientEmail, clientPhone, clientAddress);
+        var validationClientContactInfo = ValidateClientContactInfo(updateClientDto.Email, updateClientDto.Phone, updateClientDto.Address);
 
         if (validationClientContactInfo is not null)
         {
@@ -164,10 +169,10 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
             return Result<ClientDto>.Failure(ClientErrors.NotFound(clientId));
         }
 
-        client.Name = clientName!;
-        client.Email = clientEmail;
-        client.Phone = clientPhone;
-        client.Address = clientAddress;
+        client.Name = updateClientDto.Name;
+        client.Email = updateClientDto.Email;
+        client.Phone = updateClientDto.Phone;
+        client.Address = updateClientDto.Address;
         client.ModifiedAt = DateTime.UtcNow;
 
         await clientRepository.SaveClientChangesAsync(cancellationToken);
@@ -195,8 +200,6 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
     private static Error? ValidateClientName(string? clientName)
     {
-        clientName = clientName?.Trim();
-
         if (string.IsNullOrWhiteSpace(clientName))
         {
             return ClientErrors.NameRequired;
@@ -212,10 +215,6 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
     private static Error? ValidateClientContactInfo(string? clientEmail, string? clientPhone, string? clientAddress)
     {
-        clientEmail = clientEmail?.Trim();
-        clientPhone = clientPhone?.Trim();
-        clientAddress = clientAddress?.Trim();
-
         if (!string.IsNullOrWhiteSpace(clientEmail) 
             && (clientEmail.Length > ClientConstraints.EmailMaxLength || !MailAddress.TryCreate(clientEmail, out _)))
         {
@@ -242,8 +241,6 @@ public sealed class ClientService(IClientRepository clientRepository, ILogger<Cl
 
     private static Error? ValidateIdentificationNumber(string? identificationNumber)
     {
-        identificationNumber = identificationNumber?.Trim();
-
         if (string.IsNullOrWhiteSpace(identificationNumber))
         {
             return ClientErrors.IdentificationNumberRequired;

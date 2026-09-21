@@ -12,5 +12,5 @@ public sealed record UpdateBuildingDto(
     decimal SurfaceArea,
     decimal InsuredValue,
     string? RiskIndicators
-);
+) : IBuildingDetailsDto;
 

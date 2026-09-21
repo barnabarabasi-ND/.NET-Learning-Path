@@ -5,12 +5,13 @@ using InsuranceApp.Application.DTOs.Client;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
 using InsuranceApp.Infrastructure.Persistence;
+using InsuranceApp.IntegrationTests.Common;
 using InsuranceApp.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace InsuranceApp.IntegrationTests.Clients;
+namespace InsuranceApp.IntegrationTests.Api.Controllers.Broker;
 
 public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {

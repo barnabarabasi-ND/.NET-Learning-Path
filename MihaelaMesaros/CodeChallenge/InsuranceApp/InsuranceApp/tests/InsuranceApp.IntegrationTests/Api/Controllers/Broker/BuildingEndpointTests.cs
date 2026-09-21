@@ -2,13 +2,14 @@
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
 using InsuranceApp.Infrastructure.Persistence;
+using InsuranceApp.IntegrationTests.Common;
 using InsuranceApp.IntegrationTests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 
-namespace InsuranceApp.IntegrationTests.Buildings;
+namespace InsuranceApp.IntegrationTests.Api.Controllers.Broker;
 
 public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {

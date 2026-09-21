@@ -9,7 +9,7 @@ using InsuranceApp.UnitTests.Common;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace InsuranceApp.UnitTests.Buildings;
+namespace InsuranceApp.UnitTests.Application.Services;
 
 public sealed class BuildingServiceTests
 {

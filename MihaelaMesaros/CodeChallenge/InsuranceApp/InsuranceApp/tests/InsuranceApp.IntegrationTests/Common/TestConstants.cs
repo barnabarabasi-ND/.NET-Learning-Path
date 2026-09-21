@@ -1,4 +1,4 @@
-﻿namespace InsuranceApp.IntegrationTests.Infrastructure;
+﻿namespace InsuranceApp.IntegrationTests.Common;
 
 internal static class TestConstants
 {

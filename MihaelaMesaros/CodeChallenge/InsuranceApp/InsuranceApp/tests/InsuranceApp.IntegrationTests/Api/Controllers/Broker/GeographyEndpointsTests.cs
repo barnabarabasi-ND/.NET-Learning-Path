@@ -1,10 +1,11 @@
 ﻿using InsuranceApp.Application.DTOs.Geography;
+using InsuranceApp.IntegrationTests.Common;
 using InsuranceApp.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 
-namespace InsuranceApp.IntegrationTests.Geography;
+namespace InsuranceApp.IntegrationTests.Api.Controllers.Broker;
 
 public sealed class GeographyEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {

@@ -5,8 +5,12 @@ using System.Text.Json.Serialization;
 
 namespace InsuranceApp.WebApi;
 
-internal static class Program
+public sealed class Program
 {
+    private Program()
+    {
+    }
+
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);

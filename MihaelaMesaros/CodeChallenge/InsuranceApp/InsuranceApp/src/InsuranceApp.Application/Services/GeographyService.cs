@@ -14,15 +14,18 @@ public sealed class GeographyService(IGeographyRepository geographyRepository) :
         return countries.Select(x => new CountryDto(x.CountryId, x.Name)).ToList();
     }
 
-    public async Task<Result<IReadOnlyList<CountyDto>>> GetCountiesByCountryAsync(
-    int countryId,
-    CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<CountyDto>>> GetCountiesByCountryAsync(int countryId, CancellationToken cancellationToken)
     {
+        if (countryId <= 0)
+        {
+            return Result<IReadOnlyList<CountyDto>>.Failure(GeographyErrors.InvalidCountryId);
+        }
+
         var countryExists = await geographyRepository.CountryExistsAsync(countryId, cancellationToken);
 
         if (!countryExists)
         {
-            return Result<IReadOnlyList<CountyDto>>.Failure(new Error("Geography.CountryNotFound", $"Country with ID {countryId} was not found.", ErrorType.NotFound));
+            return Result<IReadOnlyList<CountyDto>>.Failure(GeographyErrors.CountryNotFound(countryId));
         }
 
         var counties = await geographyRepository.GetCountiesByCountryAsync(countryId, cancellationToken);
@@ -34,9 +37,14 @@ public sealed class GeographyService(IGeographyRepository geographyRepository) :
 
     public async Task<Result<IReadOnlyList<CityDto>>> GetCitiesByCountyAsync(int countyId, CancellationToken cancellationToken)
     {
+        if (countyId <= 0)
+        {
+            return Result<IReadOnlyList<CityDto>>.Failure(GeographyErrors.InvalidCountyId);
+        }
+
         if (!await geographyRepository.CountyExistsAsync(countyId, cancellationToken))
         {
-            return Result<IReadOnlyList<CityDto>>.Failure(new Error("Geography.CountyNotFound", $"County with ID {countyId} was not found.", ErrorType.NotFound));
+            return Result<IReadOnlyList<CityDto>>.Failure(GeographyErrors.CountyNotFound(countyId));
         }
 
         var cities = await geographyRepository.GetCitiesByCountyAsync(countyId, cancellationToken);

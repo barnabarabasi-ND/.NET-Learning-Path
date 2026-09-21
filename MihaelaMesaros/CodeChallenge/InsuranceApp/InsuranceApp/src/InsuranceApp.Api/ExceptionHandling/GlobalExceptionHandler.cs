@@ -18,13 +18,19 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
     /// <returns>A value indicating whether the exception was handled.</returns>
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "Unhandled exception while processing {Method} {Path}.", httpContext.Request.Method, httpContext.Request.Path);
+        if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
+        {
+            logger.LogInformation("Request {Method} {Path} was cancelled.", httpContext.Request.Method, httpContext.Request.Path);
+            return false;
+        }
+
+        logger.LogError(exception, "An unhandled exception occurred while processing the request {Method} {Path}.", httpContext.Request.Method, httpContext.Request.Path);
 
         var problemDetails = new ProblemDetails
         {
             Status = StatusCodes.Status500InternalServerError,
-            Title = "Internal Server Error",
-            Detail = "An unexpected error occurred."
+            Title = "An unexpected error occurred.",
+            Detail = "An unexpected error occurred while processing the request."
         };
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;

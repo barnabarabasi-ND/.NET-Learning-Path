@@ -155,4 +155,51 @@ public sealed class GeographyServiceTests
         Assert.NotNull(result.Error);
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task GetCountiesByCountryAsync_InvalidCountryId_ReturnsValidationError(int countryId)
+    {
+        // Act
+        var result = await _service.GetCountiesByCountryAsync(countryId, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
+        Assert.Equal(GeographyErrors.InvalidCountryId.Code, result.Error.Code);
+
+        _geographyRepositoryMock.Verify(
+            x => x.CountryExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        _geographyRepositoryMock.Verify(
+            x => x.GetCountiesByCountryAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task GetCitiesByCountyAsync_InvalidCountyId_ReturnsValidationError(int countyId)
+    {
+        // Act
+        var result = await _service.GetCitiesByCountyAsync(countyId, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
+        Assert.Equal(GeographyErrors.InvalidCountyId.Code, result.Error.Code);
+
+        _geographyRepositoryMock.Verify(
+            x => x.CountyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        _geographyRepositoryMock.Verify(
+            x => x.GetCitiesByCountyAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
 }

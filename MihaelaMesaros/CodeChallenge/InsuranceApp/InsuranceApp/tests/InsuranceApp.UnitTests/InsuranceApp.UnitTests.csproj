@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\InsuranceApp.Api\InsuranceApp.Api.csproj" />
     <ProjectReference Include="..\..\src\InsuranceApp.Application\InsuranceApp.Application.csproj" />
     <ProjectReference Include="..\..\src\InsuranceApp.Domain\InsuranceApp.Domain.csproj" />
   </ItemGroup>

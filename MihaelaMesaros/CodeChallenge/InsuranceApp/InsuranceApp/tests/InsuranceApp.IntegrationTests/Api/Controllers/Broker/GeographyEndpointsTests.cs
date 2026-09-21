@@ -1,6 +1,8 @@
-﻿using InsuranceApp.Application.DTOs.Geography;
+﻿using InsuranceApp.Application.Common;
+using InsuranceApp.Application.DTOs.Geography;
 using InsuranceApp.IntegrationTests.Common;
 using InsuranceApp.IntegrationTests.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
@@ -145,6 +147,46 @@ public sealed class GeographyEndpointsTests(InsuranceAppWebApplicationFactory fa
         Assert.Equal(404, problem.Status);
         Assert.Equal("Resource not found", problem.Title);
         Assert.NotNull(problem.Detail);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task GetCounties_InvalidCountryId_ReturnsBadRequest(int countryId)
+    {
+        // Act
+        var response = await _client.GetAsync($"/api/brokers/countries/{countryId}/counties");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        Assert.NotNull(problem);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Equal("Validation failed", problem.Title);
+        Assert.Equal(GeographyErrors.InvalidCountryId.Description, problem.Detail);
+        Assert.Equal(GeographyErrors.InvalidCountryId.Code, problem.Extensions["code"]?.ToString());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task GetCities_InvalidCountyId_ReturnsBadRequest(int countyId)
+    {
+        // Act
+        var response = await _client.GetAsync($"/api/brokers/counties/{countyId}/cities");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        Assert.NotNull(problem);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Equal("Validation failed", problem.Title);
+        Assert.Equal(GeographyErrors.InvalidCountyId.Description, problem.Detail);
+        Assert.Equal(GeographyErrors.InvalidCountyId.Code, problem.Extensions["code"]?.ToString());
     }
 
 }

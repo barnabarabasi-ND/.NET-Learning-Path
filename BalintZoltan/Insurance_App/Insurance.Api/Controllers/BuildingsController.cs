@@ -17,9 +17,9 @@ public class BuildingsController : ControllerBase
     }
 
     [HttpGet("buildings/{buildingId:guid}")]
-    public async Task<ActionResult<BuildingDto>> GetBuildingByIdAsync(Guid buildingId)
+    public async Task<ActionResult<BuildingDto>> GetBuildingByIdAsync(Guid buildingId, CancellationToken cancellationToken)
     {
-        var building = await _buildingService.GetBuildingByIdAsync(buildingId);
+        var building = await _buildingService.GetBuildingByIdAsync(buildingId, cancellationToken);
 
         if (building is null)
         {
@@ -33,11 +33,13 @@ public class BuildingsController : ControllerBase
     public async Task<ActionResult<PagedResult<BuildingDto>>>
         GetByClientIdAsync(
             Guid clientId,
-            [FromQuery] PaginationRequest pagination)
+            [FromQuery] PaginationRequest pagination,
+            CancellationToken cancellationToken)
     {
         var buildings = await _buildingService.GetBuildingByClientIdAsync(
             clientId,
-            pagination);
+            pagination,
+            cancellationToken);
 
         return Ok(buildings);
     }
@@ -45,10 +47,11 @@ public class BuildingsController : ControllerBase
     [HttpPost("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<BuildingDto>> CreateBuildingAsync(
         Guid clientId,
-        CreateBuildingRequest request)
+        CreateBuildingRequest request,
+        CancellationToken cancellationToken)
     {
         request.ClientId = clientId;
-        var building = await _buildingService.CreateBuildingAsync(request);
+        var building = await _buildingService.CreateBuildingAsync(request, cancellationToken);
 
         return CreatedAtAction(
             "GetBuildingById",
@@ -59,9 +62,10 @@ public class BuildingsController : ControllerBase
     [HttpPut("buildings/{buildingId:guid}")]
     public async Task<ActionResult<BuildingDto>> UpdateBuildingAsync(
         Guid buildingId,
-        UpdateBuildingRequest request)
+        UpdateBuildingRequest request,
+        CancellationToken cancellationToken)
     {
-        var building = await _buildingService.UpdateBuildingAsync(buildingId, request);
+        var building = await _buildingService.UpdateBuildingAsync(buildingId, request, cancellationToken);
 
         return Ok(building);
     }

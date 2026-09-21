@@ -15,32 +15,34 @@ public sealed class ClientRepository : IClientRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddClientAsync(Client client)
+    public async Task AddClientAsync(Client client, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Clients.AddAsync(client);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.Clients.AddAsync(client, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<bool> ExistsClientByIdentificationNumberAsync(
         string identificationNumber,
-        Guid? excludedClientId = null)
+        Guid? excludedClientId = null,
+        CancellationToken cancellationToken = default)
     {
         return await _dbContext.Clients.AnyAsync(client =>
             client.IdentificationNumber == identificationNumber
             && (!excludedClientId.HasValue
-                || client.Id != excludedClientId.Value));
+                || client.Id != excludedClientId.Value), cancellationToken);
     }
 
-    public async Task<Client?> GetClientByIdAsync(Guid id)
+    public async Task<Client?> GetClientByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Clients
-            .FirstOrDefaultAsync(client => client.Id == id);
+            .FirstOrDefaultAsync(client => client.Id == id, cancellationToken);
     }
 
     public async Task<PagedResult<Client>> SearchClientAsync(
         string? name,
         string? identifier,
-        PaginationRequest pagination)
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Clients
             .AsNoTracking()
@@ -60,7 +62,7 @@ public sealed class ClientRepository : IClientRepository
                 client.IdentificationNumber == normalizedIdentifier);
         }
 
-        var totalCount = await query.CountAsync();
+        var totalCount = await query.CountAsync(cancellationToken);
 
         var pageNumber = Math.Max(pagination.PageNumber, 1);
         var pageSize = Math.Min(
@@ -72,7 +74,7 @@ public sealed class ClientRepository : IClientRepository
             .ThenBy(client => client.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return new PagedResult<Client>
         {
@@ -83,9 +85,9 @@ public sealed class ClientRepository : IClientRepository
         };
     }
 
-    public async Task UpdateClientAsync(Client client)
+    public async Task UpdateClientAsync(Client client, CancellationToken cancellationToken = default)
     {
         _dbContext.Clients.Update(client);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

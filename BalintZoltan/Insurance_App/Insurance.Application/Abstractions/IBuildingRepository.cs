@@ -5,12 +5,13 @@ namespace Application.Abstractions;
 
 public interface IBuildingRepository
 {
-    Task<Building?> GetBuildingByIdAsync(Guid id);
+    Task<Building?> GetBuildingByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<PagedResult<Building>> GetBuildingByClientIdAsync(
         Guid clientId,
-        PaginationRequest pagination);
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default);
 
-    Task AddBuildingAsync(Building building);
-    Task UpdateBuildingAsync(Building building);
+    Task AddBuildingAsync(Building building, CancellationToken cancellationToken = default);
+    Task UpdateBuildingAsync(Building building, CancellationToken cancellationToken = default);
 }

@@ -15,28 +15,29 @@ public sealed class BuildingRepository : IBuildingRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddBuildingAsync(Building building)
+    public async Task AddBuildingAsync(Building building, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Buildings.AddAsync(building);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.Buildings.AddAsync(building, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Building?> GetBuildingByIdAsync(Guid id)
+    public async Task<Building?> GetBuildingByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Buildings
             .AsNoTracking()
-            .FirstOrDefaultAsync(building => building.Id == id);
+            .FirstOrDefaultAsync(building => building.Id == id, cancellationToken);
     }
 
     public async Task<PagedResult<Building>> GetBuildingByClientIdAsync(
         Guid clientId,
-        PaginationRequest pagination)
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Buildings
             .AsNoTracking()
             .Where(building => building.ClientId == clientId);
 
-        var totalCount = await query.CountAsync();
+        var totalCount = await query.CountAsync(cancellationToken);
 
         var pageNumber = Math.Max(pagination.PageNumber, 1);
         var pageSize = Math.Min(
@@ -49,7 +50,7 @@ public sealed class BuildingRepository : IBuildingRepository
             .ThenBy(building => building.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return new PagedResult<Building>
         {
@@ -60,9 +61,9 @@ public sealed class BuildingRepository : IBuildingRepository
         };
     }
 
-    public async Task UpdateBuildingAsync(Building building)
+    public async Task UpdateBuildingAsync(Building building, CancellationToken cancellationToken = default)
     {
         _dbContext.Buildings.Update(building);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

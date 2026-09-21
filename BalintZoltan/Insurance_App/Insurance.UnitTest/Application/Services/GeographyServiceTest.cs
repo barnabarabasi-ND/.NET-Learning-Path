@@ -44,6 +44,7 @@ namespace Application.Services
             var county1 = new County(country.Id, "County1");
             var county2 = new County(country.Id, "County2");
             var other = new County(Guid.NewGuid(), "Other");
+            _fakeRepositories.Geography.SeedCountry(country);
             _fakeRepositories.Geography.SeedCounty(county1);
             _fakeRepositories.Geography.SeedCounty(county2);
             _fakeRepositories.Geography.SeedCounty(other);
@@ -55,12 +56,12 @@ namespace Application.Services
         }
 
         [Fact]
-        public async Task GetCountiesByCountryIdAsync_Should_Return_Empty_When_None()
-        {
-            var list = await _service.GetCountiesByCountryIdAsync(Guid.NewGuid());
+    public async Task GetCountiesByCountryIdAsync_Should_Throw_When_Country_Does_Not_Exist()
+    {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.GetCountiesByCountryIdAsync(Guid.NewGuid()));
 
-            Assert.NotNull(list);
-            Assert.Empty(list);
+            Assert.Equal("Country was not found.", exception.Message);
         }
 
         [Fact]
@@ -70,6 +71,7 @@ namespace Application.Services
             var city1 = new City(county.Id, "City1", "1111");
             var city2 = new City(county.Id, "City2", "2222");
             var other = new City(Guid.NewGuid(), "Other", "3333");
+            _fakeRepositories.Geography.SeedCounty(county);
             _fakeRepositories.Geography.SeedCity(city1);
             _fakeRepositories.Geography.SeedCity(city2);
             _fakeRepositories.Geography.SeedCity(other);
@@ -81,12 +83,12 @@ namespace Application.Services
         }
 
         [Fact]
-        public async Task GetCitiesByCountyIdAsync_Should_Return_Empty_When_None()
-        {
-            var list = await _service.GetCitiesByCountyIdAsync(Guid.NewGuid());
+    public async Task GetCitiesByCountyIdAsync_Should_Throw_When_County_Does_Not_Exist()
+    {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.GetCitiesByCountyIdAsync(Guid.NewGuid()));
 
-            Assert.NotNull(list);
-            Assert.Empty(list);
+            Assert.Equal("County was not found.", exception.Message);
         }
     }
 }

@@ -21,9 +21,9 @@ public class BuildingService : IBuildingService
         _geographyRepository = geographyRepository;
     }
 
-    private async Task CheckClientExistAsync(Guid clientId)
+    private async Task CheckClientExistAsync(Guid clientId, CancellationToken cancellationToken)
     {
-        var client = await _clientRepository.GetClientByIdAsync(clientId);
+        var client = await _clientRepository.GetClientByIdAsync(clientId, cancellationToken);
 
         if (client is null)
         {
@@ -31,9 +31,9 @@ public class BuildingService : IBuildingService
         }
     }
 
-    private async Task CheckCityExistAsync(Guid cityId)
+    private async Task CheckCityExistAsync(Guid cityId, CancellationToken cancellationToken)
     {
-        var cityExists = await _geographyRepository.CityExistsAsync(cityId);
+        var cityExists = await _geographyRepository.CityExistsAsync(cityId, cancellationToken);
 
         if (!cityExists)
         {
@@ -41,10 +41,10 @@ public class BuildingService : IBuildingService
         }
     }
 
-    public async Task<BuildingDto> CreateBuildingAsync(CreateBuildingRequest request)
+    public async Task<BuildingDto> CreateBuildingAsync(CreateBuildingRequest request, CancellationToken cancellationToken = default)
     {
-        await CheckClientExistAsync(request.ClientId);
-        await CheckCityExistAsync(request.CityId);
+        await CheckClientExistAsync(request.ClientId, cancellationToken);
+        await CheckCityExistAsync(request.CityId, cancellationToken);
 
         var building = new Building(
             request.ClientId,
@@ -59,27 +59,29 @@ public class BuildingService : IBuildingService
             request.IsFloodRiskZone,
             request.IsEarthquakeRiskZone);
 
-        await _buildingRepository.AddBuildingAsync(building);
+        await _buildingRepository.AddBuildingAsync(building, cancellationToken);
 
         return MapToBuildingDto(building);
     }
 
-    public async Task<BuildingDto?> GetBuildingByIdAsync(Guid id)
+    public async Task<BuildingDto?> GetBuildingByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var building = await _buildingRepository.GetBuildingByIdAsync(id);
+        var building = await _buildingRepository.GetBuildingByIdAsync(id, cancellationToken);
 
         return building is null ? null : MapToBuildingDto(building);
     }
 
     public async Task<PagedResult<BuildingDto>> GetBuildingByClientIdAsync(
         Guid clientId,
-        PaginationRequest pagination)
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
     {
-        await CheckClientExistAsync(clientId);
+        await CheckClientExistAsync(clientId, cancellationToken);
 
         var result = await _buildingRepository.GetBuildingByClientIdAsync(
             clientId,
-            pagination);
+            pagination,
+            cancellationToken);
 
         return new PagedResult<BuildingDto>
         {
@@ -92,16 +94,17 @@ public class BuildingService : IBuildingService
 
     public async Task<BuildingDto> UpdateBuildingAsync(
         Guid id,
-        UpdateBuildingRequest request)
+        UpdateBuildingRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var building = await _buildingRepository.GetBuildingByIdAsync(id);
+        var building = await _buildingRepository.GetBuildingByIdAsync(id, cancellationToken);
 
         if (building is null)
         {
             throw new InvalidOperationException("Building was not found.");
         }
 
-        await CheckCityExistAsync(request.CityId);
+        await CheckCityExistAsync(request.CityId, cancellationToken);
 
         building.UpdateAddress(request.CityId, request.Street, request.Number);
         building.UpdateDetails(
@@ -114,7 +117,7 @@ public class BuildingService : IBuildingService
             request.IsFloodRiskZone,
             request.IsEarthquakeRiskZone);
 
-        await _buildingRepository.UpdateBuildingAsync(building);
+        await _buildingRepository.UpdateBuildingAsync(building, cancellationToken);
 
         return MapToBuildingDto(building);
     }

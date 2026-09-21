@@ -22,19 +22,29 @@ public sealed class FakeGeographyRepository : IGeographyRepository
 
     public void SeedCity(Guid cityId) => _existingCityIds.Add(cityId);
 
-    public Task<IReadOnlyCollection<Country>> GetCountriesAsync() =>
+    public Task<bool> CountryExistsAsync(
+        Guid countryId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(_countries.Any(country => country.Id == countryId));
+
+    public Task<bool> CountyExistsAsync(
+        Guid countyId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(_counties.Any(county => county.Id == countyId));
+
+    public Task<IReadOnlyCollection<Country>> GetCountriesAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult((IReadOnlyCollection<Country>)_countries.ToList());
 
-    public Task<IReadOnlyCollection<County>> GetCountiesByCountryIdAsync(Guid countryId) =>
+    public Task<IReadOnlyCollection<County>> GetCountiesByCountryIdAsync(Guid countryId, CancellationToken cancellationToken = default) =>
         Task.FromResult((IReadOnlyCollection<County>)_counties
             .Where(county => county.CountryId == countryId)
             .ToList());
 
-    public Task<IReadOnlyCollection<City>> GetCitiesByCountyIdAsync(Guid countyId) =>
+    public Task<IReadOnlyCollection<City>> GetCitiesByCountyIdAsync(Guid countyId, CancellationToken cancellationToken = default) =>
         Task.FromResult((IReadOnlyCollection<City>)_cities
             .Where(city => city.CountyId == countyId)
             .ToList());
 
-    public Task<bool> CityExistsAsync(Guid cityId) =>
+    public Task<bool> CityExistsAsync(Guid cityId, CancellationToken cancellationToken = default) =>
         Task.FromResult(_existingCityIds.Contains(cityId));
 }

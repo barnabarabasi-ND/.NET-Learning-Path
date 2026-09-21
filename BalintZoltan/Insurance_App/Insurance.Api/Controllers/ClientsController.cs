@@ -3,7 +3,7 @@ using Application.DTO.Clients;
 using Microsoft.AspNetCore.Mvc;
 using Application.DTO.Common;
 
-namespace Insurance.Api.Controllers;
+namespace InsuranceApp.Api.Controllers;
 
 [ApiController]
 [Route("api/brokers/clients")]
@@ -17,9 +17,9 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet("{clientId:guid}")]
-    public async Task<ActionResult<ClientDto>> GetClientByIdAsync(Guid clientId)
+    public async Task<ActionResult<ClientDto>> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken)
     {
-        var client = await _clientService.GetClientByIdAsync(clientId);
+        var client = await _clientService.GetClientByIdAsync(clientId, cancellationToken);
 
         if (client is null)
         {
@@ -33,21 +33,24 @@ public class ClientsController : ControllerBase
     public async Task<ActionResult<PagedResult<ClientDto>>> SearchClientAsync(
     [FromQuery] string? name,
     [FromQuery] string? identifier,
-    [FromQuery] PaginationRequest pagination)
+    [FromQuery] PaginationRequest pagination,
+    CancellationToken cancellationToken)
     {
         var clients = await _clientService.SearchClientAsync(
             name,
             identifier,
-            pagination);
+            pagination,
+            cancellationToken);
 
         return Ok(clients);
     }
 
     [HttpPost]
     public async Task<ActionResult<ClientDto>> CreateClientAsync(
-        CreateClientRequest request)
+        CreateClientRequest request,
+        CancellationToken cancellationToken)
     {
-        var client = await _clientService.CreateClientAsync(request);
+        var client = await _clientService.CreateClientAsync(request, cancellationToken);
 
         return CreatedAtAction(
             "GetClientById",
@@ -58,9 +61,10 @@ public class ClientsController : ControllerBase
     [HttpPut("{clientId:guid}")]
     public async Task<ActionResult<ClientDto>> UpdateClientAsync(
         Guid clientId,
-        UpdateClientRequest request)
+        UpdateClientRequest request,
+        CancellationToken cancellationToken)
     {
-        var client = await _clientService.UpdateClientAsync(clientId, request);
+        var client = await _clientService.UpdateClientAsync(clientId, request, cancellationToken);
 
         return Ok(client);
     }

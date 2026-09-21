@@ -4,8 +4,17 @@ using Infrastructure;
 using Infrastructure.Persistence;
 using Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
+using InsuranceApp.Api.Middleware;
+using InsuranceApp.Api.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logDirectory = builder.Configuration["Logging:File:Path"]
+    ?? Path.Combine("..", "Insurance_App", "Log");
+var resolvedLogDirectory = Path.GetFullPath(
+    Path.Combine(builder.Environment.ContentRootPath, logDirectory));
+
+builder.Logging.AddProvider(new DailyFileLoggerProvider(resolvedLogDirectory));
 
 builder.Services.AddControllers();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -17,15 +26,19 @@ builder.Services.AddScoped<IGeographyService, GeographyService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider
         .GetRequiredService<InsuranceDbContext>();
 
-    await dbContext.Database.MigrateAsync();
+    await dbContext.Database.MigrateAsync(app.Lifetime.ApplicationStopping);
     await GeographySeeder.SeedAsync(
         dbContext,
-        app.Environment.ContentRootPath);
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
 }
 
 // Configure the HTTP request pipeline.

@@ -73,9 +73,20 @@ public sealed class DailyFileLoggerProvider : ILoggerProvider
                     File.AppendAllText(filePath, line);
                 }
             }
-            catch
+            catch (Exception loggingException)
             {
                 // Logging must never interrupt the request being processed.
+                try
+                {
+                    Console.Error.WriteLine(
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff zzz}] " +
+                        $"File logging failed for '{filePath}': " +
+                        loggingException.Message);
+                }
+                catch
+                {
+                    // A logging fallback must never interrupt the request either.
+                }
             }
         }
 

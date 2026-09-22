@@ -2,16 +2,24 @@
 
 namespace InsuranceApp.Domain.Entities;
 
-public sealed class Client
+public sealed class Broker
 {
-    public int ClientId { get; set; }
-    public ClientType ClientType { get; set; }
+    public int BrokerId { get; set; }
+
+    public string BrokerCode { get; set; } = null!;
+
     public string Name { get; set; } = null!;
-    public string IdentificationNumber { get; set; } = null!;
+
     public string? Email { get; set; }
+
     public string? Phone { get; set; }
-    public string? Address { get; set; }
+
+    public BrokerStatus Status { get; set; }
+
+    public decimal? CommissionPercentage { get; set; }
+
     public DateTime CreatedAt { get; set; }
+
     public DateTime? ModifiedAt { get; set; }
 
     public ICollection<Policy> Policies { get; set; } = [];

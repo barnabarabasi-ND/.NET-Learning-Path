@@ -15,6 +15,8 @@ public static class DependencyInjection
 
         services.AddScoped<IBuildingService, BuildingService>();
 
+        services.AddScoped<ICurrencyService, CurrencyService>();
+
         return services;
     }
 }

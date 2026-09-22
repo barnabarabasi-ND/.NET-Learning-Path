@@ -1,5 +1,7 @@
 ﻿using InsuranceApp.Application.Abstractions.Persistence;
+using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Domain.Entities;
+using InsuranceApp.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceApp.Infrastructure.Persistence.Repositories;
@@ -30,11 +32,26 @@ internal sealed class CurrencyRepository(InsuranceDbContext dbContext) : ICurren
     public async Task AddCurrencyAsync(Currency currency, CancellationToken cancellationToken)
     {
         dbContext.Currencies.Add(currency);
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateEntityException(nameof(Currency));
+        }
     }
 
-    public Task SaveCurrencyChangesAsync(CancellationToken cancellationToken)
+    public async Task SaveCurrencyChangesAsync(CancellationToken cancellationToken)
     {
-        return dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateEntityException(nameof(Currency));
+        }
     }
 }

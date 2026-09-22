@@ -10,7 +10,7 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
 {
     public async Task<(IReadOnlyList<Client> Items, int TotalCount)> SearchClientAsync(string? name, string? identificationNumber, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
-        var query = dbContext.Clients.AsNoTracking().AsQueryable();
+        var query = dbContext.Clients.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -51,7 +51,6 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
-            
         }
         catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
         {

@@ -2,6 +2,7 @@
 using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
 using InsuranceApp.Application.DTOs.Currency;
+using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Domain.Constants;
 using InsuranceApp.Domain.Entities;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,7 @@ public sealed class CurrencyService(ICurrencyRepository currencyRepository, ILog
             return Result<CurrencyDto>.Failure(CurrencyErrors.DuplicateCode);
         }
 
+
         var currency = new Currency
         {
             Code = createCurrencyDto.Code,
@@ -50,7 +52,14 @@ public sealed class CurrencyService(ICurrencyRepository currencyRepository, ILog
             CreatedAt = DateTime.UtcNow
         };
 
-        await currencyRepository.AddCurrencyAsync(currency, cancellationToken);
+        try
+        {
+            await currencyRepository.AddCurrencyAsync(currency, cancellationToken);
+        }
+        catch (DuplicateEntityException)
+        {
+            return Result<CurrencyDto>.Failure(CurrencyErrors.DuplicateCode);
+        }
 
         if (logger.IsEnabled(LogLevel.Information))
         {
@@ -94,13 +103,21 @@ public sealed class CurrencyService(ICurrencyRepository currencyRepository, ILog
             return Result<CurrencyDto>.Failure(CurrencyErrors.DuplicateCode);
         }
 
+
         currency.Code = updateCurrencyDto.Code;
         currency.Name = updateCurrencyDto.Name;
         currency.ExchangeRateToBase = updateCurrencyDto.ExchangeRateToBase;
         currency.IsActive = updateCurrencyDto.IsActive;
         currency.ModifiedAt = DateTime.UtcNow;
 
-        await currencyRepository.SaveCurrencyChangesAsync(cancellationToken);
+        try
+        {
+            await currencyRepository.SaveCurrencyChangesAsync(cancellationToken);
+        }
+        catch (DuplicateEntityException)
+        {
+            return Result<CurrencyDto>.Failure(CurrencyErrors.DuplicateCode);
+        }
 
         if (logger.IsEnabled(LogLevel.Information))
         {

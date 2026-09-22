@@ -48,11 +48,6 @@ internal sealed class PolicyConfiguration : IEntityTypeConfiguration<Policy>
             .HasForeignKey(x => x.ClientId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(x => x.Building)
-            .WithMany(x => x.Policies)
-            .HasForeignKey(x => x.BuildingId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasOne(x => x.Broker)
             .WithMany(x => x.Policies)
             .HasForeignKey(x => x.BrokerId)

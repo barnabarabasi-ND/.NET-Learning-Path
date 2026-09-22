@@ -21,5 +21,4 @@ public sealed class Building
     public Client Client { get; set; } = null!;
     public City City { get; set; } = null!;
 
-    public ICollection<Policy> Policies { get; set; } = [];
 }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Insurance.Infrastructure.Persistence.Migrations
+namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(InsuranceDbContext))]
     [Migration("20260922121720_SimplifyRiskFactorReference")]

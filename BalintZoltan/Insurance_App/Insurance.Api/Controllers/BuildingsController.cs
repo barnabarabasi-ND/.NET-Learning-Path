@@ -3,7 +3,7 @@ using Application.DTO.Buildings;
 using Application.DTO.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers;
+namespace InsuranceApp.Api.Controllers;
 
 [ApiController]
 [Route("api/brokers")]

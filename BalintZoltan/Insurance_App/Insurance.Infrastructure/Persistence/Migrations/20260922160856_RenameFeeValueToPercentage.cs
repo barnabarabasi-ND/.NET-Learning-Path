@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Insurance.Infrastructure.Persistence.Migrations
+namespace Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class RenameFeeValueToPercentage : Migration

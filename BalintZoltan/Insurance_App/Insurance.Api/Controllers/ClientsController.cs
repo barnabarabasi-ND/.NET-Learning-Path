@@ -1,7 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.DTO.Clients;
-using Microsoft.AspNetCore.Mvc;
 using Application.DTO.Common;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InsuranceApp.Api.Controllers;
 

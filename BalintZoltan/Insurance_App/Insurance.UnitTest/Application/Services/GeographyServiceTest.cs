@@ -1,5 +1,5 @@
-using Application.Helper;
 using Application.Exceptions;
+using Application.Helper;
 using Domain.Entities;
 
 namespace Application.Services
@@ -13,6 +13,7 @@ namespace Application.Services
             _fakeRepositories = new FakeRepositories();
             _service = new GeographyService(_fakeRepositories.Geography);
         }
+
 
         [Fact]
         public async Task GetCountriesAsync_Should_Return_List()
@@ -57,8 +58,8 @@ namespace Application.Services
         }
 
         [Fact]
-    public async Task GetCountiesByCountryIdAsync_Should_Throw_When_Country_Does_Not_Exist()
-    {
+        public async Task GetCountiesByCountryIdAsync_Should_Throw_When_Country_Does_Not_Exist()
+        {
             var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.GetCountiesByCountryIdAsync(Guid.NewGuid()));
 
@@ -84,8 +85,8 @@ namespace Application.Services
         }
 
         [Fact]
-    public async Task GetCitiesByCountyIdAsync_Should_Throw_When_County_Does_Not_Exist()
-    {
+        public async Task GetCitiesByCountyIdAsync_Should_Throw_When_County_Does_Not_Exist()
+        {
             var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.GetCitiesByCountyIdAsync(Guid.NewGuid()));
 

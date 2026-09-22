@@ -1,7 +1,7 @@
+using Application.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Application.Exceptions;
 
 namespace InsuranceApp.Api.Middleware;
 

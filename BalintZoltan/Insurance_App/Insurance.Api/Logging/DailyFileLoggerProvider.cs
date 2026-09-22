@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace InsuranceApp.Api.Logging;
 
 public sealed class DailyFileLoggerProvider : ILoggerProvider

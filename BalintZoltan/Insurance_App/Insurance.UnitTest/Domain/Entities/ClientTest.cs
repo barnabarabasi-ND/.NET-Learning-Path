@@ -1,7 +1,5 @@
-using System;
 using Domain.Entities;
 using Domain.Enums;
-using Xunit;
 
 namespace Domain.UnitTests.Entities
 {

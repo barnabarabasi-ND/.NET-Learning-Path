@@ -1,5 +1,4 @@
-﻿using Application.DTO.Clients;
-using Application.DTO.Common;
+﻿using Application.DTO.Common;
 using Domain.Entities;
 
 

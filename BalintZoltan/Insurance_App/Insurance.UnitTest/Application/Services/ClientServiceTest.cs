@@ -1,12 +1,9 @@
-using Application.Abstractions;
 using Application.DTO.Clients;
 using Application.DTO.Common;
-using Application.Services;
+using Application.Exceptions;
+using Application.Helper;
 using Domain.Entities;
 using Domain.Enums;
-using Xunit;
-using Application.Helper;
-using Application.Exceptions;
 
 namespace Application.Services
 {

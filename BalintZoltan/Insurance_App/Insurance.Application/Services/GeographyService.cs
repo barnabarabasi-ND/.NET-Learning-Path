@@ -1,7 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.DTO.Geography;
-using Domain.Entities;
 using Application.Exceptions;
+using Domain.Entities;
 
 namespace Application.Services;
 

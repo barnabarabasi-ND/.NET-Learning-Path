@@ -3,9 +3,9 @@ using Application.Services;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Infrastructure.Seed;
-using Microsoft.EntityFrameworkCore;
-using InsuranceApp.Api.Middleware;
 using InsuranceApp.Api.Logging;
+using InsuranceApp.Api.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

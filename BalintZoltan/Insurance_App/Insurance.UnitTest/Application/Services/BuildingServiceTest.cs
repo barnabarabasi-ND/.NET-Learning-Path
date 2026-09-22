@@ -1,11 +1,9 @@
 using Application.DTO.Buildings;
 using Application.DTO.Common;
-using Application.Services;
+using Application.Exceptions;
+using Application.Helper;
 using Domain.Entities;
 using Domain.Enums;
-using Application.Helper;
-using Application.Exceptions;
-using Xunit;
 
 namespace Application.Services
 {
@@ -17,7 +15,7 @@ namespace Application.Services
         public BuildingServiceTest()
         {
             _fakeRepositories = new FakeRepositories();
-            _service = new BuildingService(_fakeRepositories.Building, _fakeRepositories.Client, _fakeRepositories.Geography);            
+            _service = new BuildingService(_fakeRepositories.Building, _fakeRepositories.Client, _fakeRepositories.Geography);
         }
 
         [Fact]

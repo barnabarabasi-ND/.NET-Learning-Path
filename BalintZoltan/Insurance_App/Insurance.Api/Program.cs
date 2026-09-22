@@ -10,7 +10,7 @@ using InsuranceApp.Api.Logging;
 var builder = WebApplication.CreateBuilder(args);
 
 var logDirectory = builder.Configuration["Logging:File:Path"]
-    ?? Path.Combine("..", "Insurance_App", "Log");
+    ?? Path.Combine("..", "Log");
 var resolvedLogDirectory = Path.GetFullPath(
     Path.Combine(builder.Environment.ContentRootPath, logDirectory));
 

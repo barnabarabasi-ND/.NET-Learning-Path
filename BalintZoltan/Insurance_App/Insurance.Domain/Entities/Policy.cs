@@ -54,11 +54,13 @@ public class Policy
         UpdatedAt = CreatedAt;
     }
 
-    public void Cancel(string reason, DateTime? cancellationDate = null)
+    public void Cancel(string reason, DateTime cancellationDate)
     {
+        if (Status != PolicyStatus.Active)
+            throw new InvalidOperationException("Only active policies can be cancelled.");
         if (string.IsNullOrWhiteSpace(reason)) throw new ArgumentException("Cancellation reason is required.", nameof(reason));
         Status = PolicyStatus.Cancelled;
-        CancellationDate = cancellationDate ?? DateTime.UtcNow;
+        CancellationDate = cancellationDate;
         CancellationReason = reason;
         UpdatedAt = DateTime.UtcNow;
     }

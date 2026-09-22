@@ -68,7 +68,7 @@ public sealed class FeeConfigurationSeeder
             dbContext.FeeConfigurations.Add(new FeeConfiguration(
                 configurationData.Name,
                 type,
-                configurationData.Value,
+                configurationData.Percentage,
                 configurationData.EffectiveFrom,
                 configurationData.EffectiveTo,
                 configurationData.IsActive));
@@ -88,7 +88,7 @@ public sealed class FeeConfigurationSeeder
     {
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
-        public decimal Value { get; set; }
+        public decimal Percentage { get; set; }
         public DateTime EffectiveFrom { get; set; }
         public DateTime? EffectiveTo { get; set; }
         public bool IsActive { get; set; }

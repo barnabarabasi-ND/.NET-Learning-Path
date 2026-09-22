@@ -12,7 +12,7 @@ public sealed class FeeConfigurationConfiguration : IEntityTypeConfiguration<Fee
         builder.Property(x => x.Id).HasConversion<string>();
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Type).HasConversion<string>().HasMaxLength(30).IsRequired();
-        builder.Property(x => x.Value).HasPrecision(18, 6).IsRequired();
+        builder.Property(x => x.Percentage).HasPrecision(18, 6).IsRequired();
         builder.HasIndex(x => new { x.Name, x.EffectiveFrom });
     }
 }

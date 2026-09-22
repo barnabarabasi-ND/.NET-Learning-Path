@@ -51,7 +51,7 @@ public sealed class DailyFileLoggerProvider : ILoggerProvider
                 return;
             }
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var fileName = $"{now:yyyy}_{now:MM}_{now:dd}.log";
             var filePath = Path.Combine(_logDirectory, fileName);
             var message = formatter(state, exception);
@@ -77,7 +77,7 @@ public sealed class DailyFileLoggerProvider : ILoggerProvider
                 try
                 {
                     Console.Error.WriteLine(
-                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff zzz}] " +
+                        $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff zzz}] " +
                         $"File logging failed for '{filePath}': " +
                         loggingException.Message);
                 }

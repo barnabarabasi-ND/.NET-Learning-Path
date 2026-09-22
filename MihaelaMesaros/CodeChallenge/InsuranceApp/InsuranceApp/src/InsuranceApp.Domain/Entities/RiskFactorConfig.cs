@@ -4,7 +4,7 @@ namespace InsuranceApp.Domain.Entities;
 
 public sealed class RiskFactorConfig
 {
-    public int RiskFactorConfigurationId { get; set; }
+    public int RiskFactorConfigId { get; set; }
 
     public RiskFactorLevel Level { get; set; }
 

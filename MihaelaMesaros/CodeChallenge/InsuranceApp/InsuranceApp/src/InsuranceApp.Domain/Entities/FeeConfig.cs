@@ -4,7 +4,7 @@ namespace InsuranceApp.Domain.Entities;
 
 public sealed class FeeConfig
 {
-    public int FeeConfigurationId { get; set; }
+    public int FeeConfigId { get; set; }
 
     public string Name { get; set; } = null!;
 

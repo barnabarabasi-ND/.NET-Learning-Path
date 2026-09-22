@@ -1,4 +1,5 @@
-﻿using InsuranceApp.Domain.Entities;
+﻿using InsuranceApp.Domain.Constants;
+using InsuranceApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,23 +11,28 @@ internal sealed class FeeConfigConfiguration : IEntityTypeConfiguration<FeeConfi
     {
         builder.ToTable("FeeConfigs");
 
-        builder.HasKey(x => x.FeeConfigurationId);
+        builder.HasKey(x => x.FeeConfigId);
 
         builder.Property(x => x.Name)
-            .HasMaxLength(200)
+            .HasMaxLength(FeeConfigConstraints.NameMaxLength)
             .IsRequired();
 
         builder.Property(x => x.FeeType)
             .IsRequired();
 
         builder.Property(x => x.Percentage)
-            .HasPrecision(7, 4)
+            .HasPrecision(
+                FeeConfigConstraints.PercentagePrecision,
+                FeeConfigConstraints.PercentageScale)
             .IsRequired();
 
         builder.Property(x => x.EffectiveFrom)
             .IsRequired();
 
         builder.Property(x => x.IsActive)
+            .IsRequired();
+
+        builder.Property(x => x.CreatedAt)
             .IsRequired();
     }
 }

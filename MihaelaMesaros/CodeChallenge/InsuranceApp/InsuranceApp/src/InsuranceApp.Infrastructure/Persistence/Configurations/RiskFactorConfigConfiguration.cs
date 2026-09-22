@@ -10,7 +10,7 @@ internal sealed class RiskFactorConfigConfiguration : IEntityTypeConfiguration<R
     {
         builder.ToTable("RiskFactorConfigs");
 
-        builder.HasKey(x => x.RiskFactorConfigurationId);
+        builder.HasKey(x => x.RiskFactorConfigId);
 
         builder.Property(x => x.Level)
             .IsRequired();

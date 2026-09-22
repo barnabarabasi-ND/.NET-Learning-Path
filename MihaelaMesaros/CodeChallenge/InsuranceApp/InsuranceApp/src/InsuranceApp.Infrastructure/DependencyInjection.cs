@@ -33,6 +33,10 @@ public static class DependencyInjection
 
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 
+        services.AddScoped<IFeeConfigRepository, FeeConfigRepository>();
+
+        //services.AddScoped<IRiskFactorConfigRepository, RiskFactorConfigRepository>();
+
         return services;
     }
 }

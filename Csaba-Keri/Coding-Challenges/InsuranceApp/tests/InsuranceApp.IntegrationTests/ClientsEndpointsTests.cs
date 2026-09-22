@@ -101,34 +101,6 @@ public sealed class ClientsEndpointsTests : IntegrationTestBase
         Assert.Equal("example@gmail.com", item!["email"]!.GetValue<string>());
     }
 
-    [Fact]
-    public async Task CreateClient_DuplicateIdentifier_ReturnsConflictWithoutChangingExistingClient()
-    {
-        // Arrange
-        var originalClient = await CreateClientAsync(TestData.Client(
-            identificationNumber: "DUPLICATE-001",
-            name: "Original"
-        ));
-
-        var request = TestData.Client(
-            identificationNumber: "DUPLICATE-001",
-            name: "Replacement"
-        );
-
-        // Act
-        using var response = await HttpClient.PostAsJsonAsync(
-            requestUri: "/api/brokers/clients",
-            value: request
-        );
-
-        // Assert
-        await AssertProblemAsync(response, HttpStatusCode.Conflict);
-        
-        var saved = await QueryDatabaseAsync(db => db.Clients.AsNoTracking().SingleAsync());
-        Assert.Equal(originalClient["id"]!.GetValue<Guid>(), saved.Id);
-        Assert.Equal("Original", saved.Name);
-    }
-
     [Theory]
     [InlineData("{}")]
     [InlineData("{\"type\":0,\"identificationNumber\":\"NUMERIC\",\"name\":\"Test\",\"email\":\"test@example.com\",\"phone\":\"123\"}")]

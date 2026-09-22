@@ -19,7 +19,7 @@ public class Country
 
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        string normalizedName = name.Trim();
+        var normalizedName = name.Trim();
 
         if (normalizedName.Length > MaxNameLength)
         {

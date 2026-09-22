@@ -60,13 +60,23 @@ public class GlobalExceptionHandler : IExceptionHandler
                 (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
 
+        Dictionary<string, object?>? extensions = null;
+
         if (statusCode == StatusCodes.Status500InternalServerError)
         {
+            var traceId = httpContext.TraceIdentifier;
+
             _logger.LogError(
                 exception,
-                "Unexpected error while processing {Path}.",
-                httpContext.Request.Path
+                "Unexpected error while processing {Path}. TraceId: {TraceId}.",
+                httpContext.Request.Path,
+                traceId
             );
+
+            extensions = new Dictionary<string, object?>
+            {
+                ["traceId"] = traceId
+            };
         }
 
         await Results.Problem(
@@ -75,7 +85,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             detail: statusCode == StatusCodes.Status500InternalServerError
                 ? "Please contact support and include the traceId."
                 : exception.Message,
-            instance: httpContext.Request.Path
+            instance: httpContext.Request.Path,
+            extensions: extensions
         ).ExecuteAsync(httpContext);
 
         return true;

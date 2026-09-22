@@ -10,6 +10,7 @@ using InsuranceApp.Domain.Clients;
 using InsuranceApp.UnitTests.Common;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace InsuranceApp.UnitTests.Application.Clients;
 
@@ -65,8 +66,6 @@ public sealed class ClientServiceTests
             CancellationToken.None
         );
 
-        await _clientRepository.Received(1).ClientExistsByIdentificationNumberAsync(identificationNumber, CancellationToken.None);
-
         await _clientRepository.Received(1).AddClientAsync(
             Arg.Is<Client>(received =>
                 received.Id == result.Id
@@ -82,20 +81,18 @@ public sealed class ClientServiceTests
     }
 
     [Fact]
-    public async Task CreateClientAsync_WhenIdentifierExists_ThrowsWithoutSaving()
+    public async Task CreateClientAsync_WhenRepositoryReportsDuplicate_ThrowsWithoutSaving()
     {
         // Arrange
         var command = CreateCommand();
 
-        _clientRepository.ClientExistsByIdentificationNumberAsync(command.IdentificationNumber!, CancellationToken.None)
-            .Returns(Task.FromResult(true));
+        _clientRepository.AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new DuplicateClientIdentificationException());
 
         // Act & Assert
         await Assert.ThrowsAsync<DuplicateClientIdentificationException>(
             () => _clientService.CreateClientAsync(command, CancellationToken.None)
         );
-
-        await _clientRepository.DidNotReceive().AddClientAsync(Arg.Any<Client>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

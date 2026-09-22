@@ -149,7 +149,7 @@ public class BuildingService : IBuildingService
 
     private void ValidateConstructionYear(int constructionYear)
     {
-        int currentYear = _timeProvider.GetUtcNow().Year;
+        var currentYear = _timeProvider.GetUtcNow().Year;
 
         if (constructionYear > currentYear)
         {

@@ -298,7 +298,7 @@ public sealed class ClientTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var email = CreateEmailWithLastLabelLength(64);
+        var email = CreateMaxLengthEmail();
 
         // Act
         var client = CreateClient(id, email: $"  {email}  ");
@@ -313,7 +313,7 @@ public sealed class ClientTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var email = CreateEmailWithLastLabelLength(65);
+        var email = CreateEmailExceedingMaxLength();
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(
@@ -433,14 +433,27 @@ public sealed class ClientTests
         );
     }
 
-    private static string CreateEmailWithLastLabelLength(int lastLabelLength)
+    private static string CreateEmail(
+        int localPartLength,
+        params int[] domainLabelLengths
+    )
     {
-        return new string('a', 63)
-            + "@"
-            + new string('b', 63)
-            + "."
-            + new string('c', 63)
-            + "."
-            + new string('d', lastLabelLength);
+        var localPart = new string('a', localPartLength);
+
+        var domainLabels = domainLabelLengths
+            .Select((length, index) => new string((char)('b' + index), length)
+        );
+
+        return $"{localPart}@{string.Join(".", domainLabels)}";
+    }
+
+    private static string CreateMaxLengthEmail()
+    {
+        return CreateEmail(64, 63, 63, 63);
+    }
+
+    private static string CreateEmailExceedingMaxLength()
+    {
+        return CreateEmail(64, 63, 63, 62, 1);
     }
 }

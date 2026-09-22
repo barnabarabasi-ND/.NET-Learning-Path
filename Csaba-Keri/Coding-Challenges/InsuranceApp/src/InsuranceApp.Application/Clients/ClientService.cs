@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using InsuranceApp.Application.Clients.Commands;
-using InsuranceApp.Application.Clients.Exceptions;
 using InsuranceApp.Application.Clients.Mappings;
 using InsuranceApp.Application.Clients.Queries;
 using InsuranceApp.Application.Clients.Results;
@@ -70,16 +69,6 @@ public class ClientService : IClientService
             phone: command.Phone!,
             primaryAddress: command.PrimaryAddress
         );
-
-        var identifierExists = await _clientRepository.ClientExistsByIdentificationNumberAsync(
-            client.IdentificationNumber,
-            cancellationToken
-        );
-
-        if (identifierExists)
-        {
-            throw new DuplicateClientIdentificationException();
-        }
 
         await _clientRepository.AddClientAsync(client, cancellationToken);
         _logger.LogInformation("Client {ClientId} created.", client.Id);

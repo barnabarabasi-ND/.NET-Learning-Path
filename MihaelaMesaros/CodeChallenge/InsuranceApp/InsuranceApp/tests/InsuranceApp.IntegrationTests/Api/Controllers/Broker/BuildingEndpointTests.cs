@@ -130,6 +130,14 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         var building = await response.Content.ReadFromJsonAsync<BuildingDto>();
 
         Assert.NotNull(building);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        Assert.NotNull(response.Headers.Location);
+        Assert.Equal(
+            $"/api/brokers/buildings/{building.BuildingId}",
+            response.Headers.Location.AbsolutePath);
+
+        Assert.NotNull(building);
         Assert.Equal(clientId, building.ClientId);
         Assert.Equal(request.CityId, building.CityId);
         Assert.Equal(request.AddressStreet, building.AddressStreet);

@@ -16,6 +16,11 @@ internal sealed class CurrencyRepository(InsuranceDbContext dbContext) : ICurren
             .ToListAsync(cancellationToken);
     }
 
+    public Task<Currency?> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken)
+    {
+        return dbContext.Currencies.AsNoTracking().FirstOrDefaultAsync(x => x.CurrencyId == currencyId, cancellationToken);
+    }
+
     public Task<Currency?> GetCurrencyForUpdateAsync(int currencyId, CancellationToken cancellationToken)
     {
         return dbContext.Currencies.FirstOrDefaultAsync(x => x.CurrencyId == currencyId, cancellationToken);

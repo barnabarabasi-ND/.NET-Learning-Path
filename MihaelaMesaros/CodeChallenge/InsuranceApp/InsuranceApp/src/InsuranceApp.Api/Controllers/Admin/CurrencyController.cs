@@ -13,14 +13,38 @@ namespace InsuranceApp.Api.Controllers.Admin;
 [Route("api/admin/currencies")]
 public sealed class CurrenciesController(ICurrencyService currencyService) : ControllerBase
 {
+    private const string GetCurrencyByIdRouteName = "GetCurrencyById";
+
     /// <summary>
     /// Gets all currencies.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<CurrencyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<CurrencyDto>>> GetCurrenciesAsync(CancellationToken cancellationToken)
     {
         var result = await currencyService.GetCurrenciesAsync(cancellationToken);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Gets a currency by its ID.
+    /// </summary>
+    /// <param name="currencyId">The ID of the currency.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The currency with the specified ID.</returns>
+    [HttpGet("{currencyId:int}", Name = GetCurrencyByIdRouteName)]
+    [ProducesResponseType(typeof(CurrencyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CurrencyDto>> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken)
+    {
+        var result = await currencyService.GetCurrencyByIdAsync(currencyId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return result.Error!.ToProblemResult();
+        }
 
         return Ok(result.Value);
     }
@@ -41,7 +65,7 @@ public sealed class CurrenciesController(ICurrencyService currencyService) : Con
             return result.Error!.ToProblemResult();
         }
 
-        return StatusCode(StatusCodes.Status201Created, result.Value);
+        return CreatedAtRoute(GetCurrencyByIdRouteName, new { currencyId = result.Value!.CurrencyId }, result.Value);
     }
 
     /// <summary>

@@ -7,6 +7,8 @@ public interface ICurrencyService
 {
     Task<Result<IReadOnlyList<CurrencyDto>>> GetCurrenciesAsync(CancellationToken cancellationToken);
 
+    Task<Result<CurrencyDto>> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken);
+
     Task<Result<CurrencyDto>> CreateCurrencyAsync(CreateCurrencyDto createCurrencyDto, CancellationToken cancellationToken);
 
     Task<Result<CurrencyDto>> UpdateCurrencyAsync(int currencyId, UpdateCurrencyDto updateCurrencyDto, CancellationToken cancellationToken);

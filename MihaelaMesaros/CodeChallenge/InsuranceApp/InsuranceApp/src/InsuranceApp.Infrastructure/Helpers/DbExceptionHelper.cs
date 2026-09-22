@@ -29,7 +29,7 @@ public static class DbExceptionHelper
         // 2067 = SQLITE_CONSTRAINT_UNIQUE
         if (ex.InnerException is SqliteException sqliteEx)
         {
-            return sqliteEx.SqliteErrorCode == 19 && sqliteEx.SqliteExtendedErrorCode == 2067;
+            return sqliteEx.SqliteErrorCode == 19 && sqliteEx.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase);
         }
 
         return false;

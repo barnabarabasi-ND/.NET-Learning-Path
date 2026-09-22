@@ -1,6 +1,7 @@
 ﻿using InsuranceApp.Application.Abstractions.Persistence;
 using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
+using InsuranceApp.Application.DTOs.Client;
 using InsuranceApp.Application.DTOs.Currency;
 using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Domain.Constants;
@@ -18,6 +19,23 @@ public sealed class CurrencyService(ICurrencyRepository currencyRepository, ILog
         var currencyDtos = currencies.Select(MapCurrencyToDto).ToList();
 
         return Result<IReadOnlyList<CurrencyDto>>.Success(currencyDtos);
+    }
+
+    public async Task<Result<CurrencyDto>> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken)
+    {
+        if (currencyId <= 0)
+        {
+            return Result<CurrencyDto>.Failure(CurrencyErrors.InvalidCurrencyId);
+        }
+
+        var currency = await currencyRepository.GetCurrencyByIdAsync(currencyId, cancellationToken);
+
+        if (currency is null)
+        {
+            return Result<CurrencyDto>.Failure(CurrencyErrors.NotFound(currencyId));
+        }
+
+        return Result<CurrencyDto>.Success(MapCurrencyToDto(currency));
     }
 
     public async Task<Result<CurrencyDto>> CreateCurrencyAsync(CreateCurrencyDto createCurrencyDto, CancellationToken cancellationToken)

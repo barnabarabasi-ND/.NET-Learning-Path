@@ -13,11 +13,12 @@ namespace InsuranceApp.Api.Controllers.Broker;
 [Route("api/brokers")]
 public sealed class BuildingsController(IBuildingService buildingService) : ControllerBase
 {
+    private const string GetBuildingByIdRouteName = "GetBuildingById";
 
     /// <summary>
     /// Gets a building by identifier.
     /// </summary>
-    [HttpGet("buildings/{buildingId:int}")]
+    [HttpGet("buildings/{buildingId:int}", Name = GetBuildingByIdRouteName)]
     [ProducesResponseType(typeof(BuildingDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -75,7 +76,7 @@ public sealed class BuildingsController(IBuildingService buildingService) : Cont
             return result.Error!.ToProblemResult();
         }
 
-        return StatusCode(StatusCodes.Status201Created, result.Value);
+        return CreatedAtRoute(GetBuildingByIdRouteName, new { buildingId = result.Value!.BuildingId }, result.Value);
     }
 
     /// <summary>

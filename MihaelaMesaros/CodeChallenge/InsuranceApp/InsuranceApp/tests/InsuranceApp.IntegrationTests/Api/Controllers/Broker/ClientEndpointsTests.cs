@@ -50,6 +50,11 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         Assert.NotNull(createdClient);
         Assert.True(createdClient.ClientId > 0);
 
+        Assert.NotNull(response.Headers.Location);
+        Assert.Equal(
+            $"/api/brokers/clients/{createdClient.ClientId}",
+            response.Headers.Location.AbsolutePath);
+
         Assert.Equal(request.ClientType, createdClient.ClientType);
         Assert.Equal(request.Name, createdClient.Name);
         Assert.Equal(

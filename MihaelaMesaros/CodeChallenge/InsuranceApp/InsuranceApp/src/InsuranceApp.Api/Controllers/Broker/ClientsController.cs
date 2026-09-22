@@ -14,6 +14,7 @@ namespace InsuranceApp.Api.Controllers.Broker;
 [Route("api/brokers/clients")]
 public sealed class ClientsController(IClientService clientService) : ControllerBase
 {
+    private const string GetClientByIdRouteName = "GetClientById";
 
     /// <summary>
     /// Searches for clients based on the provided search criteria.
@@ -39,7 +40,7 @@ public sealed class ClientsController(IClientService clientService) : Controller
     /// <summary>
     /// Gets a client by identifier.
     /// </summary>
-    [HttpGet("{clientId:int}")]
+    [HttpGet("{clientId:int}", Name = GetClientByIdRouteName)]
     [ProducesResponseType(typeof(ClientDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ClientDto>> GetClientByIdAsync(int clientId, CancellationToken cancellationToken)
@@ -73,7 +74,7 @@ public sealed class ClientsController(IClientService clientService) : Controller
             return result.Error!.ToProblemResult();
         }
 
-        return StatusCode(StatusCodes.Status201Created, result.Value);
+        return CreatedAtRoute(GetClientByIdRouteName, new { clientId = result.Value!.ClientId }, result.Value);
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 ﻿using InsuranceApp.Application.Abstractions.Persistence;
 using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
+using InsuranceApp.Application.DTOs.Currency;
 using InsuranceApp.Application.DTOs.FeeConfig;
 using InsuranceApp.Domain.Constants;
 using InsuranceApp.Domain.Entities;
@@ -18,6 +19,23 @@ public sealed class FeeConfigService(IFeeConfigRepository feeConfigRepository, I
         var feeDtos = fees.Select(MapFeeConfigToDto).ToList();
 
         return Result<IReadOnlyList<FeeConfigDto>>.Success(feeDtos);
+    }
+
+    public async Task<Result<FeeConfigDto>> GetFeeConfigByIdAsync(int feeConfigId, CancellationToken cancellationToken)
+    {
+        if (feeConfigId <= 0)
+        {
+            return Result<FeeConfigDto>.Failure(FeeConfigErrors.InvalidFeeConfigId);
+        }
+
+        var feeConfig = await feeConfigRepository.GetFeeConfigByIdAsync(feeConfigId, cancellationToken);
+
+        if (feeConfig is null)
+        {
+            return Result<FeeConfigDto>.Failure(FeeConfigErrors.NotFound(feeConfigId));
+        }
+
+        return Result<FeeConfigDto>.Success(MapFeeConfigToDto(feeConfig));
     }
 
     public async Task<Result<FeeConfigDto>> CreateFeeConfigAsync(CreateFeeConfigDto dto, CancellationToken cancellationToken)

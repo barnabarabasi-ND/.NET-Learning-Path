@@ -13,6 +13,8 @@ namespace InsuranceApp.Api.Controllers.Admin;
 [Route("api/admin/fees")]
 public sealed class FeesController(IFeeConfigService feeConfigService) : ControllerBase
 {
+    private const string GetFeeByIdRouteName = "GetFeeById";
+
     /// <summary>
     /// Retrieves a list of all fee configurations.
     /// </summary>
@@ -26,7 +28,28 @@ public sealed class FeesController(IFeeConfigService feeConfigService) : Control
 
         return Ok(result.Value);
     }
-    
+
+    /// <summary>
+    /// Gets a fee configuration by its ID.
+    /// </summary>
+    /// <param name="feeConfigId">The ID of the fee configuration.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The fee configuration with the specified ID.</returns>
+    [HttpGet("{feeConfigId:int}", Name = GetFeeByIdRouteName)]
+    [ProducesResponseType(typeof(FeeConfigDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FeeConfigDto>> GetFeeByIdAsync(int feeConfigId, CancellationToken cancellationToken)
+    {
+        var result = await feeConfigService.GetFeeConfigByIdAsync(feeConfigId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return result.Error!.ToProblemResult();
+        }
+
+        return Ok(result.Value);
+    }
+
     /// <summary>
     /// Creates a new fee configuration.
     /// </summary>
@@ -45,7 +68,7 @@ public sealed class FeesController(IFeeConfigService feeConfigService) : Control
             return result.Error!.ToProblemResult();
         }
 
-        return StatusCode(StatusCodes.Status201Created, result.Value);
+        return CreatedAtRoute(GetFeeByIdRouteName, new { feeConfigId = result.Value!.FeeConfigId }, result.Value);
     }
 
     /// <summary>

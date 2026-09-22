@@ -16,6 +16,11 @@ internal sealed class FeeConfigRepository(InsuranceDbContext dbContext) : IFeeCo
             .ToListAsync(cancellationToken);
     }
 
+    public Task<FeeConfig?> GetFeeConfigByIdAsync(int feeConfigId, CancellationToken cancellationToken)
+    {
+        return dbContext.FeeConfigs.AsNoTracking().FirstOrDefaultAsync(x => x.FeeConfigId == feeConfigId, cancellationToken);
+    }
+
     public Task<FeeConfig?> GetFeeConfigForUpdateAsync(int feeConfigId, CancellationToken cancellationToken)
     {
         return dbContext.FeeConfigs

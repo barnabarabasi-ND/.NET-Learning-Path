@@ -58,6 +58,10 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
         dbContext.Cities.RemoveRange(dbContext.Cities);
         dbContext.Counties.RemoveRange(dbContext.Counties);
         dbContext.Countries.RemoveRange(dbContext.Countries);
+        
+        dbContext.Currencies.RemoveRange(dbContext.Currencies);
+        dbContext.FeeConfigs.RemoveRange(dbContext.FeeConfigs);
+        dbContext.RiskFactorConfigs.RemoveRange(dbContext.RiskFactorConfigs);
 
         await dbContext.SaveChangesAsync();
     }

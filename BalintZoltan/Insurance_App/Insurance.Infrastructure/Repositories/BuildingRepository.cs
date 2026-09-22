@@ -1,6 +1,7 @@
 using Application.Abstractions;
 using Application.DTO.Common;
 using Domain.Entities;
+using Infrastructure.Extensions;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,28 +38,11 @@ public sealed class BuildingRepository : IBuildingRepository
             .AsNoTracking()
             .Where(building => building.ClientId == clientId);
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var pageNumber = Math.Max(pagination.PageNumber, 1);
-        var pageSize = Math.Min(
-            Math.Max(pagination.PageSize, 1),
-            100);
-
-        var buildings = await query
+        return await query
             .OrderBy(building => building.Street)
             .ThenBy(building => building.Number)
             .ThenBy(building => building.Id)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return new PagedResult<Building>
-        {
-            Items = buildings,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalCount = totalCount
-        };
+            .ToPagedResultAsync(pagination, cancellationToken);
     }
 
     public async Task UpdateBuildingAsync(Building building, CancellationToken cancellationToken = default)

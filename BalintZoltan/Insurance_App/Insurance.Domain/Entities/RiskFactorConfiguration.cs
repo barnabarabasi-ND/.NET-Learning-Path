@@ -6,21 +6,28 @@ public class RiskFactorConfiguration
 {
     public Guid Id { get; private set; }
     public RiskFactorLevel Level { get; private set; }
-    public Guid ReferenceId { get; private set; }
+    public string Reference { get; private set; }
     public decimal AdjustmentPercentage { get; private set; }
     public bool IsActive { get; private set; }
 
-    private RiskFactorConfiguration() { }
+    private RiskFactorConfiguration()
+    {
+        Reference = null!;
+    }
 
-    public RiskFactorConfiguration(RiskFactorLevel level, Guid referenceId,
-        decimal adjustmentPercentage, bool isActive = true)
+    public RiskFactorConfiguration(
+        RiskFactorLevel level,
+        string reference,
+        decimal adjustmentPercentage,
+        bool isActive = true)
     {
         if (!Enum.IsDefined(level)) throw new ArgumentException("Risk factor level is not valid.", nameof(level));
-        if (referenceId == Guid.Empty) throw new ArgumentException("Reference is required.", nameof(referenceId));
+        if (string.IsNullOrWhiteSpace(reference))
+            throw new ArgumentException("Reference is required.", nameof(reference));
 
         Id = Guid.NewGuid();
         Level = level;
-        ReferenceId = referenceId;
+        Reference = reference;
         AdjustmentPercentage = adjustmentPercentage;
         IsActive = isActive;
     }

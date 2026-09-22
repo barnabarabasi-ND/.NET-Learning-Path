@@ -7,7 +7,7 @@ public class FeeConfiguration
     public Guid Id { get; private set; }
     public string Name { get; private set; }
     public FeeType Type { get; private set; }
-    public decimal Percentage { get; private set; }
+    public decimal Value { get; private set; }
     public DateTime EffectiveFrom { get; private set; }
     public DateTime? EffectiveTo { get; private set; }
     public bool IsActive { get; private set; }
@@ -17,18 +17,18 @@ public class FeeConfiguration
         Name = null!;
     }
 
-    public FeeConfiguration(string name, FeeType type, decimal percentage,
+    public FeeConfiguration(string name, FeeType type, decimal value,
         DateTime effectiveFrom, DateTime? effectiveTo = null, bool isActive = true)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Fee name is required.", nameof(name));
         if (!Enum.IsDefined(type)) throw new ArgumentException("Fee type is not valid.", nameof(type));
-        if (percentage < 0) throw new ArgumentOutOfRangeException(nameof(percentage));
+        if (value < 0) throw new ArgumentOutOfRangeException(nameof(value));
         if (effectiveTo.HasValue && effectiveTo < effectiveFrom) throw new ArgumentException("Effective end cannot precede effective start.", nameof(effectiveTo));
 
         Id = Guid.NewGuid();
         Name = name;
         Type = type;
-        Percentage = percentage;
+        Value = value;
         EffectiveFrom = effectiveFrom;
         EffectiveTo = effectiveTo;
         IsActive = isActive;

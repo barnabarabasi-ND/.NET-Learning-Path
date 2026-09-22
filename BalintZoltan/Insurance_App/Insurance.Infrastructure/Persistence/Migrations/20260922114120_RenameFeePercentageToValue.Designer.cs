@@ -3,16 +3,19 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Persistence.Migrations
+namespace Insurance.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(InsuranceDbContext))]
-    partial class InsuranceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922114120_RenameFeePercentageToValue")]
+    partial class RenameFeePercentageToValue
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
@@ -278,13 +281,13 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Value")
-                        .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -387,14 +390,13 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Reference")
+                    b.Property<string>("ReferenceId")
                         .IsRequired()
-                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Level", "Reference")
+                    b.HasIndex("Level", "ReferenceId")
                         .IsUnique();
 
                     b.ToTable("RiskFactorConfigurations");

@@ -90,6 +90,7 @@ public sealed class ExceptionHandlingMiddleware
         problemDetails.Extensions["traceId"] = context.TraceIdentifier;
 
         await context.Response.WriteAsync(
-            JsonSerializer.Serialize(problemDetails));
+            JsonSerializer.Serialize(problemDetails),
+            context.RequestAborted);
     }
 }

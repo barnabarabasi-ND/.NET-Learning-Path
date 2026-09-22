@@ -3,16 +3,19 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Persistence.Migrations
+namespace Insurance.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(InsuranceDbContext))]
-    partial class InsuranceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922115530_AddRiskFactorBuildingTypeSupport")]
+    partial class AddRiskFactorBuildingTypeSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
@@ -379,6 +382,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasPrecision(8, 4)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("BuildingTypeReference")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
@@ -387,14 +394,12 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasMaxLength(100)
+                    b.Property<string>("ReferenceId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Level", "Reference")
+                    b.HasIndex("Level", "ReferenceId", "BuildingTypeReference")
                         .IsUnique();
 
                     b.ToTable("RiskFactorConfigurations");

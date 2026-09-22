@@ -1,6 +1,7 @@
 using Application.Abstractions;
 using Application.DTO.Buildings;
 using Application.DTO.Common;
+using Application.Exceptions;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -27,7 +28,7 @@ public class BuildingService : IBuildingService
 
         if (client is null)
         {
-            throw new InvalidOperationException("Client was not found.");
+            throw new NotFoundException("Client was not found.");
         }
     }
 
@@ -37,7 +38,7 @@ public class BuildingService : IBuildingService
 
         if (!cityExists)
         {
-            throw new InvalidOperationException("City was not found.");
+            throw new NotFoundException("City was not found.");
         }
     }
 
@@ -101,7 +102,7 @@ public class BuildingService : IBuildingService
 
         if (building is null)
         {
-            throw new InvalidOperationException("Building was not found.");
+            throw new NotFoundException("Building was not found.");
         }
 
         await CheckCityExistAsync(request.CityId, cancellationToken);

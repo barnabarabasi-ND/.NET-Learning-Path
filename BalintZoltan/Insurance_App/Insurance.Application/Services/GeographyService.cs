@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.DTO.Geography;
 using Domain.Entities;
+using Application.Exceptions;
 
 namespace Application.Services;
 
@@ -21,7 +22,7 @@ public class GeographyService : IGeographyService
                 countryId,
                 cancellationToken))
         {
-            throw new InvalidOperationException("Country was not found.");
+            throw new NotFoundException("Country was not found.");
         }
     }
 
@@ -33,7 +34,7 @@ public class GeographyService : IGeographyService
                 countyId,
                 cancellationToken))
         {
-            throw new InvalidOperationException("County was not found.");
+            throw new NotFoundException("County was not found.");
         }
     }
 
@@ -45,7 +46,7 @@ public class GeographyService : IGeographyService
                 cityId,
                 cancellationToken))
         {
-            throw new InvalidOperationException("City was not found.");
+            throw new NotFoundException("City was not found.");
         }
     }
 

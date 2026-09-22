@@ -1,4 +1,5 @@
 using Application.Helper;
+using Application.Exceptions;
 using Domain.Entities;
 
 namespace Application.Services
@@ -58,7 +59,7 @@ namespace Application.Services
         [Fact]
     public async Task GetCountiesByCountryIdAsync_Should_Throw_When_Country_Does_Not_Exist()
     {
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.GetCountiesByCountryIdAsync(Guid.NewGuid()));
 
             Assert.Equal("Country was not found.", exception.Message);
@@ -85,7 +86,7 @@ namespace Application.Services
         [Fact]
     public async Task GetCitiesByCountyIdAsync_Should_Throw_When_County_Does_Not_Exist()
     {
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.GetCitiesByCountyIdAsync(Guid.NewGuid()));
 
             Assert.Equal("County was not found.", exception.Message);

@@ -5,6 +5,7 @@ using Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using Application.DTO.Common;
+using Application.Exceptions;
 
 namespace Application.Services;
 
@@ -99,7 +100,7 @@ public class ClientService : IClientService
 
         if (client is null)
         {
-            throw new InvalidOperationException("Client was not found.");
+            throw new NotFoundException("Client was not found.");
         }
 
         if (client.IdentificationNumber != request.IdentificationNumber)

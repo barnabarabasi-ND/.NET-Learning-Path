@@ -1,7 +1,6 @@
 ﻿using InsuranceApp.Application.Abstractions.Persistence;
 using InsuranceApp.Application.Abstractions.Services;
 using InsuranceApp.Application.Common;
-using InsuranceApp.Application.DTOs.Client;
 using InsuranceApp.Application.DTOs.Currency;
 using InsuranceApp.Application.Exceptions;
 using InsuranceApp.Domain.Constants;

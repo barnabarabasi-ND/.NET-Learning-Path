@@ -59,7 +59,6 @@ internal sealed class PolicyConfiguration : IEntityTypeConfiguration<Policy>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.ClientId);
-        builder.HasIndex(x => x.BuildingId);
         builder.HasIndex(x => x.BrokerId);
         builder.HasIndex(x => x.CurrencyId);
         builder.HasIndex(x => x.Status);

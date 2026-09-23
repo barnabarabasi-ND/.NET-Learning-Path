@@ -148,16 +148,16 @@ public class ClientService : IClientService
         }
     }
 
-    private static void ValidateEmail(string Email)
+    private static void ValidateEmail(string email)
     {
-        if (string.IsNullOrWhiteSpace(Email))
+        if (string.IsNullOrWhiteSpace(email))
         {
             return;
         }
 
-        var email = Email.Trim();
+        var emailTrim = email.Trim();
 
-        if (email.Length > 254)
+        if (emailTrim.Length > 254)
         {
             throw new ArgumentException(
                 "Email cannot be longer than 254 characters.");
@@ -165,7 +165,7 @@ public class ClientService : IClientService
 
         var emailAttribute = new EmailAddressAttribute();
 
-        if (!emailAttribute.IsValid(email))
+        if (!emailAttribute.IsValid(emailTrim))
         {
             throw new ArgumentException(
                 "Invalid email address format.");

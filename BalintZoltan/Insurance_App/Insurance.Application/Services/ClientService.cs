@@ -1,10 +1,11 @@
 ﻿using Application.Abstractions;
 using Application.DTO.Clients;
+using Application.DTO.Common;
+using Application.Exceptions;
 using Domain.Entities;
 using Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-using Application.DTO.Common;
 
 namespace Application.Services;
 
@@ -25,8 +26,6 @@ public class ClientService : IClientService
             throw new InvalidOperationException(
                 "A client with this identification number already exists.");
         }
-
-
     }
     public async Task<ClientDto> CreateClientAsync(CreateClientRequest request, CancellationToken cancellationToken = default)
     {
@@ -99,7 +98,7 @@ public class ClientService : IClientService
 
         if (client is null)
         {
-            throw new InvalidOperationException("Client was not found.");
+            throw new NotFoundException("Client was not found.");
         }
 
         if (client.IdentificationNumber != request.IdentificationNumber)

@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace InsuranceApp.Api.Logging;
 
 public sealed class DailyFileLoggerProvider : ILoggerProvider
@@ -53,7 +51,7 @@ public sealed class DailyFileLoggerProvider : ILoggerProvider
                 return;
             }
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var fileName = $"{now:yyyy}_{now:MM}_{now:dd}.log";
             var filePath = Path.Combine(_logDirectory, fileName);
             var message = formatter(state, exception);
@@ -73,9 +71,20 @@ public sealed class DailyFileLoggerProvider : ILoggerProvider
                     File.AppendAllText(filePath, line);
                 }
             }
-            catch
+            catch (Exception loggingException)
             {
                 // Logging must never interrupt the request being processed.
+                try
+                {
+                    Console.Error.WriteLine(
+                        $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff zzz}] " +
+                        $"File logging failed for '{filePath}': " +
+                        loggingException.Message);
+                }
+                catch
+                {
+                    // A logging fallback must never interrupt the request either.
+                }
             }
         }
 

@@ -1,3 +1,4 @@
+using Application.Exceptions;
 using Application.Helper;
 using Domain.Entities;
 
@@ -12,6 +13,7 @@ namespace Application.Services
             _fakeRepositories = new FakeRepositories();
             _service = new GeographyService(_fakeRepositories.Geography);
         }
+
 
         [Fact]
         public async Task GetCountriesAsync_Should_Return_List()
@@ -56,9 +58,9 @@ namespace Application.Services
         }
 
         [Fact]
-    public async Task GetCountiesByCountryIdAsync_Should_Throw_When_Country_Does_Not_Exist()
-    {
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        public async Task GetCountiesByCountryIdAsync_Should_Throw_When_Country_Does_Not_Exist()
+        {
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.GetCountiesByCountryIdAsync(Guid.NewGuid()));
 
             Assert.Equal("Country was not found.", exception.Message);
@@ -83,9 +85,9 @@ namespace Application.Services
         }
 
         [Fact]
-    public async Task GetCitiesByCountyIdAsync_Should_Throw_When_County_Does_Not_Exist()
-    {
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        public async Task GetCitiesByCountyIdAsync_Should_Throw_When_County_Does_Not_Exist()
+        {
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.GetCitiesByCountyIdAsync(Guid.NewGuid()));
 
             Assert.Equal("County was not found.", exception.Message);

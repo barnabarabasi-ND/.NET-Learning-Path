@@ -1,5 +1,3 @@
-using Application.DTO.Common;
-
 namespace Application.DTO.Common;
 
 public class PagedResultTest

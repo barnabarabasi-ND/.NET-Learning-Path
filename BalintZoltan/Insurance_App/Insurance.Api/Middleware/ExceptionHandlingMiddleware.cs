@@ -1,6 +1,7 @@
+using Application.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 
 namespace InsuranceApp.Api.Middleware;
 
@@ -37,9 +38,7 @@ public sealed class ExceptionHandlingMiddleware
         {
             ArgumentException =>
                 (HttpStatusCode.BadRequest, "The request is invalid."),
-            InvalidOperationException invalidOperationException when
-                invalidOperationException.Message.Contains(
-                    "not found", StringComparison.OrdinalIgnoreCase) =>
+            NotFoundException =>
                 (HttpStatusCode.NotFound, "The requested resource was not found."),
             InvalidOperationException =>
                 (HttpStatusCode.Conflict, "The request conflicts with the current state."),

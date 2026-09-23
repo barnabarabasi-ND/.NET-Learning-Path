@@ -1,10 +1,9 @@
 using Application.DTO.Buildings;
 using Application.DTO.Common;
-using Application.Services;
+using Application.Exceptions;
+using Application.Helper;
 using Domain.Entities;
 using Domain.Enums;
-using Application.Helper;
-using Xunit;
 
 namespace Application.Services
 {
@@ -16,7 +15,7 @@ namespace Application.Services
         public BuildingServiceTest()
         {
             _fakeRepositories = new FakeRepositories();
-            _service = new BuildingService(_fakeRepositories.Building, _fakeRepositories.Client, _fakeRepositories.Geography);            
+            _service = new BuildingService(_fakeRepositories.Building, _fakeRepositories.Client, _fakeRepositories.Geography);
         }
 
         [Fact]
@@ -74,7 +73,7 @@ namespace Application.Services
                 IsEarthquakeRiskZone = true
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateBuildingAsync(request));
+            var ex = await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateBuildingAsync(request));
             Assert.Equal("Client was not found.", ex.Message);
         }
 
@@ -99,7 +98,7 @@ namespace Application.Services
                 IsEarthquakeRiskZone = true
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateBuildingAsync(request));
+            var ex = await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateBuildingAsync(request));
             Assert.Equal("City was not found.", ex.Message);
         }
 
@@ -155,7 +154,7 @@ namespace Application.Services
                 IsEarthquakeRiskZone = false
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateBuildingAsync(Guid.NewGuid(), update));
+            var ex = await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateBuildingAsync(Guid.NewGuid(), update));
             Assert.Equal("Building was not found.", ex.Message);
         }
 

@@ -1,11 +1,9 @@
-using Application.Abstractions;
 using Application.DTO.Clients;
 using Application.DTO.Common;
-using Application.Services;
+using Application.Exceptions;
+using Application.Helper;
 using Domain.Entities;
 using Domain.Enums;
-using Xunit;
-using Application.Helper;
 
 namespace Application.Services
 {
@@ -187,7 +185,7 @@ namespace Application.Services
                 IdentificationNumber = "1234567890123"
             };
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateClientAsync(Guid.NewGuid(), update));
+            var ex = await Assert.ThrowsAsync<NotFoundException>(() => service.UpdateClientAsync(Guid.NewGuid(), update));
             Assert.Equal("Client was not found.", ex.Message);
         }
 

@@ -16,7 +16,7 @@ public class ClientsController : ControllerBase
         _clientService = clientService;
     }
 
-    [HttpGet("{clientId:guid}")]
+    [HttpGet("{clientId:guid}", Name = nameof(GetClientByIdAsync))]
     public async Task<ActionResult<ClientDto>> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken)
     {
         var client = await _clientService.GetClientByIdAsync(clientId, cancellationToken);
@@ -52,8 +52,8 @@ public class ClientsController : ControllerBase
     {
         var client = await _clientService.CreateClientAsync(request, cancellationToken);
 
-        return CreatedAtAction(
-            "GetClientById",
+        return CreatedAtRoute(
+            nameof(GetClientByIdAsync),
             new { clientId = client.Id },
             client);
     }

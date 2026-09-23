@@ -38,18 +38,6 @@ public class GeographyService : IGeographyService
         }
     }
 
-    private async Task CheckCityExistsAsync(
-        Guid cityId,
-        CancellationToken cancellationToken)
-    {
-        if (!await _geographyRepository.CityExistsAsync(
-                cityId,
-                cancellationToken))
-        {
-            throw new NotFoundException("City was not found.");
-        }
-    }
-
     public async Task<IReadOnlyCollection<CountryDto>> GetCountriesAsync(CancellationToken cancellationToken = default)
     {
         var countries = await _geographyRepository.GetCountriesAsync(cancellationToken);

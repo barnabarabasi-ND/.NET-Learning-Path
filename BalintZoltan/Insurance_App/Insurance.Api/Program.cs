@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 var logDirectory = builder.Configuration["Logging:File:Path"]
-    ?? Path.Combine("..", "Insurance_App", "Log");
+    ?? Path.Combine("..", "Log");
 var resolvedLogDirectory = Path.GetFullPath(
     Path.Combine(builder.Environment.ContentRootPath, logDirectory));
 
@@ -35,7 +35,31 @@ using (var scope = app.Services.CreateScope())
         .GetRequiredService<InsuranceDbContext>();
 
     await dbContext.Database.MigrateAsync(app.Lifetime.ApplicationStopping);
-    await GeographySeeder.SeedAsync(
+    await scope.ServiceProvider.GetRequiredService<GeographySeeder>().SeedAsync(
+        dbContext,
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
+    await scope.ServiceProvider.GetRequiredService<CurrencySeeder>().SeedAsync(
+        dbContext,
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
+    await scope.ServiceProvider.GetRequiredService<FeeConfigurationSeeder>().SeedAsync(
+        dbContext,
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
+    await scope.ServiceProvider.GetRequiredService<RiskFactorConfigurationSeeder>().SeedAsync(
+        dbContext,
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
+    await scope.ServiceProvider.GetRequiredService<ClientSeeder>().SeedAsync(
+        dbContext,
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
+    await scope.ServiceProvider.GetRequiredService<BrokerSeeder>().SeedAsync(
+        dbContext,
+        app.Environment.ContentRootPath,
+        app.Lifetime.ApplicationStopping);
+    await scope.ServiceProvider.GetRequiredService<BuildingSeeder>().SeedAsync(
         dbContext,
         app.Environment.ContentRootPath,
         app.Lifetime.ApplicationStopping);
@@ -57,4 +81,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-await app.RunAsync();
+await app.RunAsync(app.Lifetime.ApplicationStopping);

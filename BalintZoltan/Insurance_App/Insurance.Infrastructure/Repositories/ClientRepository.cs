@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.DTO.Common;
 using Domain.Entities;
+using Infrastructure.Extensions;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,27 +63,10 @@ public sealed class ClientRepository : IClientRepository
                 client.IdentificationNumber == normalizedIdentifier);
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var pageNumber = Math.Max(pagination.PageNumber, 1);
-        var pageSize = Math.Min(
-            Math.Max(pagination.PageSize, 1),
-            100);
-
-        var clients = await query
+        return await query
             .OrderBy(client => client.Name)
             .ThenBy(client => client.Id)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return new PagedResult<Client>
-        {
-            Items = clients,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalCount = totalCount
-        };
+            .ToPagedResultAsync(pagination, cancellationToken);
     }
 
     public async Task UpdateClientAsync(Client client, CancellationToken cancellationToken = default)

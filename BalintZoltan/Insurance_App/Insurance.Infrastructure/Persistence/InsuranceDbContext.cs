@@ -10,6 +10,11 @@ public sealed class InsuranceDbContext : DbContext
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<County> Counties => Set<County>();
     public DbSet<City> Cities => Set<City>();
+    public DbSet<Policy> Policies => Set<Policy>();
+    public DbSet<Broker> Brokers => Set<Broker>();
+    public DbSet<Currency> Currencies => Set<Currency>();
+    public DbSet<FeeConfiguration> FeeConfigurations => Set<FeeConfiguration>();
+    public DbSet<RiskFactorConfiguration> RiskFactorConfigurations => Set<RiskFactorConfiguration>();
 
     public InsuranceDbContext(DbContextOptions<InsuranceDbContext> options)
         : base(options)

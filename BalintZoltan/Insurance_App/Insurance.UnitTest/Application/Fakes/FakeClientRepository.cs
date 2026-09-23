@@ -10,7 +10,7 @@ public sealed class FakeClientRepository : IClientRepository
 
     public void Seed(Client client) => Storage[client.Id] = client;
 
-    public Task AddClientAsync(Client client)
+    public Task AddClientAsync(Client client, CancellationToken cancellationToken = default)
     {
         Storage[client.Id] = client;
         return Task.CompletedTask;
@@ -18,7 +18,8 @@ public sealed class FakeClientRepository : IClientRepository
 
     public Task<bool> ExistsClientByIdentificationNumberAsync(
         string identificationNumber,
-        Guid? excludedClientId = null)
+        Guid? excludedClientId = null,
+        CancellationToken cancellationToken = default)
     {
         var exists = Storage.Values.Any(client =>
             client.IdentificationNumber == identificationNumber
@@ -27,7 +28,7 @@ public sealed class FakeClientRepository : IClientRepository
         return Task.FromResult(exists);
     }
 
-    public Task<Client?> GetClientByIdAsync(Guid id)
+    public Task<Client?> GetClientByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         Storage.TryGetValue(id, out var client);
         return Task.FromResult(client);
@@ -36,7 +37,8 @@ public sealed class FakeClientRepository : IClientRepository
     public Task<PagedResult<Client>> SearchClientAsync(
         string? name,
         string? identifier,
-        PaginationRequest pagination)
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
     {
         var query = Storage.Values.AsEnumerable();
 
@@ -69,7 +71,7 @@ public sealed class FakeClientRepository : IClientRepository
         });
     }
 
-    public Task UpdateClientAsync(Client client)
+    public Task UpdateClientAsync(Client client, CancellationToken cancellationToken = default)
     {
         Storage[client.Id] = client;
         return Task.CompletedTask;

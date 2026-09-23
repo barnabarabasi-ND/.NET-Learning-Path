@@ -14,38 +14,52 @@ public sealed class GeographyRepository : IGeographyRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<Country>> GetCountriesAsync()
+    public Task<bool> CountryExistsAsync(
+        Guid countryId,
+        CancellationToken cancellationToken = default) =>
+        _dbContext.Countries.AnyAsync(
+            country => country.Id == countryId,
+            cancellationToken);
+
+    public Task<bool> CountyExistsAsync(
+        Guid countyId,
+        CancellationToken cancellationToken = default) =>
+        _dbContext.Counties.AnyAsync(
+            county => county.Id == countyId,
+            cancellationToken);
+
+    public async Task<IReadOnlyCollection<Country>> GetCountriesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.Countries
             .AsNoTracking()
             .OrderBy(country => country.Name)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<County>>
-        GetCountiesByCountryIdAsync(Guid countryId)
+        GetCountiesByCountryIdAsync(Guid countryId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Counties
             .AsNoTracking()
             .Where(county => county.CountryId == countryId)
             .OrderBy(county => county.Name)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<City>>
-        GetCitiesByCountyIdAsync(Guid countyId)
+        GetCitiesByCountyIdAsync(Guid countyId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Cities
             .AsNoTracking()
             .Where(city => city.CountyId == countyId)
             .OrderBy(city => city.Name)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> CityExistsAsync(Guid cityId)
+    public async Task<bool> CityExistsAsync(Guid cityId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Cities
             .AsNoTracking()
-            .AnyAsync(city => city.Id == cityId);
+            .AnyAsync(city => city.Id == cityId, cancellationToken);
     }
 }

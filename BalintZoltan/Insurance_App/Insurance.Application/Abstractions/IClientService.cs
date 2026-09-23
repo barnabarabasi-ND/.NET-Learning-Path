@@ -5,14 +5,15 @@ namespace Application.Abstractions;
 
 public interface IClientService
 {
-    Task<ClientDto> CreateClientAsync(CreateClientRequest request);
+    Task<ClientDto> CreateClientAsync(CreateClientRequest request, CancellationToken cancellationToken = default);
 
-    Task<ClientDto?> GetClientByIdAsync(Guid id);
+    Task<ClientDto?> GetClientByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<PagedResult<ClientDto>> SearchClientAsync(
         string? name,
         string? identifier,
-        PaginationRequest pagination);
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default);
 
-    Task<ClientDto> UpdateClientAsync(Guid id, UpdateClientRequest request);
+    Task<ClientDto> UpdateClientAsync(Guid id, UpdateClientRequest request, CancellationToken cancellationToken = default);
 }

@@ -15,10 +15,10 @@ public class ClientService : IClientService
     {
         _clientRepository = clientRepository;
     }
-    private async Task CheckClientIdentificationNumberExistAsync(string identificationNumber)
+    private async Task CheckClientIdentificationNumberExistAsync(string identificationNumber, CancellationToken cancellationToken)
     {
         var exists = await _clientRepository
-            .ExistsClientByIdentificationNumberAsync(identificationNumber);
+            .ExistsClientByIdentificationNumberAsync(identificationNumber, cancellationToken: cancellationToken);
 
         if (exists)
         {
@@ -28,11 +28,11 @@ public class ClientService : IClientService
 
 
     }
-    public async Task<ClientDto> CreateClientAsync(CreateClientRequest request)
+    public async Task<ClientDto> CreateClientAsync(CreateClientRequest request, CancellationToken cancellationToken = default)
     {
         ValidateIdentificationNumber(request.ClientType, request.IdentificationNumber);
         ValidateEmail(request.Email);
-        await CheckClientIdentificationNumberExistAsync(request.IdentificationNumber);
+        await CheckClientIdentificationNumberExistAsync(request.IdentificationNumber, cancellationToken);
 
         var client = new Client(
             request.ClientType,
@@ -42,7 +42,7 @@ public class ClientService : IClientService
             request.Phone,
             request.Address);
 
-        await _clientRepository.AddClientAsync(client);
+        await _clientRepository.AddClientAsync(client, cancellationToken);
 
         return new ClientDto
         {
@@ -55,9 +55,9 @@ public class ClientService : IClientService
             Address = client.Address
         };
     }
-    public async Task<ClientDto?> GetClientByIdAsync(Guid id)
+    public async Task<ClientDto?> GetClientByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var client = await _clientRepository.GetClientByIdAsync(id);
+        var client = await _clientRepository.GetClientByIdAsync(id, cancellationToken);
 
         if (client is null)
         {
@@ -69,12 +69,14 @@ public class ClientService : IClientService
     public async Task<PagedResult<ClientDto>> SearchClientAsync(
         string? name,
         string? identifier,
-        PaginationRequest pagination)
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
     {
         var result = await _clientRepository.SearchClientAsync(
             name,
             identifier,
-            pagination);
+            pagination,
+            cancellationToken);
 
         return new PagedResult<ClientDto>
         {
@@ -90,9 +92,10 @@ public class ClientService : IClientService
 
     public async Task<ClientDto> UpdateClientAsync(
            Guid id,
-           UpdateClientRequest request)
+           UpdateClientRequest request,
+           CancellationToken cancellationToken = default)
     {
-        var client = await _clientRepository.GetClientByIdAsync(id);
+        var client = await _clientRepository.GetClientByIdAsync(id, cancellationToken);
 
         if (client is null)
         {
@@ -117,7 +120,7 @@ public class ClientService : IClientService
             request.Phone,
             request.Address);
 
-        await _clientRepository.UpdateClientAsync(client);
+        await _clientRepository.UpdateClientAsync(client, cancellationToken);
 
         return MapToClientDto(client);
     }
@@ -145,16 +148,16 @@ public class ClientService : IClientService
         }
     }
 
-    private static void ValidateEmail(string Email)
+    private static void ValidateEmail(string email)
     {
-        if (string.IsNullOrWhiteSpace(Email))
+        if (string.IsNullOrWhiteSpace(email))
         {
             return;
         }
 
-        var email = Email.Trim();
+        var emailTrim = email.Trim();
 
-        if (email.Length > 254)
+        if (emailTrim.Length > 254)
         {
             throw new ArgumentException(
                 "Email cannot be longer than 254 characters.");
@@ -162,7 +165,7 @@ public class ClientService : IClientService
 
         var emailAttribute = new EmailAddressAttribute();
 
-        if (!emailAttribute.IsValid(email))
+        if (!emailAttribute.IsValid(emailTrim))
         {
             throw new ArgumentException(
                 "Invalid email address format.");

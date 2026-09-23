@@ -4,11 +4,13 @@ namespace Application.Abstractions;
 
 public interface IGeographyService
 {
-    Task<IReadOnlyCollection<CountryDto>> GetCountriesAsync();
+    Task<IReadOnlyCollection<CountryDto>> GetCountriesAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<CountyDto>> GetCountiesByCountryIdAsync(
-        Guid countryId);
+        Guid countryId,
+        CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<CityDto>> GetCitiesByCountyIdAsync(
-        Guid countyId);
+        Guid countyId,
+        CancellationToken cancellationToken = default);
 }

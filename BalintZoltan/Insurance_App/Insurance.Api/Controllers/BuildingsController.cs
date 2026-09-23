@@ -3,7 +3,7 @@ using Application.DTO.Buildings;
 using Application.DTO.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers;
+namespace InsuranceApp.Api.Controllers;
 
 [ApiController]
 [Route("api/brokers")]
@@ -16,10 +16,10 @@ public class BuildingsController : ControllerBase
         _buildingService = buildingService;
     }
 
-    [HttpGet("buildings/{buildingId:guid}")]
-    public async Task<ActionResult<BuildingDto>> GetBuildingByIdAsync(Guid buildingId)
+    [HttpGet("buildings/{buildingId:guid}", Name = nameof(GetBuildingByIdAsync))]
+    public async Task<ActionResult<BuildingDto>> GetBuildingByIdAsync(Guid buildingId, CancellationToken cancellationToken)
     {
-        var building = await _buildingService.GetBuildingByIdAsync(buildingId);
+        var building = await _buildingService.GetBuildingByIdAsync(buildingId, cancellationToken);
 
         if (building is null)
         {
@@ -33,11 +33,13 @@ public class BuildingsController : ControllerBase
     public async Task<ActionResult<PagedResult<BuildingDto>>>
         GetByClientIdAsync(
             Guid clientId,
-            [FromQuery] PaginationRequest pagination)
+            [FromQuery] PaginationRequest pagination,
+            CancellationToken cancellationToken)
     {
         var buildings = await _buildingService.GetBuildingByClientIdAsync(
             clientId,
-            pagination);
+            pagination,
+            cancellationToken);
 
         return Ok(buildings);
     }
@@ -45,13 +47,14 @@ public class BuildingsController : ControllerBase
     [HttpPost("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<BuildingDto>> CreateBuildingAsync(
         Guid clientId,
-        CreateBuildingRequest request)
+        CreateBuildingRequest request,
+        CancellationToken cancellationToken)
     {
         request.ClientId = clientId;
-        var building = await _buildingService.CreateBuildingAsync(request);
+        var building = await _buildingService.CreateBuildingAsync(request, cancellationToken);
 
-        return CreatedAtAction(
-            "GetBuildingById",
+        return CreatedAtRoute(
+            nameof(GetBuildingByIdAsync),
             new { buildingId = building.Id },
             building);
     }
@@ -59,9 +62,10 @@ public class BuildingsController : ControllerBase
     [HttpPut("buildings/{buildingId:guid}")]
     public async Task<ActionResult<BuildingDto>> UpdateBuildingAsync(
         Guid buildingId,
-        UpdateBuildingRequest request)
+        UpdateBuildingRequest request,
+        CancellationToken cancellationToken)
     {
-        var building = await _buildingService.UpdateBuildingAsync(buildingId, request);
+        var building = await _buildingService.UpdateBuildingAsync(buildingId, request, cancellationToken);
 
         return Ok(building);
     }

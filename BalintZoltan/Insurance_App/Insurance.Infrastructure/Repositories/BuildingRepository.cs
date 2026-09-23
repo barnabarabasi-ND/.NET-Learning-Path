@@ -1,6 +1,7 @@
 using Application.Abstractions;
 using Application.DTO.Common;
 using Domain.Entities;
+using Infrastructure.Extensions;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,54 +16,38 @@ public sealed class BuildingRepository : IBuildingRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddBuildingAsync(Building building)
+    public async Task AddBuildingAsync(Building building, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Buildings.AddAsync(building);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.Buildings.AddAsync(building, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Building?> GetBuildingByIdAsync(Guid id)
+    public async Task<Building?> GetBuildingByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Buildings
             .AsNoTracking()
-            .FirstOrDefaultAsync(building => building.Id == id);
+            .FirstOrDefaultAsync(building => building.Id == id, cancellationToken);
     }
 
     public async Task<PagedResult<Building>> GetBuildingByClientIdAsync(
         Guid clientId,
-        PaginationRequest pagination)
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Buildings
             .AsNoTracking()
             .Where(building => building.ClientId == clientId);
 
-        var totalCount = await query.CountAsync();
-
-        var pageNumber = Math.Max(pagination.PageNumber, 1);
-        var pageSize = Math.Min(
-            Math.Max(pagination.PageSize, 1),
-            100);
-
-        var buildings = await query
+        return await query
             .OrderBy(building => building.Street)
             .ThenBy(building => building.Number)
             .ThenBy(building => building.Id)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return new PagedResult<Building>
-        {
-            Items = buildings,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalCount = totalCount
-        };
+            .ToPagedResultAsync(pagination, cancellationToken);
     }
 
-    public async Task UpdateBuildingAsync(Building building)
+    public async Task UpdateBuildingAsync(Building building, CancellationToken cancellationToken = default)
     {
         _dbContext.Buildings.Update(building);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

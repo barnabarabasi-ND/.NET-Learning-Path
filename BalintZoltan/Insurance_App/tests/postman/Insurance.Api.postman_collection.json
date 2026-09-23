@@ -692,6 +692,95 @@
             },
             "url": "{{baseUrl}}/api/brokers/buildings/{{missingId}}"
           }
+        },
+        {
+          "name": "Create building - city not found",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('missingCityId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404 Not Found', function () { pm.response.to.have.status(404); });",
+                  "const body = pm.response.json();",
+                  "pm.test('ProblemDetails identifies missing city', function () { pm.expect(body.title).to.eql('The requested resource was not found.'); pm.expect(body.detail).to.eql('City was not found.'); });",
+                  "pm.test('Response contains trace id', function () { pm.expect(body.traceId).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cityId\": \"{{missingCityId}}\",\n  \"street\": \"Invalid City Street\",\n  \"number\": \"1\",\n  \"constructionYear\": 2000,\n  \"type\": 5,\n  \"numberOfFloors\": 1,\n  \"surfaceArea\": 50,\n  \"insuredValue\": 100000,\n  \"isFloodRiskZone\": false,\n  \"isEarthquakeRiskZone\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/brokers/clients/{{clientId}}/buildings"
+          }
+        },
+        {
+          "name": "Update building - city not found",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('missingCityId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404 Not Found', function () { pm.response.to.have.status(404); });",
+                  "const body = pm.response.json();",
+                  "pm.test('ProblemDetails identifies missing city', function () { pm.expect(body.detail).to.eql('City was not found.'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cityId\": \"{{missingCityId}}\",\n  \"street\": \"Invalid City Street\",\n  \"number\": \"1\",\n  \"constructionYear\": 2000,\n  \"type\": 5,\n  \"numberOfFloors\": 1,\n  \"surfaceArea\": 50,\n  \"insuredValue\": 100000,\n  \"isFloodRiskZone\": false,\n  \"isEarthquakeRiskZone\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/brokers/buildings/{{buildingId}}"
+          }
         }
       ]
     }

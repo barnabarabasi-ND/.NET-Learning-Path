@@ -9,7 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace InsuranceApp.IntegrationTests.Infrastructure;
 
-public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Program>
+public sealed class InsuranceAppWebApplicationFactory
+    : WebApplicationFactory<Program>
 {
     private readonly SqliteConnection _connection;
 
@@ -23,9 +24,7 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
     {
         builder.UseEnvironment("Testing");
 
-        Environment.SetEnvironmentVariable(
-            "ASPNETCORE_ENVIRONMENT",
-            "Testing");
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
         builder.ConfigureServices(services =>
         {
@@ -38,7 +37,8 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
             using var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
 
-            var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+            var dbContext = scope.ServiceProvider
+                .GetRequiredService<InsuranceDbContext>();
 
             dbContext.Database.EnsureCreated();
         });
@@ -48,16 +48,43 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
     {
         using var scope = Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
 
         // Delete children before parents to respect foreign keys.
-        dbContext.Buildings.RemoveRange(dbContext.Buildings);
 
-        dbContext.Clients.RemoveRange(dbContext.Clients);
+        dbContext.Policies.RemoveRange(
+            dbContext.Policies);
 
-        dbContext.Cities.RemoveRange(dbContext.Cities);
-        dbContext.Counties.RemoveRange(dbContext.Counties);
-        dbContext.Countries.RemoveRange(dbContext.Countries);
+        dbContext.Buildings.RemoveRange(
+            dbContext.Buildings);
+
+        dbContext.RiskFactorConfigs.RemoveRange(
+            dbContext.RiskFactorConfigs);
+
+        dbContext.Clients.RemoveRange(
+            dbContext.Clients);
+
+        dbContext.Cities.RemoveRange(
+            dbContext.Cities);
+
+        dbContext.Counties.RemoveRange(
+            dbContext.Counties);
+
+        dbContext.Countries.RemoveRange(
+            dbContext.Countries);
+
+        dbContext.BuildingTypes.RemoveRange(
+            dbContext.BuildingTypes);
+
+        dbContext.Currencies.RemoveRange(
+            dbContext.Currencies);
+
+        dbContext.FeeConfigs.RemoveRange(
+            dbContext.FeeConfigs);
+
+        dbContext.Brokers.RemoveRange(
+            dbContext.Brokers);
 
         await dbContext.SaveChangesAsync();
     }
@@ -66,45 +93,46 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
     {
         using var scope = Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
 
         var romania = new Country
         {
-            CountryId = 1,
+            CountryId = Guid.NewGuid(),
             Name = "Romania"
         };
 
         var hungary = new Country
         {
-            CountryId = 2,
+            CountryId = Guid.NewGuid(),
             Name = "Hungary"
         };
 
         var cluj = new County
         {
-            CountyId = 1,
-            CountryId = 1,
+            CountyId = Guid.NewGuid(),
+            CountryId = romania.CountryId,
             Name = "Cluj"
         };
 
         var brasov = new County
         {
-            CountyId = 2,
-            CountryId = 1,
+            CountyId = Guid.NewGuid(),
+            CountryId = romania.CountryId,
             Name = "Brasov"
         };
 
         var clujNapoca = new City
         {
-            CityId = 1,
-            CountyId = 1,
+            CityId = Guid.NewGuid(),
+            CountyId = cluj.CountyId,
             Name = "Cluj-Napoca"
         };
 
         var turda = new City
         {
-            CityId = 2,
-            CountyId = 1,
+            CityId = Guid.NewGuid(),
+            CountyId = cluj.CountyId,
             Name = "Turda"
         };
 
@@ -119,6 +147,38 @@ public sealed class InsuranceAppWebApplicationFactory : WebApplicationFactory<Pr
         dbContext.Cities.AddRange(
             clujNapoca,
             turda);
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task SeedBuildingTypesAsync()
+    {
+        using var scope = Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
+
+        if (await dbContext.BuildingTypes.AnyAsync())
+        {
+            return;
+        }
+
+        dbContext.BuildingTypes.AddRange(
+            new BuildingType
+            {
+                BuildingTypeId = Guid.NewGuid(),
+                Name = "Residential"
+            },
+            new BuildingType
+            {
+                BuildingTypeId = Guid.NewGuid(),
+                Name = "Office"
+            },
+            new BuildingType
+            {
+                BuildingTypeId = Guid.NewGuid(),
+                Name = "Industrial"
+            });
 
         await dbContext.SaveChangesAsync();
     }

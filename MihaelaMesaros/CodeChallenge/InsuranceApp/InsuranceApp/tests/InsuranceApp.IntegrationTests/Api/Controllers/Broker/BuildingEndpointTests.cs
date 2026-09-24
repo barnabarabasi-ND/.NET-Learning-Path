@@ -1,6 +1,4 @@
-﻿using InsuranceApp.Application.Common;
-using InsuranceApp.Application.DTOs.Building;
-using InsuranceApp.Domain.Constants;
+﻿using InsuranceApp.Application.DTOs.Building;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
 using InsuranceApp.Infrastructure.Persistence;
@@ -301,26 +299,13 @@ public sealed class BuildingEndpointsTests(
             InsuredValue = 1000.999m
         };
 
-        // Verify test data itself
-        Assert.Equal(1000.999m, request.InsuredValue);
-
-        Assert.False(
-            DecimalValidation.HasValidScale(
-                request.InsuredValue,
-                CommonConstraints.DecimalScale));
-
         // Act
         var response = await _client.PostAsJsonAsync(
             $"/api/brokers/clients/{clientId}/buildings",
             request);
 
-        var body = await response.Content.ReadAsStringAsync();
-
         // Assert
-        Assert.True(
-            response.StatusCode == HttpStatusCode.BadRequest,
-            $"Expected BadRequest but got {response.StatusCode}.{Environment.NewLine}" +
-            $"Response: {body}");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     #endregion

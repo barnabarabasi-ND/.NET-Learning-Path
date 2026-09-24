@@ -3,7 +3,7 @@
 namespace InsuranceApp.Application.DTOs.FeeConfig;
 
 public sealed record FeeConfigDto(
-    int FeeConfigId,
+    Guid FeeConfigId,
     string Name,
     FeeType FeeType,
     decimal Percentage,

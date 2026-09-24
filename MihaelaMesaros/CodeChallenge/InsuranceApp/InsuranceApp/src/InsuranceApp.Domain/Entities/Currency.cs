@@ -2,7 +2,7 @@
 
 public sealed class Currency
 {
-    public int CurrencyId { get; set; }
+    public Guid CurrencyId { get; set; }
 
     public string Code { get; set; } = null!;
 

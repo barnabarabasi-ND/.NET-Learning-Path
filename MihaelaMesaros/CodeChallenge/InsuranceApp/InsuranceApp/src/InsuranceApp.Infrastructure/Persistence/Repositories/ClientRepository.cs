@@ -34,7 +34,7 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
         return (clients, totalCount);
     }
 
-    public Task<Client?> GetClientByIdAsync(int clientId, CancellationToken cancellationToken)
+    public Task<Client?> GetClientByIdAsync(Guid clientId, CancellationToken cancellationToken)
     {
         return dbContext.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.ClientId == clientId, cancellationToken);
     }
@@ -63,7 +63,7 @@ internal sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRe
         return dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<Client?> GetClientForUpdateAsync(int clientId, CancellationToken cancellationToken)
+    public Task<Client?> GetClientForUpdateAsync(Guid clientId, CancellationToken cancellationToken)
     {
         return dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == clientId, cancellationToken);
     }

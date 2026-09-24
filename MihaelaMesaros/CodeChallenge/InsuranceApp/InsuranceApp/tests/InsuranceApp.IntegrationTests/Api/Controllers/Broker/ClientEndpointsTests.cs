@@ -13,7 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace InsuranceApp.IntegrationTests.Api.Controllers.Broker;
 
-public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
+public sealed class ClientEndpointsTests(
+    InsuranceAppWebApplicationFactory factory)
+    : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {
     private readonly InsuranceAppWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
@@ -24,7 +26,6 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
-
 
     #region Create Client Tests
 
@@ -48,7 +49,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             await response.Content.ReadFromJsonAsync<ClientDto>();
 
         Assert.NotNull(createdClient);
-        Assert.True(createdClient.ClientId > 0);
+        Assert.NotEqual(Guid.Empty, createdClient.ClientId);
 
         Assert.NotNull(response.Headers.Location);
         Assert.Equal(
@@ -68,11 +69,10 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         var dbContext = scope.ServiceProvider
             .GetRequiredService<InsuranceDbContext>();
 
-        var persistedClient =
-            await dbContext.Clients
-                .AsNoTracking()
-                .FirstOrDefaultAsync(
-                    x => x.ClientId == createdClient.ClientId);
+        var persistedClient = await dbContext.Clients
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.ClientId == createdClient.ClientId);
 
         Assert.NotNull(persistedClient);
 
@@ -173,7 +173,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         // Arrange
         var request = CreateValidClientDto();
 
-        // Act - send both requests concurrently
+        // Act
         var task1 = _client.PostAsJsonAsync(
             "/api/brokers/clients",
             request);
@@ -199,14 +199,16 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             .GetRequiredService<InsuranceDbContext>();
 
         var count = await dbContext.Clients.CountAsync(
-            x => x.IdentificationNumber == request.IdentificationNumber);
+            x => x.IdentificationNumber ==
+                 request.IdentificationNumber);
 
         Assert.Equal(1, count);
     }
+
     #endregion
 
-
     #region Read Client Tests
+
     [Fact]
     public async Task GetClientById_ExistingClient_ReturnsOk()
     {
@@ -253,22 +255,23 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         Assert.Equal(404, problem.Status);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task GetClientById_InvalidClientId_ReturnsBadRequest(int clientId)
+    [Fact]
+    public async Task GetClientById_EmptyClientId_ReturnsBadRequest()
     {
+        // Act
         var response = await _client.GetAsync(
-            $"/api/brokers/clients/{clientId}");
+            $"/api/brokers/clients/{Guid.Empty}");
 
+        // Assert
         Assert.Equal(
             HttpStatusCode.BadRequest,
             response.StatusCode);
     }
+
     #endregion
 
-
     #region Search Clients Tests
+
     [Fact]
     public async Task SearchClients_ByPartialName_ReturnsMatchingClients()
     {
@@ -321,7 +324,6 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
                 .ReadFromJsonAsync<PagedResult<ClientDto>>();
 
         Assert.NotNull(result);
-
         Assert.Single(result.Items);
 
         Assert.Equal(
@@ -359,7 +361,8 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public async Task SearchClients_InvalidPageNumber_ReturnsBadRequest(int pageNumber)
+    public async Task SearchClients_InvalidPageNumber_ReturnsBadRequest(
+        int pageNumber)
     {
         var response = await _client.GetAsync(
             $"/api/brokers/clients?pageNumber={pageNumber}&pageSize=50");
@@ -372,7 +375,8 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
     [Theory]
     [InlineData(0)]
     [InlineData(101)]
-    public async Task SearchClients_InvalidPageSize_ReturnsBadRequest(int pageSize)
+    public async Task SearchClients_InvalidPageSize_ReturnsBadRequest(
+        int pageSize)
     {
         var response = await _client.GetAsync(
             $"/api/brokers/clients?pageNumber=1&pageSize={pageSize}");
@@ -381,8 +385,8 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             HttpStatusCode.BadRequest,
             response.StatusCode);
     }
-    #endregion
 
+    #endregion
 
     #region Update Client Tests
 
@@ -412,13 +416,17 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             await response.Content.ReadFromJsonAsync<ClientDto>();
 
         Assert.NotNull(updatedClient);
+        Assert.Equal(clientId, updatedClient.ClientId);
 
-        Assert.Equal("John Updated", updatedClient.Name);
+        Assert.Equal(
+            "John Updated",
+            updatedClient.Name);
+
         Assert.Equal(
             "john.updated@test.com",
             updatedClient.Email);
 
-        // Identifier must remain unchanged
+        // Identifier must remain unchanged.
         Assert.Equal(
             "1980101223344",
             updatedClient.IdentificationNumber);
@@ -429,10 +437,9 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         var dbContext = scope.ServiceProvider
             .GetRequiredService<InsuranceDbContext>();
 
-        var persistedClient =
-            await dbContext.Clients
-                .AsNoTracking()
-                .FirstAsync(x => x.ClientId == clientId);
+        var persistedClient = await dbContext.Clients
+            .AsNoTracking()
+            .FirstAsync(x => x.ClientId == clientId);
 
         Assert.Equal(
             "John Updated",
@@ -467,6 +474,27 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         // Assert
         Assert.Equal(
             HttpStatusCode.NotFound,
+            response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateClient_EmptyClientId_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new UpdateClientDto(
+            "John Updated",
+            "john.updated@test.com",
+            null,
+            null);
+
+        // Act
+        var response = await _client.PutAsJsonAsync(
+            $"/api/brokers/clients/{Guid.Empty}",
+            request);
+
+        // Assert
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
             response.StatusCode);
     }
 
@@ -515,8 +543,8 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             HttpStatusCode.BadRequest,
             response.StatusCode);
     }
-    #endregion
 
+    #endregion
 
     #region Helpers
 
@@ -531,7 +559,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             "Cluj-Napoca");
     }
 
-    private async Task<int> SeedClientAsync()
+    private async Task<Guid> SeedClientAsync()
     {
         using var scope = _factory.Services.CreateScope();
 
@@ -540,6 +568,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
 
         var client = new Client
         {
+            ClientId = Guid.NewGuid(),
             ClientType = ClientType.Individual,
             Name = "John Doe",
             IdentificationNumber = "1980101223344",
@@ -566,6 +595,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
         dbContext.Clients.AddRange(
             new Client
             {
+                ClientId = Guid.NewGuid(),
                 ClientType = ClientType.Individual,
                 Name = "John Doe",
                 IdentificationNumber = "1980101223344",
@@ -574,6 +604,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             },
             new Client
             {
+                ClientId = Guid.NewGuid(),
                 ClientType = ClientType.Individual,
                 Name = "John Smith",
                 IdentificationNumber = "1990202334455",
@@ -582,6 +613,7 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
             },
             new Client
             {
+                ClientId = Guid.NewGuid(),
                 ClientType = ClientType.Company,
                 Name = "Demo Company",
                 IdentificationNumber = "RO12345678",
@@ -591,5 +623,6 @@ public sealed class ClientEndpointsTests(InsuranceAppWebApplicationFactory facto
 
         await dbContext.SaveChangesAsync();
     }
+
     #endregion
 }

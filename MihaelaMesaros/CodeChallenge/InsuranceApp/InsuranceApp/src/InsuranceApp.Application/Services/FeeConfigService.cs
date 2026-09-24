@@ -20,9 +20,9 @@ public sealed class FeeConfigService(IFeeConfigRepository feeConfigRepository, I
         return Result<IReadOnlyList<FeeConfigDto>>.Success(feeDtos);
     }
 
-    public async Task<Result<FeeConfigDto>> GetFeeConfigByIdAsync(int feeConfigId, CancellationToken cancellationToken)
+    public async Task<Result<FeeConfigDto>> GetFeeConfigByIdAsync(Guid feeConfigId, CancellationToken cancellationToken)
     {
-        if (feeConfigId <= 0)
+        if (feeConfigId == Guid.Empty)
         {
             return Result<FeeConfigDto>.Failure(FeeConfigErrors.InvalidFeeConfigId);
         }
@@ -72,9 +72,9 @@ public sealed class FeeConfigService(IFeeConfigRepository feeConfigRepository, I
         return Result<FeeConfigDto>.Success(MapFeeConfigToDto(fee));
     }
 
-    public async Task<Result<FeeConfigDto>> UpdateFeeConfigAsync(int feeConfigId, UpdateFeeConfigDto dto, CancellationToken cancellationToken)
+    public async Task<Result<FeeConfigDto>> UpdateFeeConfigAsync(Guid feeConfigId, UpdateFeeConfigDto dto, CancellationToken cancellationToken)
     {
-        if (feeConfigId <= 0)
+        if (feeConfigId == Guid.Empty)
         {
             return Result<FeeConfigDto>.Failure(FeeConfigErrors.InvalidFeeConfigId);
         }

@@ -33,16 +33,23 @@ public sealed class FeeConfigServiceTests
         // Arrange
         var fees = new List<FeeConfig>
         {
-            CreateFeeConfigEntity(1, "Broker fee", FeeType.BrokerCommission),
-            CreateFeeConfigEntity(2, "Admin fee", FeeType.AdminFee)
+            CreateFeeConfigEntity(
+                name: "Broker fee",
+                feeType: FeeType.BrokerCommission),
+
+            CreateFeeConfigEntity(
+                name: "Admin fee",
+                feeType: FeeType.AdminFee)
         };
 
         _repositoryMock
-            .Setup(x => x.GetFeeConfigsAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetFeeConfigsAsync(
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(fees);
 
         // Act
-        var result = await _service.GetFeeConfigsAsync(CancellationToken.None);
+        var result = await _service.GetFeeConfigsAsync(
+            CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -82,7 +89,7 @@ public sealed class FeeConfigServiceTests
     public async Task GetFeeConfigByIdAsync_NonExistingFeeConfig_ReturnsNotFound()
     {
         // Arrange
-        const int feeConfigId = TestConstants.NonExistingId;
+        var feeConfigId = TestConstants.NonExistingId;
 
         _repositoryMock
             .Setup(x => x.GetFeeConfigByIdAsync(
@@ -97,37 +104,37 @@ public sealed class FeeConfigServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
         Assert.Equal(
             FeeConfigErrors.NotFound(feeConfigId).Code,
             result.Error.Code);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task GetFeeConfigByIdAsync_InvalidId_ReturnsValidationError(int feeConfigId)
+    [Fact]
+    public async Task GetFeeConfigByIdAsync_EmptyId_ReturnsValidationError()
     {
         // Act
         var result = await _service.GetFeeConfigByIdAsync(
-            feeConfigId,
+            Guid.Empty,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
         Assert.Equal(
             FeeConfigErrors.InvalidFeeConfigId.Code,
-            result.Error!.Code);
+            result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.GetFeeConfigByIdAsync(
-                It.IsAny<int>(),
+                It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     #endregion
-
 
     #region Create Fee Config Tests
 
@@ -193,15 +200,23 @@ public sealed class FeeConfigServiceTests
     [Fact]
     public async Task CreateFeeConfigAsync_MissingName_ReturnsValidationError()
     {
-        var dto = CreateValidFeeConfigDto() with { Name = "" };
+        var dto = CreateValidFeeConfigDto() with
+        {
+            Name = ""
+        };
 
-        await AssertInvalidCreateAsync(dto, FeeConfigErrors.NameRequired);
+        await AssertInvalidCreateAsync(
+            dto,
+            FeeConfigErrors.NameRequired);
     }
 
     [Fact]
     public async Task CreateFeeConfigAsync_NameTooShort_ReturnsValidationError()
     {
-        var dto = CreateValidFeeConfigDto() with { Name = "AB" };
+        var dto = CreateValidFeeConfigDto() with
+        {
+            Name = "AB"
+        };
 
         await AssertInvalidCreateAsync(
             dto,
@@ -224,9 +239,10 @@ public sealed class FeeConfigServiceTests
     [Fact]
     public async Task CreateFeeConfigAsync_InvalidFeeType_ReturnsValidationError()
     {
+        // FeeType remains an enum, so an invalid int value is used.
         var dto = CreateValidFeeConfigDto() with
         {
-            FeeType = (FeeType)TestConstants.NonExistingId
+            FeeType = (FeeType)999
         };
 
         await AssertInvalidCreateAsync(
@@ -265,8 +281,8 @@ public sealed class FeeConfigServiceTests
     {
         var dto = CreateValidFeeConfigDto() with
         {
-            EffectiveFrom = new DateTime(2026, 6, 1),
-            EffectiveTo = new DateTime(2026, 5, 31)
+            EffectiveFrom = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            EffectiveTo = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc)
         };
 
         await AssertInvalidCreateAsync(
@@ -275,7 +291,6 @@ public sealed class FeeConfigServiceTests
     }
 
     #endregion
-
 
     #region Update Fee Config Tests
 
@@ -289,8 +304,8 @@ public sealed class FeeConfigServiceTests
             "Updated broker fee",
             FeeType.BrokerCommission,
             5.5000m,
-            new DateTime(2026, 1, 1),
-            new DateTime(2026, 12, 31),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             false);
 
         _repositoryMock
@@ -320,29 +335,29 @@ public sealed class FeeConfigServiceTests
             Times.Once);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task UpdateFeeConfigAsync_InvalidId_ReturnsValidationError(int feeConfigId)
+    [Fact]
+    public async Task UpdateFeeConfigAsync_EmptyId_ReturnsValidationError()
     {
         // Arrange
         var dto = CreateValidUpdateFeeConfigDto();
 
         // Act
         var result = await _service.UpdateFeeConfigAsync(
-            feeConfigId,
+            Guid.Empty,
             dto,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
         Assert.Equal(
             FeeConfigErrors.InvalidFeeConfigId.Code,
-            result.Error!.Code);
+            result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.GetFeeConfigForUpdateAsync(
-                It.IsAny<int>(),
+                It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -351,7 +366,7 @@ public sealed class FeeConfigServiceTests
     public async Task UpdateFeeConfigAsync_NonExistingFeeConfig_ReturnsNotFound()
     {
         // Arrange
-        const int feeConfigId = TestConstants.NonExistingId;
+        var feeConfigId = TestConstants.NonExistingId;
         var dto = CreateValidUpdateFeeConfigDto();
 
         _repositoryMock
@@ -368,7 +383,8 @@ public sealed class FeeConfigServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
         Assert.Equal(
             FeeConfigErrors.NotFound(feeConfigId).Code,
             result.Error.Code);
@@ -385,31 +401,32 @@ public sealed class FeeConfigServiceTests
         // Arrange
         var dto = CreateValidUpdateFeeConfigDto() with
         {
-            EffectiveFrom = new DateTime(2026, 6, 1),
-            EffectiveTo = new DateTime(2026, 5, 31)
+            EffectiveFrom = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            EffectiveTo = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc)
         };
 
         // Act
         var result = await _service.UpdateFeeConfigAsync(
-            1,
+            Guid.NewGuid(),
             dto,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
         Assert.Equal(
             FeeConfigErrors.InvalidEffectivePeriod.Code,
-            result.Error!.Code);
+            result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.GetFeeConfigForUpdateAsync(
-                It.IsAny<int>(),
+                It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     #endregion
-
 
     #region Helpers
 
@@ -422,7 +439,8 @@ public sealed class FeeConfigServiceTests
             CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(expectedError.Code, result.Error!.Code);
+        Assert.NotNull(result.Error);
+        Assert.Equal(expectedError.Code, result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.AddFeeConfigAsync(
@@ -437,8 +455,8 @@ public sealed class FeeConfigServiceTests
             "Standard broker fee",
             FeeType.BrokerCommission,
             2.5000m,
-            new DateTime(2026, 1, 1),
-            new DateTime(2026, 12, 31),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             true);
     }
 
@@ -448,24 +466,24 @@ public sealed class FeeConfigServiceTests
             "Standard broker fee",
             FeeType.BrokerCommission,
             2.5000m,
-            new DateTime(2026, 1, 1),
-            new DateTime(2026, 12, 31),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             true);
     }
 
     private static FeeConfig CreateFeeConfigEntity(
-        int feeConfigId = 1,
+        Guid? feeConfigId = null,
         string name = "Standard broker fee",
         FeeType feeType = FeeType.BrokerCommission)
     {
         return new FeeConfig
         {
-            FeeConfigId = feeConfigId,
+            FeeConfigId = feeConfigId ?? Guid.NewGuid(),
             Name = name,
             FeeType = feeType,
             Percentage = 2.5000m,
-            EffectiveFrom = new DateTime(2026, 1, 1),
-            EffectiveTo = new DateTime(2026, 12, 31),
+            EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            EffectiveTo = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

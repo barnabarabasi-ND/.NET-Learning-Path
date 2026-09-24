@@ -14,6 +14,7 @@ public sealed class InsuranceDbContext(DbContextOptions<InsuranceDbContext> opti
     public DbSet<Client> Clients => Set<Client>();
 
     public DbSet<Building> Buildings => Set<Building>();
+    public DbSet<BuildingType> BuildingTypes => Set<BuildingType>();
 
     public DbSet<Policy> Policies { get; set; }
     public DbSet<Broker> Brokers { get; set; }

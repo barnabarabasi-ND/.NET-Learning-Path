@@ -6,7 +6,7 @@ public static class FeeConfigErrors
 {
     public static readonly Error InvalidFeeConfigId = new(
         "FeeConfig.InvalidFeeConfigId",
-        "Fee configuration ID must be greater than zero.",
+        "Fee configuration ID must not be empty.",
         ErrorType.Validation);
 
     public static readonly Error NameRequired = new(
@@ -39,7 +39,7 @@ public static class FeeConfigErrors
         "Effective To must be greater than or equal to Effective From.",
         ErrorType.Validation);
 
-    public static Error NotFound(int feeConfigId) => new(
+    public static Error NotFound(Guid feeConfigId) => new(
         "FeeConfig.NotFound",
         $"Fee configuration with ID {feeConfigId} was not found.",
         ErrorType.NotFound);

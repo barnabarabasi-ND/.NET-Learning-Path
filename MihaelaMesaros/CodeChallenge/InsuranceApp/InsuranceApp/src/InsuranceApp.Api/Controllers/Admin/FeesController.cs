@@ -35,10 +35,10 @@ public sealed class FeesController(IFeeConfigService feeConfigService) : Control
     /// <param name="feeConfigId">The ID of the fee configuration.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The fee configuration with the specified ID.</returns>
-    [HttpGet("{feeConfigId:int}", Name = GetFeeByIdRouteName)]
+    [HttpGet("{feeConfigId:guid}", Name = GetFeeByIdRouteName)]
     [ProducesResponseType(typeof(FeeConfigDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FeeConfigDto>> GetFeeByIdAsync(int feeConfigId, CancellationToken cancellationToken)
+    public async Task<ActionResult<FeeConfigDto>> GetFeeByIdAsync(Guid feeConfigId, CancellationToken cancellationToken)
     {
         var result = await feeConfigService.GetFeeConfigByIdAsync(feeConfigId, cancellationToken);
 
@@ -78,11 +78,11 @@ public sealed class FeesController(IFeeConfigService feeConfigService) : Control
     /// <param name="request">The updated fee configuration data.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The updated fee configuration.</returns>
-    [HttpPut("{feeConfigId:int}")]
+    [HttpPut("{feeConfigId:guid}")]
     [ProducesResponseType(typeof(FeeConfigDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FeeConfigDto>> UpdateFeeAsync(int feeConfigId, UpdateFeeConfigDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult<FeeConfigDto>> UpdateFeeAsync(Guid feeConfigId, UpdateFeeConfigDto request, CancellationToken cancellationToken)
     {
         var result = await feeConfigService.UpdateFeeConfigAsync(feeConfigId, request, cancellationToken);
 

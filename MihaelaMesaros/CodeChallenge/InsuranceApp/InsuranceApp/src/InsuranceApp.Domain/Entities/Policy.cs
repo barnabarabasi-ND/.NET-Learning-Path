@@ -4,17 +4,17 @@ namespace InsuranceApp.Domain.Entities;
 
 public sealed class Policy
 {
-    public int PolicyId { get; set; }
+    public Guid PolicyId { get; set; }
 
     public string PolicyNumber { get; set; } = null!;
 
-    public int ClientId { get; set; }
+    public Guid ClientId { get; set; }
 
-    public int BuildingId { get; set; }
+    public Guid BuildingId { get; set; }
 
-    public int BrokerId { get; set; }
+    public Guid BrokerId { get; set; }
 
-    public int CurrencyId { get; set; }
+    public Guid CurrencyId { get; set; }
 
     public PolicyStatus Status { get; set; }
 

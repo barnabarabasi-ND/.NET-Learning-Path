@@ -34,10 +34,10 @@ public sealed class CurrenciesController(ICurrencyService currencyService) : Con
     /// <param name="currencyId">The ID of the currency.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The currency with the specified ID.</returns>
-    [HttpGet("{currencyId:int}", Name = GetCurrencyByIdRouteName)]
+    [HttpGet("{currencyId:guid}", Name = GetCurrencyByIdRouteName)]
     [ProducesResponseType(typeof(CurrencyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CurrencyDto>> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken)
+    public async Task<ActionResult<CurrencyDto>> GetCurrencyByIdAsync(Guid currencyId, CancellationToken cancellationToken)
     {
         var result = await currencyService.GetCurrencyByIdAsync(currencyId, cancellationToken);
 
@@ -71,12 +71,12 @@ public sealed class CurrenciesController(ICurrencyService currencyService) : Con
     /// <summary>
     /// Updates an existing currency.
     /// </summary>
-    [HttpPut("{currencyId:int}")]
+    [HttpPut("{currencyId:guid}")]
     [ProducesResponseType(typeof(CurrencyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<CurrencyDto>> UpdateCurrencyAsync(int currencyId, UpdateCurrencyDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult<CurrencyDto>> UpdateCurrencyAsync(Guid currencyId, UpdateCurrencyDto request, CancellationToken cancellationToken)
     {
         var result = await currencyService.UpdateCurrencyAsync(currencyId, request, cancellationToken);
 

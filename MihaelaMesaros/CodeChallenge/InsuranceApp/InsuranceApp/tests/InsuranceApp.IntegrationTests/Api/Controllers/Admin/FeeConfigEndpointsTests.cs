@@ -13,7 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace InsuranceApp.IntegrationTests.Api.Controllers.Admin;
 
-public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory factory)
+public sealed class FeeConfigEndpointsTests(
+    InsuranceAppWebApplicationFactory factory)
     : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {
     private readonly InsuranceAppWebApplicationFactory _factory = factory;
@@ -25,7 +26,6 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
-
 
     #region Create Fee Config Tests
 
@@ -47,7 +47,7 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
             await response.Content.ReadFromJsonAsync<FeeConfigDto>();
 
         Assert.NotNull(createdFee);
-        Assert.True(createdFee.FeeConfigId > 0);
+        Assert.NotEqual(Guid.Empty, createdFee.FeeConfigId);
 
         Assert.NotNull(response.Headers.Location);
         Assert.Equal(
@@ -132,73 +132,62 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
     [Fact]
     public async Task CreateFeeConfig_InvalidFeeType_ReturnsBadRequest()
     {
-        // Arrange
+        // FeeType remains an enum, so use an invalid numeric value.
         var request = CreateValidFeeConfigDto() with
         {
-            FeeType = (FeeType)TestConstants.NonExistingId
+            FeeType = (FeeType)999
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync(
             "/api/admin/fees",
             request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateFeeConfig_InvalidPercentage_ReturnsBadRequest()
     {
-        // Arrange
         var request = CreateValidFeeConfigDto() with
         {
             Percentage = 101m
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync(
             "/api/admin/fees",
             request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateFeeConfig_PercentageWithTooManyDecimals_ReturnsBadRequest()
     {
-        // Arrange
         var request = CreateValidFeeConfigDto() with
         {
             Percentage = 2.12345m
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync(
             "/api/admin/fees",
             request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateFeeConfig_InvalidEffectivePeriod_ReturnsBadRequest()
     {
-        // Arrange
         var request = CreateValidFeeConfigDto() with
         {
-            EffectiveFrom = new DateTime(2026, 6, 1),
-            EffectiveTo = new DateTime(2026, 5, 31)
+            EffectiveFrom = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            EffectiveTo = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc)
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync(
             "/api/admin/fees",
             request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var problem =
@@ -211,7 +200,6 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
     }
 
     #endregion
-
 
     #region Read Fee Config Tests
 
@@ -278,14 +266,12 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
             response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task GetFeeById_InvalidFeeConfigId_ReturnsBadRequest(int feeConfigId)
+    [Fact]
+    public async Task GetFeeById_EmptyFeeConfigId_ReturnsBadRequest()
     {
         // Act
         var response = await _client.GetAsync(
-            $"/api/admin/fees/{feeConfigId}");
+            $"/api/admin/fees/{Guid.Empty}");
 
         // Assert
         Assert.Equal(
@@ -294,7 +280,6 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
     }
 
     #endregion
-
 
     #region Update Fee Config Tests
 
@@ -308,8 +293,8 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
             "Updated broker fee",
             FeeType.BrokerCommission,
             5.5000m,
-            new DateTime(2026, 1, 1),
-            new DateTime(2026, 12, 31),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             false);
 
         // Act
@@ -362,17 +347,15 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
             response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task UpdateFeeConfig_InvalidFeeConfigId_ReturnsBadRequest(int feeConfigId)
+    [Fact]
+    public async Task UpdateFeeConfig_EmptyFeeConfigId_ReturnsBadRequest()
     {
         // Arrange
         var request = CreateValidUpdateFeeConfigDto();
 
         // Act
         var response = await _client.PutAsJsonAsync(
-            $"/api/admin/fees/{feeConfigId}",
+            $"/api/admin/fees/{Guid.Empty}",
             request);
 
         // Assert
@@ -389,8 +372,8 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
 
         var request = CreateValidUpdateFeeConfigDto() with
         {
-            EffectiveFrom = new DateTime(2026, 6, 1),
-            EffectiveTo = new DateTime(2026, 5, 31)
+            EffectiveFrom = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            EffectiveTo = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc)
         };
 
         // Act
@@ -406,7 +389,6 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
 
     #endregion
 
-
     #region Helpers
 
     private static CreateFeeConfigDto CreateValidFeeConfigDto()
@@ -415,8 +397,8 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
             "Standard broker fee",
             FeeType.BrokerCommission,
             2.5000m,
-            new DateTime(2026, 1, 1),
-            new DateTime(2026, 12, 31),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             true);
     }
 
@@ -426,12 +408,12 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
             "Standard broker fee",
             FeeType.BrokerCommission,
             2.5000m,
-            new DateTime(2026, 1, 1),
-            new DateTime(2026, 12, 31),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             true);
     }
 
-    private async Task<int> SeedFeeConfigAsync()
+    private async Task<Guid> SeedFeeConfigAsync()
     {
         using var scope = _factory.Services.CreateScope();
 
@@ -440,11 +422,12 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
 
         var fee = new FeeConfig
         {
+            FeeConfigId = Guid.NewGuid(),
             Name = "Standard broker fee",
             FeeType = FeeType.BrokerCommission,
             Percentage = 2.5000m,
-            EffectiveFrom = new DateTime(2026, 1, 1),
-            EffectiveTo = new DateTime(2026, 12, 31),
+            EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            EffectiveTo = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -466,20 +449,22 @@ public sealed class FeeConfigEndpointsTests(InsuranceAppWebApplicationFactory fa
         dbContext.FeeConfigs.AddRange(
             new FeeConfig
             {
+                FeeConfigId = Guid.NewGuid(),
                 Name = "Standard broker fee",
                 FeeType = FeeType.BrokerCommission,
                 Percentage = 2.5000m,
-                EffectiveFrom = new DateTime(2026, 1, 1),
-                EffectiveTo = new DateTime(2026, 12, 31),
+                EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                EffectiveTo = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             },
             new FeeConfig
             {
+                FeeConfigId = Guid.NewGuid(),
                 Name = "Admin fee",
                 FeeType = FeeType.AdminFee,
                 Percentage = 1.0000m,
-                EffectiveFrom = new DateTime(2026, 1, 1),
+                EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 EffectiveTo = null,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow

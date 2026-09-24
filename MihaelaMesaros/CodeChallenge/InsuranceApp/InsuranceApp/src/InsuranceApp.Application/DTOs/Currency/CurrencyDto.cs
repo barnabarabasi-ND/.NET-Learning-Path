@@ -1,7 +1,7 @@
 ﻿namespace InsuranceApp.Application.DTOs.Currency;
 
 public sealed record CurrencyDto(
-    int CurrencyId,
+    Guid CurrencyId,
     string Code,
     string Name,
     decimal ExchangeRateToBase,

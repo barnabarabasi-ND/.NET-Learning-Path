@@ -6,9 +6,9 @@ public interface IFeeConfigRepository
 {
     Task<IReadOnlyList<FeeConfig>> GetFeeConfigsAsync(CancellationToken cancellationToken);
 
-    Task<FeeConfig?> GetFeeConfigByIdAsync(int feeConfigId, CancellationToken cancellationToken);
+    Task<FeeConfig?> GetFeeConfigByIdAsync(Guid feeConfigId, CancellationToken cancellationToken);
 
-    Task<FeeConfig?> GetFeeConfigForUpdateAsync(int feeConfigId, CancellationToken cancellationToken);
+    Task<FeeConfig?> GetFeeConfigForUpdateAsync(Guid feeConfigId, CancellationToken cancellationToken);
 
     Task AddFeeConfigAsync(FeeConfig feeConfig, CancellationToken cancellationToken);
 

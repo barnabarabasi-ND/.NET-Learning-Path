@@ -4,7 +4,7 @@ namespace InsuranceApp.Domain.Entities;
 
 public sealed class Broker
 {
-    public int BrokerId { get; set; }
+    public Guid BrokerId { get; set; }
 
     public string BrokerCode { get; set; } = null!;
 

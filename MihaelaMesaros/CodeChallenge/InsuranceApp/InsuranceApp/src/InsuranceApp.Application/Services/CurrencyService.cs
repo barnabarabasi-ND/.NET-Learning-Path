@@ -20,9 +20,9 @@ public sealed class CurrencyService(ICurrencyRepository currencyRepository, ILog
         return Result<IReadOnlyList<CurrencyDto>>.Success(currencyDtos);
     }
 
-    public async Task<Result<CurrencyDto>> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken)
+    public async Task<Result<CurrencyDto>> GetCurrencyByIdAsync(Guid currencyId, CancellationToken cancellationToken)
     {
-        if (currencyId <= 0)
+        if (currencyId == Guid.Empty)
         {
             return Result<CurrencyDto>.Failure(CurrencyErrors.InvalidCurrencyId);
         }
@@ -86,9 +86,9 @@ public sealed class CurrencyService(ICurrencyRepository currencyRepository, ILog
         return Result<CurrencyDto>.Success(MapCurrencyToDto(currency));
     }
 
-    public async Task<Result<CurrencyDto>> UpdateCurrencyAsync(int currencyId, UpdateCurrencyDto updateCurrencyDto, CancellationToken cancellationToken)
+    public async Task<Result<CurrencyDto>> UpdateCurrencyAsync(Guid currencyId, UpdateCurrencyDto updateCurrencyDto, CancellationToken cancellationToken)
     {
-        if (currencyId <= 0)
+        if (currencyId == Guid.Empty)
         {
             return Result<CurrencyDto>.Failure(CurrencyErrors.InvalidCurrencyId);
         }

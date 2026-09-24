@@ -16,17 +16,17 @@ internal sealed class CurrencyRepository(InsuranceDbContext dbContext) : ICurren
             .ToListAsync(cancellationToken);
     }
 
-    public Task<Currency?> GetCurrencyByIdAsync(int currencyId, CancellationToken cancellationToken)
+    public Task<Currency?> GetCurrencyByIdAsync(Guid currencyId, CancellationToken cancellationToken)
     {
         return dbContext.Currencies.AsNoTracking().FirstOrDefaultAsync(x => x.CurrencyId == currencyId, cancellationToken);
     }
 
-    public Task<Currency?> GetCurrencyForUpdateAsync(int currencyId, CancellationToken cancellationToken)
+    public Task<Currency?> GetCurrencyForUpdateAsync(Guid currencyId, CancellationToken cancellationToken)
     {
         return dbContext.Currencies.FirstOrDefaultAsync(x => x.CurrencyId == currencyId, cancellationToken);
     }
 
-    public Task<bool> CurrencyCodeExistsAsync(string code, int? excludeCurrencyId, CancellationToken cancellationToken)
+    public Task<bool> CurrencyCodeExistsAsync(string code, Guid? excludeCurrencyId, CancellationToken cancellationToken)
     {
         return dbContext.Currencies.AnyAsync(
             x => x.Code == code && (!excludeCurrencyId.HasValue || x.CurrencyId != excludeCurrencyId.Value),

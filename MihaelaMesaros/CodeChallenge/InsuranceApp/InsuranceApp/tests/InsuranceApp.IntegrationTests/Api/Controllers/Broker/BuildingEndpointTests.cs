@@ -1,4 +1,6 @@
-﻿using InsuranceApp.Application.DTOs.Building;
+﻿using InsuranceApp.Application.Common;
+using InsuranceApp.Application.DTOs.Building;
+using InsuranceApp.Domain.Constants;
 using InsuranceApp.Domain.Entities;
 using InsuranceApp.Domain.Enums;
 using InsuranceApp.Infrastructure.Persistence;
@@ -11,7 +13,9 @@ using System.Net.Http.Json;
 
 namespace InsuranceApp.IntegrationTests.Api.Controllers.Broker;
 
-public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory factory) : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
+public sealed class BuildingEndpointsTests(
+    InsuranceAppWebApplicationFactory factory)
+    : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {
     private readonly InsuranceAppWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
@@ -20,10 +24,10 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     {
         await _factory.ResetDatabaseAsync();
         await _factory.SeedGeographyAsync();
+        await _factory.SeedBuildingTypesAsync();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
-
 
     #region Get Building By Id Tests
 
@@ -34,12 +38,14 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         var buildingId = await SeedBuildingAsync();
 
         // Act
-        var response = await _client.GetAsync($"/api/brokers/buildings/{buildingId}");
+        var response = await _client.GetAsync(
+            $"/api/brokers/buildings/{buildingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var building = await response.Content.ReadFromJsonAsync<BuildingDto>();
+        var building =
+            await response.Content.ReadFromJsonAsync<BuildingDto>();
 
         Assert.NotNull(building);
         Assert.Equal(buildingId, building.BuildingId);
@@ -51,7 +57,8 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     public async Task GetBuildingById_NonExistingBuilding_ReturnsNotFound()
     {
         // Act
-        var response = await _client.GetAsync($"/api/brokers/buildings/{TestConstants.NonExistingId}");
+        var response = await _client.GetAsync(
+            $"/api/brokers/buildings/{TestConstants.NonExistingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -66,19 +73,25 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     {
         // Arrange
         var clientId = await SeedClientAsync();
+
         await SeedBuildingAsync(clientId);
 
         // Act
-        var response = await _client.GetAsync($"/api/brokers/clients/{clientId}/buildings");
+        var response = await _client.GetAsync(
+            $"/api/brokers/clients/{clientId}/buildings");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var buildings = await response.Content.ReadFromJsonAsync<List<BuildingDto>>();
+        var buildings =
+            await response.Content.ReadFromJsonAsync<List<BuildingDto>>();
 
         Assert.NotNull(buildings);
         Assert.NotEmpty(buildings);
-        Assert.All(buildings, building => Assert.Equal(clientId, building.ClientId));
+
+        Assert.All(
+            buildings,
+            building => Assert.Equal(clientId, building.ClientId));
     }
 
     [Fact]
@@ -88,12 +101,14 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         var clientId = await SeedClientAsync();
 
         // Act
-        var response = await _client.GetAsync($"/api/brokers/clients/{clientId}/buildings");
+        var response = await _client.GetAsync(
+            $"/api/brokers/clients/{clientId}/buildings");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var buildings = await response.Content.ReadFromJsonAsync<List<BuildingDto>>();
+        var buildings =
+            await response.Content.ReadFromJsonAsync<List<BuildingDto>>();
 
         Assert.NotNull(buildings);
         Assert.Empty(buildings);
@@ -103,7 +118,8 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     public async Task GetBuildingsByClient_NonExistingClient_ReturnsNotFound()
     {
         // Act
-        var response = await _client.GetAsync($"/api/brokers/clients/{TestConstants.NonExistingId}/buildings");
+        var response = await _client.GetAsync(
+            $"/api/brokers/clients/{TestConstants.NonExistingId}/buildings");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -118,54 +134,67 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     {
         // Arrange
         var clientId = await SeedClientAsync();
-
-        var request = CreateValidBuildingDto();
+        var request = await CreateValidBuildingDtoAsync();
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/brokers/clients/{clientId}/buildings", request);
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{clientId}/buildings",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        var building = await response.Content.ReadFromJsonAsync<BuildingDto>();
+        var building =
+            await response.Content.ReadFromJsonAsync<BuildingDto>();
 
         Assert.NotNull(building);
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         Assert.NotNull(response.Headers.Location);
         Assert.Equal(
             $"/api/brokers/buildings/{building.BuildingId}",
             response.Headers.Location.AbsolutePath);
 
-        Assert.NotNull(building);
         Assert.Equal(clientId, building.ClientId);
         Assert.Equal(request.CityId, building.CityId);
-        Assert.Equal(request.AddressStreet, building.AddressStreet);
-        Assert.Equal(request.AddressStreetNumber, building.AddressStreetNumber);
-        Assert.Equal(request.BuildingType, building.BuildingType);
+        Assert.Equal(
+            request.BuildingTypeId,
+            building.BuildingTypeId);
+        Assert.Equal(
+            request.AddressStreet,
+            building.AddressStreet);
+        Assert.Equal(
+            request.AddressStreetNumber,
+            building.AddressStreetNumber);
         Assert.Equal(request.SurfaceArea, building.SurfaceArea);
         Assert.Equal(request.InsuredValue, building.InsuredValue);
 
         using var scope = _factory.Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
 
         var persistedBuilding = await dbContext.Buildings
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.BuildingId == building.BuildingId);
+            .FirstOrDefaultAsync(
+                x => x.BuildingId == building.BuildingId);
 
         Assert.NotNull(persistedBuilding);
         Assert.Equal(clientId, persistedBuilding.ClientId);
+        Assert.Equal(
+            request.BuildingTypeId,
+            persistedBuilding.BuildingTypeId);
     }
 
     [Fact]
     public async Task CreateBuilding_NonExistingClient_ReturnsNotFound()
     {
         // Arrange
-        var request = CreateValidBuildingDto();
+        var request = await CreateValidBuildingDtoAsync();
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/brokers/clients/{TestConstants.NonExistingId}/buildings", request);
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{TestConstants.NonExistingId}/buildings",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -177,13 +206,39 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         // Arrange
         var clientId = await SeedClientAsync();
 
-        var request = CreateValidBuildingDto() with
+        var request = await CreateValidBuildingDtoAsync();
+
+        request = request with
         {
             CityId = TestConstants.NonExistingId
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/brokers/clients/{clientId}/buildings", request);
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{clientId}/buildings",
+            request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateBuilding_NonExistingBuildingType_ReturnsNotFound()
+    {
+        // Arrange
+        var clientId = await SeedClientAsync();
+
+        var request = await CreateValidBuildingDtoAsync();
+
+        request = request with
+        {
+            BuildingTypeId = TestConstants.NonExistingId
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{clientId}/buildings",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -195,13 +250,17 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         // Arrange
         var clientId = await SeedClientAsync();
 
-        var request = CreateValidBuildingDto() with
+        var request = await CreateValidBuildingDtoAsync();
+
+        request = request with
         {
             SurfaceArea = 0
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/brokers/clients/{clientId}/buildings", request);
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{clientId}/buildings",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -213,13 +272,17 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         // Arrange
         var clientId = await SeedClientAsync();
 
-        var request = CreateValidBuildingDto() with
+        var request = await CreateValidBuildingDtoAsync();
+
+        request = request with
         {
             SurfaceArea = 123.456m
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/brokers/clients/{clientId}/buildings", request);
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{clientId}/buildings",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -231,16 +294,33 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         // Arrange
         var clientId = await SeedClientAsync();
 
-        var request = CreateValidBuildingDto() with
+        var request = await CreateValidBuildingDtoAsync();
+
+        request = request with
         {
             InsuredValue = 1000.999m
         };
 
+        // Verify test data itself
+        Assert.Equal(1000.999m, request.InsuredValue);
+
+        Assert.False(
+            DecimalValidation.HasValidScale(
+                request.InsuredValue,
+                CommonConstraints.DecimalScale));
+
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/brokers/clients/{clientId}/buildings", request);
+        var response = await _client.PostAsJsonAsync(
+            $"/api/brokers/clients/{clientId}/buildings",
+            request);
+
+        var body = await response.Content.ReadAsStringAsync();
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.True(
+            response.StatusCode == HttpStatusCode.BadRequest,
+            $"Expected BadRequest but got {response.StatusCode}.{Environment.NewLine}" +
+            $"Response: {body}");
     }
 
     #endregion
@@ -252,43 +332,44 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     {
         // Arrange
         var buildingId = await SeedBuildingAsync();
-
-        var request = new UpdateBuildingDto(
-            BuildingType.Office,
-            "Republicii",
-            "10B",
-            1,
-            2020,
-            6,
-            350.50m,
-            1_250_000.00m,
-            "Earthquake risk zone");
+        var request = await CreateValidUpdateBuildingDtoAsync();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/api/brokers/buildings/{buildingId}", request);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/brokers/buildings/{buildingId}",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var building = await response.Content.ReadFromJsonAsync<BuildingDto>();
+        var building =
+            await response.Content.ReadFromJsonAsync<BuildingDto>();
 
         Assert.NotNull(building);
         Assert.Equal(buildingId, building.BuildingId);
         Assert.Equal("Republicii", building.AddressStreet);
         Assert.Equal("10B", building.AddressStreetNumber);
-        Assert.Equal(BuildingType.Office, building.BuildingType);
+        Assert.Equal(
+            request.BuildingTypeId,
+            building.BuildingTypeId);
         Assert.Equal(350.50m, building.SurfaceArea);
         Assert.Equal(1_250_000.00m, building.InsuredValue);
 
         using var scope = _factory.Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
 
         var persistedBuilding = await dbContext.Buildings
             .AsNoTracking()
             .FirstAsync(x => x.BuildingId == buildingId);
 
-        Assert.Equal("Republicii", persistedBuilding.AddressStreet);
+        Assert.Equal(
+            request.BuildingTypeId,
+            persistedBuilding.BuildingTypeId);
+        Assert.Equal(
+            "Republicii",
+            persistedBuilding.AddressStreet);
         Assert.NotNull(persistedBuilding.ModifiedAt);
     }
 
@@ -296,10 +377,12 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
     public async Task UpdateBuilding_NonExistingBuilding_ReturnsNotFound()
     {
         // Arrange
-        var request = CreateValidUpdateBuildingDto();
+        var request = await CreateValidUpdateBuildingDtoAsync();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/api/brokers/buildings/{TestConstants.NonExistingId}", request);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/brokers/buildings/{TestConstants.NonExistingId}",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -311,13 +394,39 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         // Arrange
         var buildingId = await SeedBuildingAsync();
 
-        var request = CreateValidUpdateBuildingDto() with
+        var request = await CreateValidUpdateBuildingDtoAsync();
+
+        request = request with
         {
             CityId = TestConstants.NonExistingId
         };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/api/brokers/buildings/{buildingId}", request);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/brokers/buildings/{buildingId}",
+            request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateBuilding_NonExistingBuildingType_ReturnsNotFound()
+    {
+        // Arrange
+        var buildingId = await SeedBuildingAsync();
+
+        var request = await CreateValidUpdateBuildingDtoAsync();
+
+        request = request with
+        {
+            BuildingTypeId = TestConstants.NonExistingId
+        };
+
+        // Act
+        var response = await _client.PutAsJsonAsync(
+            $"/api/brokers/buildings/{buildingId}",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -329,13 +438,17 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         // Arrange
         var buildingId = await SeedBuildingAsync();
 
-        var request = CreateValidUpdateBuildingDto() with
+        var request = await CreateValidUpdateBuildingDtoAsync();
+
+        request = request with
         {
             AddressStreet = ""
         };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/api/brokers/buildings/{buildingId}", request);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/brokers/buildings/{buildingId}",
+            request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -345,11 +458,12 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
 
     #region Helpers
 
-    private async Task<int> SeedClientAsync()
+    private async Task<Guid> SeedClientAsync()
     {
         using var scope = _factory.Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
 
         var client = new Client
         {
@@ -363,27 +477,34 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         };
 
         dbContext.Clients.Add(client);
+
         await dbContext.SaveChangesAsync();
 
         return client.ClientId;
     }
 
-    private async Task<int> SeedBuildingAsync(int? clientId = null)
+    private async Task<Guid> SeedBuildingAsync(Guid? clientId = null)
     {
-        var actualClientId = clientId ?? await SeedClientAsync();
+        var actualClientId =
+            clientId ?? await SeedClientAsync();
 
         using var scope = _factory.Services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<InsuranceDbContext>();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
+
+        var cityId = await GetExistingCityIdAsync(dbContext);
+        var buildingTypeId =
+            await GetBuildingTypeIdAsync(dbContext, "Residential");
 
         var building = new Building
         {
             ClientId = actualClientId,
-            CityId = 1,
+            CityId = cityId,
+            BuildingTypeId = buildingTypeId,
             AddressStreet = "Memorandumului",
             AddressStreetNumber = "25A",
             ConstructionYear = 2015,
-            BuildingType = BuildingType.Residential,
             NumberOfFloors = 4,
             SurfaceArea = 185.50m,
             InsuredValue = 750_000.00m,
@@ -392,18 +513,31 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
         };
 
         dbContext.Buildings.Add(building);
+
         await dbContext.SaveChangesAsync();
 
         return building.BuildingId;
     }
 
-    private static CreateBuildingDto CreateValidBuildingDto()
+    private async Task<CreateBuildingDto> CreateValidBuildingDtoAsync()
     {
+        using var scope = _factory.Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
+
+        var cityId = await GetExistingCityIdAsync(dbContext);
+
+        var buildingTypeId =
+            await GetBuildingTypeIdAsync(
+                dbContext,
+                "Residential");
+
         return new CreateBuildingDto(
-            BuildingType.Residential,
+            buildingTypeId,
             "Memorandumului",
             "25A",
-            1,
+            cityId,
             2015,
             4,
             185.50m,
@@ -411,19 +545,52 @@ public sealed class BuildingEndpointsTests(InsuranceAppWebApplicationFactory fac
             "Flood zone");
     }
 
-    private static UpdateBuildingDto CreateValidUpdateBuildingDto()
+    private async Task<UpdateBuildingDto> CreateValidUpdateBuildingDtoAsync()
     {
+        using var scope = _factory.Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<InsuranceDbContext>();
+
+        var cityId = await GetExistingCityIdAsync(dbContext);
+
+        var buildingTypeId =
+            await GetBuildingTypeIdAsync(
+                dbContext,
+                "Office");
+
         return new UpdateBuildingDto(
-            BuildingType.Office,
+            buildingTypeId,
             "Republicii",
             "10B",
-            1,
+            cityId,
             2020,
             6,
             350.50m,
             1_250_000.00m,
             "Earthquake risk zone");
     }
+
+    private static async Task<Guid> GetExistingCityIdAsync(
+        InsuranceDbContext dbContext)
+    {
+        return await dbContext.Cities
+            .AsNoTracking()
+            .Select(x => x.CityId)
+            .FirstAsync();
+    }
+
+    private static async Task<Guid> GetBuildingTypeIdAsync(
+        InsuranceDbContext dbContext,
+        string name)
+    {
+        return await dbContext.BuildingTypes
+            .AsNoTracking()
+            .Where(x => x.Name == name)
+            .Select(x => x.BuildingTypeId)
+            .SingleAsync();
+    }
+
 
     #endregion
 }

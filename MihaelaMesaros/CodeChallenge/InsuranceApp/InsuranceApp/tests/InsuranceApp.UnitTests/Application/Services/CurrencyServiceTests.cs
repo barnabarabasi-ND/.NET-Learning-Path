@@ -34,16 +34,24 @@ public sealed class CurrencyServiceTests
         // Arrange
         var currencies = new List<Currency>
         {
-            CreateCurrencyEntity(1, "RON", "Romanian Leu"),
-            CreateCurrencyEntity(2, "EUR", "Euro", 4.97m)
+            CreateCurrencyEntity(
+                code: "RON",
+                name: "Romanian Leu"),
+
+            CreateCurrencyEntity(
+                code: "EUR",
+                name: "Euro",
+                exchangeRate: 4.97m)
         };
 
         _repositoryMock
-            .Setup(x => x.GetCurrenciesAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetCurrenciesAsync(
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(currencies);
 
         // Act
-        var result = await _service.GetCurrenciesAsync(CancellationToken.None);
+        var result = await _service.GetCurrenciesAsync(
+            CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -76,7 +84,9 @@ public sealed class CurrencyServiceTests
         Assert.Equal(currency.CurrencyId, result.Value.CurrencyId);
         Assert.Equal(currency.Code, result.Value.Code);
         Assert.Equal(currency.Name, result.Value.Name);
-        Assert.Equal(currency.ExchangeRateToBase, result.Value.ExchangeRateToBase);
+        Assert.Equal(
+            currency.ExchangeRateToBase,
+            result.Value.ExchangeRateToBase);
         Assert.Equal(currency.IsActive, result.Value.IsActive);
     }
 
@@ -84,7 +94,7 @@ public sealed class CurrencyServiceTests
     public async Task GetCurrencyByIdAsync_NonExistingCurrency_ReturnsNotFound()
     {
         // Arrange
-        const int currencyId = TestConstants.NonExistingId;
+        var currencyId = TestConstants.NonExistingId;
 
         _repositoryMock
             .Setup(x => x.GetCurrencyByIdAsync(
@@ -101,26 +111,30 @@ public sealed class CurrencyServiceTests
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
-        Assert.Equal(CurrencyErrors.NotFound(currencyId).Code, result.Error.Code);
+        Assert.Equal(
+            CurrencyErrors.NotFound(currencyId).Code,
+            result.Error.Code);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task GetCurrencyByIdAsync_InvalidCurrencyId_ReturnsValidationError(int currencyId)
+    [Fact]
+    public async Task GetCurrencyByIdAsync_EmptyCurrencyId_ReturnsValidationError()
     {
         // Act
         var result = await _service.GetCurrencyByIdAsync(
-            currencyId,
+            Guid.Empty,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(CurrencyErrors.InvalidCurrencyId.Code, result.Error!.Code);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
+        Assert.Equal(
+            CurrencyErrors.InvalidCurrencyId.Code,
+            result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.GetCurrencyByIdAsync(
-                It.IsAny<int>(),
+                It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -152,7 +166,9 @@ public sealed class CurrencyServiceTests
         Assert.NotNull(result.Value);
         Assert.Equal(dto.Code, result.Value.Code);
         Assert.Equal(dto.Name, result.Value.Name);
-        Assert.Equal(dto.ExchangeRateToBase, result.Value.ExchangeRateToBase);
+        Assert.Equal(
+            dto.ExchangeRateToBase,
+            result.Value.ExchangeRateToBase);
         Assert.Equal(dto.IsActive, result.Value.IsActive);
 
         _repositoryMock.Verify(
@@ -160,7 +176,8 @@ public sealed class CurrencyServiceTests
                 It.Is<Currency>(currency =>
                     currency.Code == dto.Code &&
                     currency.Name == dto.Name &&
-                    currency.ExchangeRateToBase == dto.ExchangeRateToBase),
+                    currency.ExchangeRateToBase ==
+                        dto.ExchangeRateToBase),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -204,44 +221,70 @@ public sealed class CurrencyServiceTests
     [Fact]
     public async Task CreateCurrencyAsync_MissingCode_ReturnsValidationError()
     {
-        var dto = CreateValidCurrencyDto() with { Code = "" };
+        var dto = CreateValidCurrencyDto() with
+        {
+            Code = ""
+        };
 
-        await AssertInvalidCreateAsync(dto, CurrencyErrors.CodeRequired);
+        await AssertInvalidCreateAsync(
+            dto,
+            CurrencyErrors.CodeRequired);
     }
 
     [Theory]
     [InlineData("R")]
     [InlineData("RO")]
     [InlineData("EURO")]
-    public async Task CreateCurrencyAsync_InvalidCodeLength_ReturnsValidationError(string code)
+    public async Task CreateCurrencyAsync_InvalidCodeLength_ReturnsValidationError(
+        string code)
     {
-        var dto = CreateValidCurrencyDto() with { Code = code };
+        var dto = CreateValidCurrencyDto() with
+        {
+            Code = code
+        };
 
-        await AssertInvalidCreateAsync(dto, CurrencyErrors.InvalidCodeLength);
+        await AssertInvalidCreateAsync(
+            dto,
+            CurrencyErrors.InvalidCodeLength);
     }
 
     [Fact]
     public async Task CreateCurrencyAsync_MissingName_ReturnsValidationError()
     {
-        var dto = CreateValidCurrencyDto() with { Name = "" };
+        var dto = CreateValidCurrencyDto() with
+        {
+            Name = ""
+        };
 
-        await AssertInvalidCreateAsync(dto, CurrencyErrors.NameRequired);
+        await AssertInvalidCreateAsync(
+            dto,
+            CurrencyErrors.NameRequired);
     }
 
     [Fact]
     public async Task CreateCurrencyAsync_NameTooShort_ReturnsValidationError()
     {
-        var dto = CreateValidCurrencyDto() with { Name = "A" };
+        var dto = CreateValidCurrencyDto() with
+        {
+            Name = "A"
+        };
 
-        await AssertInvalidCreateAsync(dto, CurrencyErrors.InvalidNameLength);
+        await AssertInvalidCreateAsync(
+            dto,
+            CurrencyErrors.InvalidNameLength);
     }
 
     [Fact]
     public async Task CreateCurrencyAsync_InvalidExchangeRate_ReturnsValidationError()
     {
-        var dto = CreateValidCurrencyDto() with { ExchangeRateToBase = 0 };
+        var dto = CreateValidCurrencyDto() with
+        {
+            ExchangeRateToBase = 0
+        };
 
-        await AssertInvalidCreateAsync(dto, CurrencyErrors.InvalidExchangeRate);
+        await AssertInvalidCreateAsync(
+            dto,
+            CurrencyErrors.InvalidExchangeRate);
     }
 
     [Fact]
@@ -278,7 +321,9 @@ public sealed class CurrencyServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.Conflict, result.Error!.Type);
-        Assert.Equal(CurrencyErrors.DuplicateCode.Code, result.Error.Code);
+        Assert.Equal(
+            CurrencyErrors.DuplicateCode.Code,
+            result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.AddCurrencyAsync(
@@ -304,7 +349,8 @@ public sealed class CurrencyServiceTests
             .Setup(x => x.AddCurrencyAsync(
                 It.IsAny<Currency>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new DuplicateEntityException(nameof(Currency)));
+            .ThrowsAsync(
+                new DuplicateEntityException(nameof(Currency)));
 
         // Act
         var result = await _service.CreateCurrencyAsync(
@@ -314,7 +360,9 @@ public sealed class CurrencyServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.Conflict, result.Error!.Type);
-        Assert.Equal(CurrencyErrors.DuplicateCode.Code, result.Error.Code);
+        Assert.Equal(
+            CurrencyErrors.DuplicateCode.Code,
+            result.Error.Code);
     }
 
     #endregion
@@ -362,31 +410,34 @@ public sealed class CurrencyServiceTests
         Assert.NotNull(currency.ModifiedAt);
 
         _repositoryMock.Verify(
-            x => x.SaveCurrencyChangesAsync(It.IsAny<CancellationToken>()),
+            x => x.SaveCurrencyChangesAsync(
+                It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task UpdateCurrencyAsync_InvalidCurrencyId_ReturnsValidationError(int currencyId)
+    [Fact]
+    public async Task UpdateCurrencyAsync_EmptyCurrencyId_ReturnsValidationError()
     {
         // Arrange
         var dto = CreateValidUpdateCurrencyDto();
 
         // Act
         var result = await _service.UpdateCurrencyAsync(
-            currencyId,
+            Guid.Empty,
             dto,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(CurrencyErrors.InvalidCurrencyId.Code, result.Error!.Code);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
+        Assert.Equal(
+            CurrencyErrors.InvalidCurrencyId.Code,
+            result.Error.Code);
 
         _repositoryMock.Verify(
             x => x.GetCurrencyForUpdateAsync(
-                It.IsAny<int>(),
+                It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -395,7 +446,7 @@ public sealed class CurrencyServiceTests
     public async Task UpdateCurrencyAsync_NonExistingCurrency_ReturnsNotFound()
     {
         // Arrange
-        const int currencyId = TestConstants.NonExistingId;
+        var currencyId = TestConstants.NonExistingId;
         var dto = CreateValidUpdateCurrencyDto();
 
         _repositoryMock
@@ -413,7 +464,9 @@ public sealed class CurrencyServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.NotFound, result.Error!.Type);
-        Assert.Equal(CurrencyErrors.NotFound(currencyId).Code, result.Error.Code);
+        Assert.Equal(
+            CurrencyErrors.NotFound(currencyId).Code,
+            result.Error.Code);
     }
 
     [Fact]
@@ -449,10 +502,13 @@ public sealed class CurrencyServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.Conflict, result.Error!.Type);
-        Assert.Equal(CurrencyErrors.DuplicateCode.Code, result.Error.Code);
+        Assert.Equal(
+            CurrencyErrors.DuplicateCode.Code,
+            result.Error.Code);
 
         _repositoryMock.Verify(
-            x => x.SaveCurrencyChangesAsync(It.IsAny<CancellationToken>()),
+            x => x.SaveCurrencyChangesAsync(
+                It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -461,7 +517,6 @@ public sealed class CurrencyServiceTests
     {
         // Arrange
         var currency = CreateCurrencyEntity();
-
         var dto = CreateValidUpdateCurrencyDto();
 
         _repositoryMock
@@ -480,7 +535,8 @@ public sealed class CurrencyServiceTests
         _repositoryMock
             .Setup(x => x.SaveCurrencyChangesAsync(
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new DuplicateEntityException(nameof(Currency)));
+            .ThrowsAsync(
+                new DuplicateEntityException(nameof(Currency)));
 
         // Act
         var result = await _service.UpdateCurrencyAsync(
@@ -491,16 +547,22 @@ public sealed class CurrencyServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorType.Conflict, result.Error!.Type);
-        Assert.Equal(CurrencyErrors.DuplicateCode.Code, result.Error.Code);
+        Assert.Equal(
+            CurrencyErrors.DuplicateCode.Code,
+            result.Error.Code);
     }
 
     #endregion
 
     #region Helpers
 
-    private async Task AssertInvalidCreateAsync(CreateCurrencyDto dto, Error expectedError)
+    private async Task AssertInvalidCreateAsync(
+        CreateCurrencyDto dto,
+        Error expectedError)
     {
-        var result = await _service.CreateCurrencyAsync(dto, CancellationToken.None);
+        var result = await _service.CreateCurrencyAsync(
+            dto,
+            CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(expectedError.Code, result.Error!.Code);
@@ -531,14 +593,14 @@ public sealed class CurrencyServiceTests
     }
 
     private static Currency CreateCurrencyEntity(
-        int currencyId = 1,
+        Guid? currencyId = null,
         string code = "RON",
         string name = "Romanian Leu",
         decimal exchangeRate = 1.0000m)
     {
         return new Currency
         {
-            CurrencyId = currencyId,
+            CurrencyId = currencyId ?? Guid.NewGuid(),
             Code = code,
             Name = name,
             ExchangeRateToBase = exchangeRate,

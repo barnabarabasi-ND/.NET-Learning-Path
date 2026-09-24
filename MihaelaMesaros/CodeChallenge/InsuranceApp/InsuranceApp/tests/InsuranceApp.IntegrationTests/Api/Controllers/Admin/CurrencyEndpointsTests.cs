@@ -12,7 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace InsuranceApp.IntegrationTests.Api.Controllers.Admin;
 
-public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory factory)
+public sealed class CurrencyEndpointsTests(
+    InsuranceAppWebApplicationFactory factory)
     : IClassFixture<InsuranceAppWebApplicationFactory>, IAsyncLifetime
 {
     private readonly InsuranceAppWebApplicationFactory _factory = factory;
@@ -24,7 +25,6 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
-
 
     #region Create Currency Tests
 
@@ -46,7 +46,7 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
             await response.Content.ReadFromJsonAsync<CurrencyDto>();
 
         Assert.NotNull(createdCurrency);
-        Assert.True(createdCurrency.CurrencyId > 0);
+        Assert.NotEqual(Guid.Empty, createdCurrency.CurrencyId);
 
         Assert.NotNull(response.Headers.Location);
         Assert.Equal(
@@ -251,7 +251,6 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
 
     #endregion
 
-
     #region Read Currency Tests
 
     [Fact]
@@ -323,14 +322,12 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
         Assert.Equal(404, problem.Status);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task GetCurrencyById_InvalidCurrencyId_ReturnsBadRequest(int currencyId)
+    [Fact]
+    public async Task GetCurrencyById_EmptyCurrencyId_ReturnsBadRequest()
     {
         // Act
         var response = await _client.GetAsync(
-            $"/api/admin/currencies/{currencyId}");
+            $"/api/admin/currencies/{Guid.Empty}");
 
         // Assert
         Assert.Equal(
@@ -339,7 +336,6 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
     }
 
     #endregion
-
 
     #region Update Currency Tests
 
@@ -414,17 +410,15 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
             response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task UpdateCurrency_InvalidCurrencyId_ReturnsBadRequest(int currencyId)
+    [Fact]
+    public async Task UpdateCurrency_EmptyCurrencyId_ReturnsBadRequest()
     {
         // Arrange
         var request = CreateValidUpdateCurrencyDto();
 
         // Act
         var response = await _client.PutAsJsonAsync(
-            $"/api/admin/currencies/{currencyId}",
+            $"/api/admin/currencies/{Guid.Empty}",
             request);
 
         // Assert
@@ -467,7 +461,6 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
 
     #endregion
 
-
     #region Helpers
 
     private static CreateCurrencyDto CreateValidCurrencyDto()
@@ -488,7 +481,7 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
             true);
     }
 
-    private async Task<int> SeedCurrencyAsync()
+    private async Task<Guid> SeedCurrencyAsync()
     {
         using var scope = _factory.Services.CreateScope();
 
@@ -497,6 +490,7 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
 
         var currency = new Currency
         {
+            CurrencyId = Guid.NewGuid(),
             Code = "RON",
             Name = "Romanian Leu",
             ExchangeRateToBase = 1.0000m,
@@ -521,6 +515,7 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
         dbContext.Currencies.AddRange(
             new Currency
             {
+                CurrencyId = Guid.NewGuid(),
                 Code = "RON",
                 Name = "Romanian Leu",
                 ExchangeRateToBase = 1.0000m,
@@ -529,6 +524,7 @@ public sealed class CurrencyEndpointsTests(InsuranceAppWebApplicationFactory fac
             },
             new Currency
             {
+                CurrencyId = Guid.NewGuid(),
                 Code = "EUR",
                 Name = "Euro",
                 ExchangeRateToBase = 4.9700m,

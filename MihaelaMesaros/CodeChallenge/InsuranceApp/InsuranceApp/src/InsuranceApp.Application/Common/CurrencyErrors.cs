@@ -6,7 +6,7 @@ public static class CurrencyErrors
 {
     public static readonly Error InvalidCurrencyId = new(
         "Currency.InvalidCurrencyId",
-        "Currency ID must be greater than zero.",
+        "Currency ID must not be empty.",
         ErrorType.Validation);
 
     public static readonly Error CodeRequired = new(
@@ -44,7 +44,7 @@ public static class CurrencyErrors
         "A currency with this code already exists.",
         ErrorType.Conflict);
 
-    public static Error NotFound(int currencyId) => new(
+    public static Error NotFound(Guid currencyId) => new(
         "Currency.NotFound",
         $"Currency with ID {currencyId} was not found.",
         ErrorType.NotFound);

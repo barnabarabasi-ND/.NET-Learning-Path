@@ -4,11 +4,11 @@ namespace InsuranceApp.Domain.Entities;
 
 public sealed class RiskFactorConfig
 {
-    public int RiskFactorConfigId { get; set; }
+    public Guid RiskFactorConfigId { get; set; }
 
     public RiskFactorLevel Level { get; set; }
 
-    public int ReferenceId { get; set; }
+    public Guid ReferenceId { get; set; }
 
     public decimal AdjustmentPercentage { get; set; }
 

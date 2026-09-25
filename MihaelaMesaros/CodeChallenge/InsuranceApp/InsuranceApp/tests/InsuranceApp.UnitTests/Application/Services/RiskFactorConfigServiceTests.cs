@@ -8,6 +8,7 @@ using InsuranceApp.Domain.Enums;
 using InsuranceApp.UnitTests.Common;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Globalization;
 
 namespace InsuranceApp.UnitTests.Application.Services;
 
@@ -17,6 +18,13 @@ public sealed class RiskFactorConfigServiceTests
     private readonly Mock<ILogger<RiskFactorConfigService>> _loggerMock;
     private readonly RiskFactorConfigService _service;
 
+    private readonly Guid _riskFactorConfigId;
+    private readonly Guid _referenceId;
+
+    private readonly CreateRiskFactorConfigDto _validCreateDto;
+    private readonly UpdateRiskFactorConfigDto _validUpdateDto;
+    private readonly RiskFactorConfig _existingConfig;
+
     public RiskFactorConfigServiceTests()
     {
         _repositoryMock = new Mock<IRiskFactorConfigRepository>();
@@ -25,6 +33,32 @@ public sealed class RiskFactorConfigServiceTests
         _service = new RiskFactorConfigService(
             _repositoryMock.Object,
             _loggerMock.Object);
+
+
+        _riskFactorConfigId = Guid.NewGuid();
+        _referenceId = Guid.NewGuid();
+
+        _validCreateDto = new CreateRiskFactorConfigDto(
+            RiskFactorLevel.Country,
+            _referenceId,
+            5.25m,
+            true);
+
+        _validUpdateDto = new UpdateRiskFactorConfigDto(
+            RiskFactorLevel.County,
+            _referenceId,
+            -2.50m,
+            true);
+
+        _existingConfig = new RiskFactorConfig
+        {
+            RiskFactorConfigId = _riskFactorConfigId,
+            Level = RiskFactorLevel.Country,
+            ReferenceId = _referenceId,
+            AdjustmentPercentage = 5.25m,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
     }
 
     #region Get All Tests
@@ -33,15 +67,20 @@ public sealed class RiskFactorConfigServiceTests
     public async Task GetRiskFactorConfigsAsync_ReturnsMappedConfigurations()
     {
         // Arrange
+        var secondConfig = new RiskFactorConfig
+        {
+            RiskFactorConfigId = Guid.NewGuid(),
+            Level = RiskFactorLevel.City,
+            ReferenceId = Guid.NewGuid(),
+            AdjustmentPercentage = -2.50m,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
         var configs = new List<RiskFactorConfig>
         {
-            CreateRiskFactorConfigEntity(
-                level: RiskFactorLevel.Country,
-                adjustmentPercentage: 5.25m),
-
-            CreateRiskFactorConfigEntity(
-                level: RiskFactorLevel.City,
-                adjustmentPercentage: -2.50m)
+            _existingConfig,
+            secondConfig
         };
 
         _repositoryMock
@@ -59,11 +98,11 @@ public sealed class RiskFactorConfigServiceTests
         Assert.Equal(2, result.Value.Count);
 
         Assert.Equal(
-            configs[0].RiskFactorConfigId,
+            _existingConfig.RiskFactorConfigId,
             result.Value[0].RiskFactorConfigId);
 
         Assert.Equal(
-            configs[1].RiskFactorConfigId,
+            secondConfig.RiskFactorConfigId,
             result.Value[1].RiskFactorConfigId);
     }
 
@@ -75,17 +114,15 @@ public sealed class RiskFactorConfigServiceTests
     public async Task GetRiskFactorConfigByIdAsync_ExistingConfig_ReturnsSuccess()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
         _repositoryMock
             .Setup(x => x.GetRiskFactorConfigByIdAsync(
-                config.RiskFactorConfigId,
+                _riskFactorConfigId,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+            .ReturnsAsync(_existingConfig);
 
         // Act
         var result = await _service.GetRiskFactorConfigByIdAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             CancellationToken.None);
 
         // Assert
@@ -93,17 +130,24 @@ public sealed class RiskFactorConfigServiceTests
         Assert.NotNull(result.Value);
 
         Assert.Equal(
-            config.RiskFactorConfigId,
+            _existingConfig.RiskFactorConfigId,
             result.Value.RiskFactorConfigId);
 
-        Assert.Equal(config.Level, result.Value.Level);
-        Assert.Equal(config.ReferenceId, result.Value.ReferenceId);
+        Assert.Equal(
+            _existingConfig.Level,
+            result.Value.Level);
 
         Assert.Equal(
-            config.AdjustmentPercentage,
+            _existingConfig.ReferenceId,
+            result.Value.ReferenceId);
+
+        Assert.Equal(
+            _existingConfig.AdjustmentPercentage,
             result.Value.AdjustmentPercentage);
 
-        Assert.Equal(config.IsActive, result.Value.IsActive);
+        Assert.Equal(
+            _existingConfig.IsActive,
+            result.Value.IsActive);
     }
 
     [Fact]
@@ -115,16 +159,9 @@ public sealed class RiskFactorConfigServiceTests
             CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.Validation,
-            result.Error.Type);
-
-        Assert.Equal(
-            RiskFactorConfigErrors.InvalidRiskFactorConfigId.Code,
-            result.Error.Code);
+        AssertValidationError(
+            result,
+            RiskFactorConfigErrors.InvalidRiskFactorConfigId);
 
         _repositoryMock.Verify(
             x => x.GetRiskFactorConfigByIdAsync(
@@ -153,10 +190,7 @@ public sealed class RiskFactorConfigServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.NotFound,
-            result.Error.Type);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
 
         Assert.Equal(
             RiskFactorConfigErrors.NotFound(configId).Code,
@@ -171,14 +205,17 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_ValidConfig_ReturnsSuccess()
     {
         // Arrange
-        var dto = CreateValidCreateDto();
+        SetupExistingReference(
+            _validCreateDto.Level,
+            _validCreateDto.ReferenceId);
 
-        SetupExistingReference(dto.Level, dto.ReferenceId);
-        SetupNoDuplicate(dto.Level, dto.ReferenceId);
+        SetupNoDuplicate(
+            _validCreateDto.Level,
+            _validCreateDto.ReferenceId);
 
         // Act
         var result = await _service.CreateRiskFactorConfigAsync(
-            dto,
+            _validCreateDto,
             CancellationToken.None);
 
         // Assert
@@ -189,23 +226,30 @@ public sealed class RiskFactorConfigServiceTests
             Guid.Empty,
             result.Value.RiskFactorConfigId);
 
-        Assert.Equal(dto.Level, result.Value.Level);
-        Assert.Equal(dto.ReferenceId, result.Value.ReferenceId);
+        Assert.Equal(
+            _validCreateDto.Level,
+            result.Value.Level);
 
         Assert.Equal(
-            dto.AdjustmentPercentage,
+            _validCreateDto.ReferenceId,
+            result.Value.ReferenceId);
+
+        Assert.Equal(
+            _validCreateDto.AdjustmentPercentage,
             result.Value.AdjustmentPercentage);
 
-        Assert.Equal(dto.IsActive, result.Value.IsActive);
+        Assert.Equal(
+            _validCreateDto.IsActive,
+            result.Value.IsActive);
 
         _repositoryMock.Verify(
             x => x.AddRiskFactorConfigAsync(
                 It.Is<RiskFactorConfig>(config =>
-                    config.Level == dto.Level &&
-                    config.ReferenceId == dto.ReferenceId &&
+                    config.Level == _validCreateDto.Level &&
+                    config.ReferenceId == _validCreateDto.ReferenceId &&
                     config.AdjustmentPercentage ==
-                        dto.AdjustmentPercentage &&
-                    config.IsActive == dto.IsActive),
+                        _validCreateDto.AdjustmentPercentage &&
+                    config.IsActive == _validCreateDto.IsActive),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -214,13 +258,18 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_NegativePercentage_ReturnsSuccess()
     {
         // Arrange
-        var dto = CreateValidCreateDto() with
+        var dto = _validCreateDto with
         {
             AdjustmentPercentage = -5.25m
         };
 
-        SetupExistingReference(dto.Level, dto.ReferenceId);
-        SetupNoDuplicate(dto.Level, dto.ReferenceId);
+        SetupExistingReference(
+            dto.Level,
+            dto.ReferenceId);
+
+        SetupNoDuplicate(
+            dto.Level,
+            dto.ReferenceId);
 
         // Act
         var result = await _service.CreateRiskFactorConfigAsync(
@@ -229,7 +278,6 @@ public sealed class RiskFactorConfigServiceTests
 
         // Assert
         Assert.True(result.IsSuccess);
-
         Assert.Equal(
             -5.25m,
             result.Value!.AdjustmentPercentage);
@@ -239,7 +287,7 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_InvalidLevel_ReturnsValidationError()
     {
         // Arrange
-        var dto = CreateValidCreateDto() with
+        var dto = _validCreateDto with
         {
             Level = (RiskFactorLevel)999
         };
@@ -261,7 +309,7 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_EmptyReferenceId_ReturnsValidationError()
     {
         // Arrange
-        var dto = CreateValidCreateDto() with
+        var dto = _validCreateDto with
         {
             ReferenceId = Guid.Empty
         };
@@ -286,11 +334,11 @@ public sealed class RiskFactorConfigServiceTests
         string percentage)
     {
         // Arrange
-        var dto = CreateValidCreateDto() with
+        var dto = _validCreateDto with
         {
             AdjustmentPercentage = decimal.Parse(
                 percentage,
-                System.Globalization.CultureInfo.InvariantCulture)
+                CultureInfo.InvariantCulture)
         };
 
         // Act
@@ -310,7 +358,7 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_PercentageWithTooManyDecimals_ReturnsValidationError()
     {
         // Arrange
-        var dto = CreateValidCreateDto() with
+        var dto = _validCreateDto with
         {
             AdjustmentPercentage = 5.123m
         };
@@ -332,27 +380,22 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_NonExistingReference_ReturnsNotFound()
     {
         // Arrange
-        var dto = CreateValidCreateDto();
-
         _repositoryMock
             .Setup(x => x.ReferenceExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
+                _validCreateDto.Level,
+                _validCreateDto.ReferenceId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
         var result = await _service.CreateRiskFactorConfigAsync(
-            dto,
+            _validCreateDto,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.NotFound,
-            result.Error.Type);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
 
         Assert.Equal(
             RiskFactorConfigErrors.ReferenceNotFound.Code,
@@ -377,34 +420,25 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_DuplicateConfig_ReturnsConflict()
     {
         // Arrange
-        var dto = CreateValidCreateDto();
-
-        SetupExistingReference(dto.Level, dto.ReferenceId);
+        SetupExistingReference(
+            _validCreateDto.Level,
+            _validCreateDto.ReferenceId);
 
         _repositoryMock
             .Setup(x => x.RiskFactorConfigExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
+                _validCreateDto.Level,
+                _validCreateDto.ReferenceId,
                 null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _service.CreateRiskFactorConfigAsync(
-            dto,
+            _validCreateDto,
             CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.Conflict,
-            result.Error.Type);
-
-        Assert.Equal(
-            RiskFactorConfigErrors.AlreadyExists.Code,
-            result.Error.Code);
+        AssertConflict(result);
 
         _repositoryMock.Verify(
             x => x.AddRiskFactorConfigAsync(
@@ -417,36 +451,29 @@ public sealed class RiskFactorConfigServiceTests
     public async Task CreateRiskFactorConfigAsync_DuplicateOnInsert_ReturnsConflict()
     {
         // Arrange
-        var dto = CreateValidCreateDto();
+        SetupExistingReference(
+            _validCreateDto.Level,
+            _validCreateDto.ReferenceId);
 
-        SetupExistingReference(dto.Level, dto.ReferenceId);
-        SetupNoDuplicate(dto.Level, dto.ReferenceId);
+        SetupNoDuplicate(
+            _validCreateDto.Level,
+            _validCreateDto.ReferenceId);
 
-        // Simulates race condition:
-        // duplicate check passes, but DB unique constraint rejects the INSERT.
         _repositoryMock
             .Setup(x => x.AddRiskFactorConfigAsync(
                 It.IsAny<RiskFactorConfig>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(
-                new DuplicateEntityException(nameof(RiskFactorConfig)));
+                new DuplicateEntityException(
+                    nameof(RiskFactorConfig)));
 
         // Act
         var result = await _service.CreateRiskFactorConfigAsync(
-            dto,
+            _validCreateDto,
             CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.Conflict,
-            result.Error.Type);
-
-        Assert.Equal(
-            RiskFactorConfigErrors.AlreadyExists.Code,
-            result.Error.Code);
+        AssertConflict(result);
 
         _repositoryMock.Verify(
             x => x.AddRiskFactorConfigAsync(
@@ -454,6 +481,7 @@ public sealed class RiskFactorConfigServiceTests
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
     #endregion
 
     #region Update Tests
@@ -462,33 +490,29 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_ValidConfig_ReturnsSuccess()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
+        var referenceId = Guid.NewGuid();
 
-        var dto = new UpdateRiskFactorConfigDto(
-            RiskFactorLevel.City,
-            Guid.NewGuid(),
-            -3.25m,
-            false);
+        var dto = _validUpdateDto with
+        {
+            Level = RiskFactorLevel.City,
+            ReferenceId = referenceId,
+            AdjustmentPercentage = -3.25m,
+            IsActive = false
+        };
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
-        SetupExistingReference(dto.Level, dto.ReferenceId);
+        SetupExistingReference(
+            dto.Level,
+            dto.ReferenceId);
 
-        _repositoryMock
-            .Setup(x => x.RiskFactorConfigExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        SetupNoDuplicateForUpdate(
+            dto.Level,
+            dto.ReferenceId);
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             dto,
             CancellationToken.None);
 
@@ -504,7 +528,7 @@ public sealed class RiskFactorConfigServiceTests
             result.Value.AdjustmentPercentage);
 
         Assert.False(result.Value.IsActive);
-        Assert.NotNull(config.ModifiedAt);
+        Assert.NotNull(_existingConfig.ModifiedAt);
 
         _repositoryMock.Verify(
             x => x.SaveRiskFactorConfigChangesAsync(
@@ -515,13 +539,10 @@ public sealed class RiskFactorConfigServiceTests
     [Fact]
     public async Task UpdateRiskFactorConfigAsync_EmptyId_ReturnsValidationError()
     {
-        // Arrange
-        var dto = CreateValidUpdateDto();
-
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
             Guid.Empty,
-            dto,
+            _validUpdateDto,
             CancellationToken.None);
 
         // Assert
@@ -541,7 +562,6 @@ public sealed class RiskFactorConfigServiceTests
     {
         // Arrange
         var configId = TestConstants.NonExistingId;
-        var dto = CreateValidUpdateDto();
 
         _repositoryMock
             .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
@@ -552,16 +572,13 @@ public sealed class RiskFactorConfigServiceTests
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
             configId,
-            dto,
+            _validUpdateDto,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.NotFound,
-            result.Error.Type);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
 
         Assert.Equal(
             RiskFactorConfigErrors.NotFound(configId).Code,
@@ -579,35 +596,25 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_NonExistingReference_ReturnsNotFound()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-        var dto = CreateValidUpdateDto();
-
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
         _repositoryMock
             .Setup(x => x.ReferenceExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
+                _validUpdateDto.Level,
+                _validUpdateDto.ReferenceId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
-            dto,
+            _riskFactorConfigId,
+            _validUpdateDto,
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.NotFound,
-            result.Error.Type);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
 
         Assert.Equal(
             RiskFactorConfigErrors.ReferenceNotFound.Code,
@@ -623,42 +630,28 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_DuplicateConfig_ReturnsConflict()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-        var dto = CreateValidUpdateDto();
+        SetupExistingConfigForUpdate();
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
-
-        SetupExistingReference(dto.Level, dto.ReferenceId);
+        SetupExistingReference(
+            _validUpdateDto.Level,
+            _validUpdateDto.ReferenceId);
 
         _repositoryMock
             .Setup(x => x.RiskFactorConfigExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
-                config.RiskFactorConfigId,
+                _validUpdateDto.Level,
+                _validUpdateDto.ReferenceId,
+                _riskFactorConfigId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
-            dto,
+            _riskFactorConfigId,
+            _validUpdateDto,
             CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.Conflict,
-            result.Error.Type);
-
-        Assert.Equal(
-            RiskFactorConfigErrors.AlreadyExists.Code,
-            result.Error.Code);
+        AssertConflict(result);
 
         _repositoryMock.Verify(
             x => x.SaveRiskFactorConfigChangesAsync(
@@ -670,33 +663,25 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_DuplicateCheck_ExcludesCurrentConfig()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
         var dto = new UpdateRiskFactorConfigDto(
-            config.Level,
-            config.ReferenceId,
+            _existingConfig.Level,
+            _existingConfig.ReferenceId,
             7.50m,
             true);
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
-        SetupExistingReference(dto.Level, dto.ReferenceId);
+        SetupExistingReference(
+            dto.Level,
+            dto.ReferenceId);
 
-        _repositoryMock
-            .Setup(x => x.RiskFactorConfigExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        SetupNoDuplicateForUpdate(
+            dto.Level,
+            dto.ReferenceId);
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             dto,
             CancellationToken.None);
 
@@ -707,7 +692,7 @@ public sealed class RiskFactorConfigServiceTests
             x => x.RiskFactorConfigExistsAsync(
                 dto.Level,
                 dto.ReferenceId,
-                config.RiskFactorConfigId,
+                _riskFactorConfigId,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -716,53 +701,31 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_DuplicateOnSave_ReturnsConflict()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
-        var dto = CreateValidUpdateDto();
-
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
         SetupExistingReference(
-            dto.Level,
-            dto.ReferenceId);
+            _validUpdateDto.Level,
+            _validUpdateDto.ReferenceId);
 
-        // Application-level duplicate check passes.
-        _repositoryMock
-            .Setup(x => x.RiskFactorConfigExistsAsync(
-                dto.Level,
-                dto.ReferenceId,
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        SetupNoDuplicateForUpdate(
+            _validUpdateDto.Level,
+            _validUpdateDto.ReferenceId);
 
-        // But DB unique constraint rejects SaveChanges.
         _repositoryMock
             .Setup(x => x.SaveRiskFactorConfigChangesAsync(
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(
-                new DuplicateEntityException(nameof(RiskFactorConfig)));
+                new DuplicateEntityException(
+                    nameof(RiskFactorConfig)));
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
-            dto,
+            _riskFactorConfigId,
+            _validUpdateDto,
             CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-
-        Assert.Equal(
-            ErrorType.Conflict,
-            result.Error.Type);
-
-        Assert.Equal(
-            RiskFactorConfigErrors.AlreadyExists.Code,
-            result.Error.Code);
+        AssertConflict(result);
 
         _repositoryMock.Verify(
             x => x.SaveRiskFactorConfigChangesAsync(
@@ -774,22 +737,16 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_InvalidLevel_ReturnsValidationError()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
-        var dto = CreateValidUpdateDto() with
+        var dto = _validUpdateDto with
         {
             Level = (RiskFactorLevel)999
         };
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             dto,
             CancellationToken.None);
 
@@ -810,22 +767,16 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_EmptyReferenceId_ReturnsValidationError()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
-        var dto = CreateValidUpdateDto() with
+        var dto = _validUpdateDto with
         {
             ReferenceId = Guid.Empty
         };
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             dto,
             CancellationToken.None);
 
@@ -849,24 +800,18 @@ public sealed class RiskFactorConfigServiceTests
         string percentage)
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
-        var dto = CreateValidUpdateDto() with
+        var dto = _validUpdateDto with
         {
             AdjustmentPercentage = decimal.Parse(
                 percentage,
-                System.Globalization.CultureInfo.InvariantCulture)
+                CultureInfo.InvariantCulture)
         };
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             dto,
             CancellationToken.None);
 
@@ -880,22 +825,16 @@ public sealed class RiskFactorConfigServiceTests
     public async Task UpdateRiskFactorConfigAsync_PercentageWithTooManyDecimals_ReturnsValidationError()
     {
         // Arrange
-        var config = CreateRiskFactorConfigEntity();
-
-        var dto = CreateValidUpdateDto() with
+        var dto = _validUpdateDto with
         {
             AdjustmentPercentage = 5.123m
         };
 
-        _repositoryMock
-            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
-                config.RiskFactorConfigId,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(config);
+        SetupExistingConfigForUpdate();
 
         // Act
         var result = await _service.UpdateRiskFactorConfigAsync(
-            config.RiskFactorConfigId,
+            _riskFactorConfigId,
             dto,
             CancellationToken.None);
 
@@ -904,9 +843,19 @@ public sealed class RiskFactorConfigServiceTests
             result,
             RiskFactorConfigErrors.InvalidAdjustmentPercentageScale);
     }
+
     #endregion
 
     #region Helpers
+
+    private void SetupExistingConfigForUpdate()
+    {
+        _repositoryMock
+            .Setup(x => x.GetRiskFactorConfigForUpdateAsync(
+                _riskFactorConfigId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_existingConfig);
+    }
 
     private void SetupExistingReference(
         RiskFactorLevel level,
@@ -929,6 +878,19 @@ public sealed class RiskFactorConfigServiceTests
                 level,
                 referenceId,
                 null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+    }
+
+    private void SetupNoDuplicateForUpdate(
+        RiskFactorLevel level,
+        Guid referenceId)
+    {
+        _repositoryMock
+            .Setup(x => x.RiskFactorConfigExistsAsync(
+                level,
+                referenceId,
+                _riskFactorConfigId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
     }
@@ -961,46 +923,16 @@ public sealed class RiskFactorConfigServiceTests
         Assert.Equal(expectedError.Code, result.Error.Code);
     }
 
-    private static CreateRiskFactorConfigDto CreateValidCreateDto()
+    private static void AssertConflict(
+        Result<RiskFactorConfigDto> result)
     {
-        return new CreateRiskFactorConfigDto(
-            RiskFactorLevel.Country,
-            Guid.NewGuid(),
-            5.25m,
-            true);
-    }
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ErrorType.Conflict, result.Error.Type);
 
-    private static UpdateRiskFactorConfigDto CreateValidUpdateDto()
-    {
-        return new UpdateRiskFactorConfigDto(
-            RiskFactorLevel.County,
-            Guid.NewGuid(),
-            -2.50m,
-            true);
-    }
-
-    private static RiskFactorConfig CreateRiskFactorConfigEntity(
-        Guid? riskFactorConfigId = null,
-        RiskFactorLevel level = RiskFactorLevel.Country,
-        Guid? referenceId = null,
-        decimal adjustmentPercentage = 5.25m)
-    {
-        return new RiskFactorConfig
-        {
-            RiskFactorConfigId =
-                riskFactorConfigId ?? Guid.NewGuid(),
-
-            Level = level,
-
-            ReferenceId =
-                referenceId ?? Guid.NewGuid(),
-
-            AdjustmentPercentage =
-                adjustmentPercentage,
-
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
+        Assert.Equal(
+            RiskFactorConfigErrors.AlreadyExists.Code,
+            result.Error.Code);
     }
 
     #endregion
